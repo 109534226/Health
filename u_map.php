@@ -1,6 +1,9 @@
 <?php
 session_start();
 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 if (!isset($_SESSION["登入狀態"])) {
     header("Location: login.html");
     exit;
@@ -23,8 +26,45 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
           </script>";
     exit();
 }
-?>
 
+// 引入資料庫連接檔案
+include 'db.php';
+
+// 從資料庫中取得醫事機構資料
+$query = "SELECT DISTINCT `醫事機構` FROM `hospital`";
+$result = $link->query($query);
+
+// 處理 AJAX 請求
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'get_clinics') {
+    // 接收縣市和地區參數
+    $county = $_POST['county'];
+    $district = $_POST['district'];
+
+    // 查詢符合條件的診所/醫院
+    $query = "SELECT `醫事機構`, `科別` FROM `hospital` WHERE `縣市名稱` = ? AND `區域` = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param('ss', $county, $district);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // 返回查詢結果
+    if ($result->num_rows > 0) {
+        $output = "<ul>";
+        while ($row = $result->fetch_assoc()) {
+            $output .= "<li>" . htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8') . " - " . htmlspecialchars($row['科別'], ENT_QUOTES, 'UTF-8') . "</li>";
+        }
+        $output .= "</ul>";
+        echo $output;
+    } else {
+        echo "未找到符合條件的診所或醫院。";
+    }
+
+    $stmt->close();
+    $conn->close();
+    exit; // 結束執行，避免執行其他代碼
+
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -37,6 +77,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
     <!-- Favicon -->
     <link href="img/favicon.ico" rel="icon">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <!-- SweetAlert CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
@@ -254,10 +295,72 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 </div>
 
                                 <div class="col-12 col-sm-6" style="width: 100%; max-width: 600px;">
-                                    <select class="form-select bg-light border-0" style="height: 55px;">
-                                        <option selected value="">選擇診所或醫院</option>
+                                    <select class="form-select bg-light border-0" style="height: 55px;" id="clinic"
+                                        name="clinic">
+                                        <option selected value="" disabled>選擇診所或醫院</option>
+                                        <?php
+                                        if ($result->num_rows > 0) {
+                                            while ($row = $result->fetch_assoc()) {
+                                                echo "<option value='" . $row['醫事機構'] . "'>" . $row['醫事機構'] . "</option>";
+                                            }
+                                        } else {
+                                            echo "<option value='' disabled>無可用醫事機構</option>";
+                                        }
+                                        ?>
                                     </select>
                                 </div>
+                                <script>
+                                    $(document).ready(function () {
+                                        $('#district_box').on('change', function () {
+                                            const county = $('#county_box').val();  // 获取县市值
+                                            const district = $('#district_box').val();  // 获取地区值
+
+                                            if (county && district) {
+                                                // 发送 AJAX 请求
+                                                $.ajax({
+                                                    url: 'u_map.php',
+                                                    type: 'POST',
+                                                    data: {
+                                                        action: 'get_clinics',
+                                                        county: county,
+                                                        district: district
+                                                    },
+                                                    success: function (response) {
+                                                        console.log("服务器返回的数据:", response); // 打印服务器返回的数据
+
+                                                        // 使用 SweetAlert 显示查询结果
+                                                        Swal.fire({
+                                                            title: '診所查詢結果',
+                                                            html: response, // 直接显示后端返回的 HTML 数据
+                                                            icon: 'info',
+                                                            confirmButtonText: '確認'
+                                                        });
+                                                    },
+                                                    error: function (xhr, status, error) {
+                                                        console.error("AJAX 请求错误:", xhr.responseText, status, error);
+
+                                                        // 如果发生错误，显示错误弹窗
+                                                        Swal.fire({
+                                                            title: '錯誤',
+                                                            text: '獲取診所失敗，請稍後再試！',
+                                                            icon: 'error',
+                                                            confirmButtonText: '確認'
+                                                        });
+                                                    }
+                                                });
+                                            } else {
+                                                // 如果未选择县市或地区，提示用户
+                                                Swal.fire({
+                                                    title: '提示',
+                                                    text: '請先選擇縣市和地區！',
+                                                    icon: 'warning',
+                                                    confirmButtonText: '確認'
+                                                });
+                                            }
+                                        });
+                                    });
+                                </script>
+
                                 <div class="row">
                                     <p><br /></p>
                                     <div class="col-md-6 mb-3">
