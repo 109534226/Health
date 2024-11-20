@@ -1,5 +1,7 @@
 <?php
 session_start();
+// 引入資料庫連線
+include 'db.php';
 
 if (!isset($_SESSION["登入狀態"])) {
     header("Location: login.html");
@@ -10,7 +12,6 @@ if (!isset($_SESSION["登入狀態"])) {
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 header("Pragma: no-cache");
-// header('Content-Type: application/json; charset=utf-8');
 
 // 清空輸出緩存
 ob_clean();
@@ -29,60 +30,38 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     exit();
 }
 
-// 檢查是否為 POST 請求
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
+// 從前一頁接收診所和科別資料
+$affiliated = $_POST['affiliated'];
+$department = $_POST['department'];
 
-    // 驗證操作類型
-    if ($action !== 'get_clinics') {
-        echo json_encode(["message" => "無效的操作類型。"]);
-        exit;
-    }
+// 查詢符合條件的醫生
+$sql_doctors = "SELECT name FROM hospitaldoctor WHERE affiliated = '$affiliated' AND department = '$department'";
+$result_doctors = $link->query($sql_doctors);
 
-    // 獲取請求參數
-    $county = trim($_POST['county'] ?? '');
-    $district = trim($_POST['district'] ?? '');
-
-    // 驗證請求參數
-    if (empty($county) || empty($district)) {
-        echo json_encode(["message" => "請選擇縣市和地區！"]);
-        exit;
-    }
-
-    // 引入資料庫連線
-    include 'db.php';
-
-    // 查詢資料庫
-    $query = "SELECT DISTINCT `醫事機構` FROM `hospital` WHERE `縣市名稱` = ? AND `區域` = ?";
-    $stmt = $link->prepare($query);
-
-    if (!$stmt) {
-        echo json_encode(["message" => "伺服器內部錯誤，請稍後再試。"]);
-        exit;
-    }
-
-    // 綁定參數並執行查詢
-    $stmt->bind_param('ss', $county, $district);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    // 處理結果
-    if ($result->num_rows > 0) {
-        $clinics = [];
-        while ($row = $result->fetch_assoc()) {
-            $clinics[] = htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8');
+$doctor_shifts = [];
+if ($result_doctors->num_rows > 0) {
+    while ($row = $result_doctors->fetch_assoc()) {
+        $doctorname = $row['name'];
+        // 查詢該醫生的排班信息
+        $sql_shifts = "SELECT * FROM doctorshift WHERE doctorname = '$doctorname'";
+        $result_shifts = $link->query($sql_shifts);
+        if ($result_shifts->num_rows > 0) {
+            while ($shift = $result_shifts->fetch_assoc()) {
+                $doctor_shifts[] = $shift;
+            }
         }
-        echo json_encode(["clinics" => $clinics]);
-    } else {
-        echo json_encode(["message" => "未找到符合條件的診所或醫院。"]);
     }
-
-    // 關閉連線
-    $stmt->close();
-    $link->close();
-    exit;
 }
 
+// 計算本周的日期範圍（從星期一到星期日）
+$week_dates = [];
+$today = strtotime(date('Y-m-d'));
+$start_of_week = strtotime("last Monday", $today);
+$end_of_week = strtotime("next Sunday", $start_of_week);
+
+for ($i = 0; $i < 7; $i++) {
+    $week_dates[] = date('Y-m-d', strtotime("+$i day", $start_of_week));
+}
 ?>
 
 <!DOCTYPE html>
@@ -118,6 +97,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
     <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .gray-background {
+            background-color: #f2f2f2;
+        }
+
         /* 彈出對話框的樣式 */
         .logout-box {
             position: fixed;
@@ -269,156 +269,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     </script>
 
-    <!-- 預約掛號 Start -->
-    <div class="container-fluid bg-primary my-5 py-5">
-        <div class="container py-5">
-            <div class="row gx-5">
-                <div class="col-lg-6 mb-5 mb-lg-0">
-                    <div class="mb-4">
-                        <h5 class="d-inline-block text-white text-uppercase border-bottom border-5">預約</h5>
-                        <p></br></p>
-                        <h1 class="display-4">請選擇您要去的醫療診所</h1>
-                    </div>
-                    <p class="text-white mb-5">
-                        歡迎使用線上預約查詢系統！我們致力於為您提供最全面、最便捷的預約服務資訊，讓您輕鬆找到最適合的解決方案。我們將為您推薦最合適的預約選項及時間，幫助您順利預約想去的醫院或其他服務。感謝您選擇我們的線上預約查詢系統，我們將竭誠為您提供最優質的服務，讓您每一次預約都輕鬆愉快，享受每一刻的安心與便捷！
-                    </p>
-                    <a class="btn btn-dark rounded-pill py-3 px-5 me-3" href="u_map.php">搜尋</a>
-                </div>
-                <div class="col-lg-6">
-                    <div class="bg-white text-center rounded p-5">
-                        <h1 class="mb-4">預約掛號</h1>
-                        <form action="u_selectclinic.php" method="POST">
-                            <div class="row g-3">
-                                <div class="col-12 col-sm-6">
-                                    <select class="form-select bg-light border-0" style="height: 55px;" name="county"
-                                        id="county_box">
-                                        <option selected value="">選擇縣市</option>
-                                    </select>
-                                </div>
-                                <div class="col-12 col-sm-6">
-                                    <select class="form-select bg-light border-0" style="height: 55px;" name="district"
-                                        id="district_box">
-                                        <option selected value="">選擇鄉鎮市區</option>
-                                    </select>
-                                </div>
-                                <div class="col-12 col-sm-6">
-                                    <!-- 診所下拉選單 -->
-                                    <select class="form-select bg-light border-0" style="height: 55px;" id="clinic"
-                                        name="clinic">
-                                        <option selected value="">選擇診所或醫院</option>
-                                        <?php
-                                        // 使用 mysqli 查詢診所列表
-                                        $sql = "SELECT DISTINCT 醫事機構 FROM hospital";
-                                        $result = mysqli_query($conn, $sql);
+<h2>上午診</h2>
+    <table>
+        <thead>
+            <tr class="gray-background">
+                <th>診間號</th>
+                <?php
+                foreach ($week_dates as $date) {
+                    echo "<th>" . date('l', strtotime($date)) . "<br>" . date('m-d', strtotime($date)) . "</th>";
+                }
+                ?>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            // 初始化每個診間的上午診狀態
+            $clinic_shifts = [];
 
-                                        if (mysqli_num_rows($result) > 0) {
-                                            while ($row = mysqli_fetch_assoc($result)) {
-                                                echo "<option value='" . htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8') . "</option>";
-                                            }
-                                        }
-                                        ?>
-                                    </select>
-                                </div>
+            // 填充上午診的排班信息
+            foreach ($doctor_shifts as $shift) {
+                if ($shift['consultationperiod'] == '早') {
+                    $clinicnumber = $shift['clinicnumber'];
+                    $shift_date = date('Y-m-d', strtotime($shift['dateday']));
+                    $day_index = array_search($shift_date, $week_dates);
 
-                                <div class="col-12 col-sm-6">
-                                    <!-- 科別下拉選單 -->
-                                    <select class="form-select bg-light border-0" style="height: 55px;" id="department"
-                                        name="department">
-                                        <option selected value="">選擇看診科目</option>
-                                    </select>
-                                </div>
+                    if ($day_index !== false) {
+                        if (!isset($clinic_shifts[$clinicnumber])) {
+                            $clinic_shifts[$clinicnumber] = array_fill(0, 7, '');
+                        }
+                        $clinic_shifts[$clinicnumber][$day_index] = $shift['doctorname'];
+                    }
+                }
+            }
 
-                                <script>
-                                    // 請求診所列表
-                                    $('#district_box').on('change', function () {
-                                        const county = $('#county_box').val();
-                                        const district = $(this).val();
-
-                                        if (!county || !district) {
-                                            alert("請先選擇縣市和地區！");
-                                            return;
-                                        }
-
-                                        $.ajax({
-                                            url: 'u_reserve.php',
-                                            type: 'POST',
-                                            data: {
-                                                action: 'get_clinics',
-                                                county: county,
-                                                district: district
-                                            },
-                                            success: function (response) {
-                                                const data = JSON.parse(response);
-                                                $('#clinic').empty().append('<option value="" disabled selected>選擇診所或醫院</option>');
-
-                                                if (data.clinics) {
-                                                    data.clinics.forEach(function (clinic) {
-                                                        $('#clinic').append(`<option value="${clinic}">${clinic}</option>`);
-                                                    });
-                                                } else if (data.message) {
-                                                    alert(data.message);
-                                                }
-                                            },
-                                            error: function () {
-                                                alert("發生錯誤，請稍後再試！");
-                                            }
-                                        });
-                                    });
-
-                                    $('#clinic').on('change', function () {
-                                        const selectedClinic = $(this).val(); // 取得選中的診所名稱
-                                        const departmentSelect = $('#department'); // 科別下拉選單
-
-                                        // 清空科別下拉選單
-                                        departmentSelect.empty().append('<option value="" selected disabled>選擇看診科目</option>');
-
-                                        if (selectedClinic) {
-                                            // 發送 AJAX 請求
-                                            $.ajax({
-                                                url: '選擇看診科目.php', // 指向後端處理科別的 PHP 文件
-                                                type: 'POST',
-                                                data: {
-                                                    clinic: selectedClinic // 傳送診所名稱
-                                                },
-                                                success: function (response) {
-                                                    // 動態添加科別到下拉選單
-                                                    departmentSelect.append(response);
-                                                },
-                                                error: function () {
-                                                    alert("發生錯誤，無法載入科別！");
-                                                }
-                                            });
-                                        }
-                                    });
-                                </script>
-
-                                <div class="row">
-                                    <p><br /></p>
-                                    <div class="col-mb-3">
-                                        <button class="btn btn-primary  py-3" style="width: 100%"
-                                            type="submit">下一步</button>
-                                    </div>
-                                </div>
-                                <script>
-                                    function sLocation() {
-                                        var location = document.getElementById("location").value;
-                                        if (location) {
-                                            var url = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(location);
-                                            window.open(url, '_blank');
-                                        } else {
-                                            alert("請輸入地點");
-                                        }
-                                    }
-                                </script>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- 預約掛號 End -->
-
+            // 顯示診間及上午診的排班信息
+            foreach ($clinic_shifts as $clinic => $shifts) {
+                echo "<tr>";
+                echo "<td>$clinic</td>";
+                foreach ($shifts as $shift_info) {
+                    echo "<td>$shift_info</td>";
+                }
+                echo "</tr>";
+            }
+            ?>
+        </tbody>
+    </table>
 
     <!-- 頁尾 Start -->
     <div class="container-fluid bg-dark text-light mt-5 py-5">
