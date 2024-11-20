@@ -8,20 +8,20 @@ if (!isset($_SESSION["登入狀態"])) {
     exit;
 }
 
-// 防止頁面被瀏覽器緩存
+// 防止頁面被瀏覽器快取
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 header("Pragma: no-cache");
 
-// 清空輸出緩存
+// 清除輸出緩衝區
 ob_clean();
 flush();
 
-// 檢查 "帳號" 和 "姓名" 是否存在於 $_SESSION 中
+// 檢查帳號和姓名是否存在於 $_SESSION 中
 if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
-    // 獲取用戶帳號和姓名
-    $帳號 = $_SESSION['帳號'];
-    $姓名 = $_SESSION['姓名'];
+    // 獲取使用者帳號和姓名
+    $account = $_SESSION['帳號'];
+    $name = $_SESSION['姓名'];
 } else {
     echo "<script>
             alert('會話過期或資料遺失，請重新登入。');
@@ -30,30 +30,26 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     exit();
 }
 
-// 從前一頁接收診所和科別資料
-$affiliated = $_POST['affiliated'];
+// 從前一頁取得診所和科別資料
+$affiliated = $_POST['clinic'];
 $department = $_POST['department'];
 
-// 查詢符合條件的醫生
-$sql_doctors = "SELECT name FROM hospitaldoctor WHERE affiliated = '$affiliated' AND department = '$department'";
-$result_doctors = $link->query($sql_doctors);
+// 查詢符合條件的醫生排班資料
+$stmt_shifts = $link->prepare("SELECT doctorshift.*, hospitaldoctor.affiliated, hospitaldoctor.department FROM doctorshift INNER JOIN hospitaldoctor ON doctorshift.doctorname = hospitaldoctor.name WHERE hospitaldoctor.affiliated = ? AND hospitaldoctor.department = ?");
+$stmt_shifts->bind_param("ss", $affiliated, $department);
+$stmt_shifts->execute();
+$result_shifts = $stmt_shifts->get_result();
 
 $doctor_shifts = [];
-if ($result_doctors->num_rows > 0) {
-    while ($row = $result_doctors->fetch_assoc()) {
-        $doctorname = $row['name'];
-        // 查詢該醫生的排班信息
-        $sql_shifts = "SELECT * FROM doctorshift WHERE doctorname = '$doctorname'";
-        $result_shifts = $link->query($sql_shifts);
-        if ($result_shifts->num_rows > 0) {
-            while ($shift = $result_shifts->fetch_assoc()) {
-                $doctor_shifts[] = $shift;
-            }
-        }
+if ($result_shifts->num_rows > 0) {
+    while ($shift = $result_shifts->fetch_assoc()) {
+        $doctor_shifts[] = $shift;
     }
+} else {
+    echo "<p>未找到符合條件的排班資料。</p>";
 }
 
-// 計算本周的日期範圍（從星期一到星期日）
+// 計算本週的日期範圍（從星期一到星期日）
 $week_dates = [];
 $today = strtotime(date('Y-m-d'));
 $start_of_week = strtotime("last Monday", $today);
@@ -62,7 +58,34 @@ $end_of_week = strtotime("next Sunday", $start_of_week);
 for ($i = 0; $i < 7; $i++) {
     $week_dates[] = date('Y-m-d', strtotime("+$i day", $start_of_week));
 }
+
+// 將星期名稱轉換為中文
+$week_days_cn = [
+    'Monday' => '星期一',
+    'Tuesday' => '星期二',
+    'Wednesday' => '星期三',
+    'Thursday' => '星期四',
+    'Friday' => '星期五',
+    'Saturday' => '星期六',
+    'Sunday' => '星期日'
+];
+
+// 初始化每個診間的排班資料
+$clinic_shifts = [];
+foreach ($doctor_shifts as $shift) {
+    $clinicnumber = $shift['clinicnumber'];
+    if (!isset($clinic_shifts[$clinicnumber])) {
+        $clinic_shifts[$clinicnumber] = array_fill(0, 7, '-');
+    }
+    $shift_date = date('Y-m-d', strtotime($shift['dateday']));
+    $day_index = array_search($shift_date, $week_dates);
+
+    if ($day_index !== false) {
+        $clinic_shifts[$clinicnumber][$day_index] = $shift['doctorname'] . '<br>' . $shift['doctorid'];
+    }
+}
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -100,6 +123,7 @@ for ($i = 0; $i < 7; $i++) {
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-bottom: 30px;
         }
 
         th,
@@ -269,47 +293,35 @@ for ($i = 0; $i < 7; $i++) {
         }
     </script>
 
-<h2>上午診</h2>
+    <h2>上午診</h2>
     <table>
         <thead>
             <tr class="gray-background">
                 <th>診間號</th>
                 <?php
                 foreach ($week_dates as $date) {
-                    echo "<th>" . date('l', strtotime($date)) . "<br>" . date('m-d', strtotime($date)) . "</th>";
+                    $day_of_week = date('l', strtotime($date));
+                    // 將英文星期轉換為中文
+                    $day_cn = $week_days_cn[$day_of_week];
+                    echo "<th>" . $day_cn . "<br>" . date('m-d', strtotime($date)) . "</th>";
                 }
                 ?>
             </tr>
         </thead>
         <tbody>
             <?php
-            // 初始化每個診間的上午診狀態
-            $clinic_shifts = [];
-
-            // 填充上午診的排班信息
-            foreach ($doctor_shifts as $shift) {
-                if ($shift['consultationperiod'] == '早') {
-                    $clinicnumber = $shift['clinicnumber'];
-                    $shift_date = date('Y-m-d', strtotime($shift['dateday']));
-                    $day_index = array_search($shift_date, $week_dates);
-
-                    if ($day_index !== false) {
-                        if (!isset($clinic_shifts[$clinicnumber])) {
-                            $clinic_shifts[$clinicnumber] = array_fill(0, 7, '');
-                        }
-                        $clinic_shifts[$clinicnumber][$day_index] = $shift['doctorname'];
+            // 顯示有排班資料的診間
+            if (!empty($clinic_shifts)) {
+                foreach ($clinic_shifts as $clinic => $shifts) {
+                    echo "<tr>";
+                    echo "<td>" . sprintf('%04d', $clinic) . "</td>"; // 格式化診間號碼，補零到四位數
+                    foreach ($shifts as $shift_info) {
+                        echo "<td>" . (!empty($shift_info) ? $shift_info : '-') . "</td>";
                     }
+                    echo "</tr>";
                 }
-            }
-
-            // 顯示診間及上午診的排班信息
-            foreach ($clinic_shifts as $clinic => $shifts) {
-                echo "<tr>";
-                echo "<td>$clinic</td>";
-                foreach ($shifts as $shift_info) {
-                    echo "<td>$shift_info</td>";
-                }
-                echo "</tr>";
+            } else {
+                echo "<tr><td colspan='8'>目前沒有可顯示的排班資料。</td></tr>";
             }
             ?>
         </tbody>
