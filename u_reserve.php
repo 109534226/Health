@@ -305,19 +305,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <!-- 診所下拉選單 -->
                                     <select class="form-select bg-light border-0" style="height: 55px;" id="clinic"
                                         name="clinic">
-                                        <option selected value="" disabled>選擇診所或醫院</option>
+                                        <option selected value="">選擇診所或醫院</option>
                                         <?php
-                                        if ($result->num_rows > 0) {
-                                            while ($row = $result->fetch_assoc()) {
+                                        // 使用 mysqli 查詢診所列表
+                                        $sql = "SELECT DISTINCT 醫事機構 FROM hospital";
+                                        $result = mysqli_query($conn, $sql);
+
+                                        if (mysqli_num_rows($result) > 0) {
+                                            while ($row = mysqli_fetch_assoc($result)) {
                                                 echo "<option value='" . htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8') . "</option>";
                                             }
-                                        } else {
-                                            echo "<option value='' disabled>無可用醫事機構</option>";
                                         }
                                         ?>
                                     </select>
                                 </div>
 
+                                <div class="col-12 col-sm-6">
+                                    <!-- 科別下拉選單 -->
+                                    <select class="form-select bg-light border-0" style="height: 55px;" id="department"
+                                        name="department">
+                                        <option selected value="">選擇看診科目</option>
+                                    </select>
+                                </div>
                                 <script>
                                     // 請求診所列表
                                     $('#district_box').on('change', function () {
@@ -354,13 +363,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             }
                                         });
                                     });
+
+                                    
+                                    $('#clinic').on('change', function () {
+                                        const selectedClinic = $(this).val(); // 取得選中的診所名稱
+                                        const departmentSelect = $('#department'); // 科別下拉選單
+
+                                        // 清空科別下拉選單
+                                        departmentSelect.empty().append('<option value="" selected disabled>選擇看診科目</option>');
+
+                                        if (selectedClinic) {
+                                            // 發送 AJAX 請求
+                                            $.ajax({
+                                                url: '選擇看診科目.php', // 指向後端處理科別的 PHP 文件
+                                                type: 'POST',
+                                                data: {
+                                                    clinic: selectedClinic // 傳送診所名稱
+                                                },
+                                                success: function (response) {
+                                                    // 動態添加科別到下拉選單
+                                                    departmentSelect.append(response);
+                                                },
+                                                error: function () {
+                                                    alert("發生錯誤，無法載入科別！");
+                                                }
+                                            });
+                                        }
+                                    });
+
                                 </script>
-                                <div class="col-12 col-sm-6">
-                                    <select class="form-select bg-light border-0" style="height: 55px;" name="district"
-                                        id="district_box">
-                                        <option selected value="">選擇看診科目</option>
-                                    </select>
-                                </div>
                                 <div class="row">
                                     <p><br /></p>
                                     <div class="col-mb-3">
@@ -515,7 +546,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
     <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <!-- <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="lib/easing/easing.min.js"></script>
     <script src="lib/waypoints/waypoints.min.js"></script>
