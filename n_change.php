@@ -118,7 +118,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 				</button>
 				<div class="collapse navbar-collapse" id="navbarCollapse">
 					<div class="navbar-nav ms-auto py-0">
-					<a href="留言介面n.php" class="nav-item nav-link" value="<?php echo htmlspecialchars($patient_id); ?>">留言</a>
+                    <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
+                    class="nav-item nav-link">留言</a>
 					<a href="n_Basic.php" class="nav-item nav-link">患者資料</a>
 					<a href="n_time.php" class="nav-item nav-link">醫生的班表時段</a>
                         <a href="n_records.php" class="nav-item nav-link">看診紀錄</a>
@@ -144,6 +145,80 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 		</div>
 	</div>
 	<!-- 頁首 End -->
+	 
+	//<?php 
+    // include "db.php"; // 連接資料庫
+    // // 查詢登入使用者的身份（醫生或護士）
+    // $查詢角色 = "SELECT grade FROM user WHERE username = '$帳號'";
+    // $角色結果 = mysqli_query($link, $查詢角色);
+
+    // if ($角色結果 && $row = mysqli_fetch_assoc($角色結果)) {
+    //     if ($row['grade'] == 1) {
+    //         $_SESSION['user_role'] = '醫生';
+    //     } elseif ($row['grade'] == 2) {
+    //         $_SESSION['user_role'] = '護士';
+    //     }
+    //     echo "<script>console.log('角色設定為: " . $_SESSION['user_role'] . "');</script>"; // 調試訊息
+    // } else {
+    //     // 加入更多錯誤資訊以協助調試
+    //     echo "<script>alert('無法確定您的角色，請重新登入。'); console.error('角色查詢失敗或無此使用者');</script>";
+    //     echo "<script>window.location.href = 'login.php';</script>";
+    //     exit();
+    // }
+
+    // // 顯示當前角色
+    // echo "<p>當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>";
+    // ?> 
+	
+	<!-- 登入 start -->
+	<section class="w3l-login">
+		<div class="overlay">
+			<div class="wrapper">
+				<div class="logo">
+					<a class="brand-logo" href="index.php">健康醫療網站</a>
+				</div>
+				<div class="form-section">
+					<h3>變更密碼</h3>
+					<h6> </h6>
+					<form action="修改密碼.php" method="post" class="signin-form">
+						<div class="form-input">
+							<input type="text" name="name" placeholder="帳號" required="">
+						</div>
+						<div class="form-input">
+							<input type="text" name="oldpsd" placeholder="舊密碼" required="">
+						</div>
+						<div class="form-input">
+							<input type="text" name="newpsd" placeholder="新密碼" required="">
+						</div>
+						<div class="form-input">
+							<input type="text" name="newpsd2" placeholder="確認新密碼" required="">
+						</div>
+						<button type="submit" class="btn btn-primary theme-button mt-4">確定</button>
+					</form>
+				</div>
+			</div>
+		</div>
+		<!-- 添加驗證新密碼與確認新密碼 -->
+		<script>
+			function validatePasswords(event) {
+				const newPassword = document.querySelector('input[name="newpsd"]').value;
+				const confirmPassword = document.querySelector('input[name="newpsd2"]').value;
+
+				if (newPassword !== confirmPassword) {
+					event.preventDefault(); // 阻止表單提交
+					alert('新密碼與確認新密碼不一致，請重新輸入。');
+				}
+			}
+
+			// 將validatePasswords函式綁定到表單的submit事件
+			document.querySelector('.signin-form').addEventListener('submit', validatePasswords);
+		</script>
+
+		<div id='stars'></div>
+		<div id='stars2'></div>
+		<div id='stars3'></div>
+	</section>
+	<!-- 登入 end -->
 
 	<!-- 回到頁首(Top 箭頭 -->
     <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
@@ -199,60 +274,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         }
     </script>
 
-
-	
-	<!-- 登入 start -->
-	<section class="w3l-login">
-		<div class="overlay">
-			<div class="wrapper">
-				<div class="logo">
-					<a class="brand-logo" href="index.php">健康醫療網站</a>
-				</div>
-				<div class="form-section">
-					<h3>變更密碼</h3>
-					<h6> </h6>
-					<form action="修改密碼.php" method="post" class="signin-form">
-						<div class="form-input">
-							<input type="text" name="name" placeholder="帳號" required="">
-						</div>
-						<div class="form-input">
-							<input type="text" name="oldpsd" placeholder="舊密碼" required="">
-						</div>
-						<div class="form-input">
-							<input type="text" name="newpsd" placeholder="新密碼" required="">
-						</div>
-						<div class="form-input">
-							<input type="text" name="newpsd2" placeholder="確認新密碼" required="">
-						</div>
-						<button type="submit" class="btn btn-primary theme-button mt-4">確定</button>
-					</form>
-				</div>
-			</div>
-		</div>
-		<!-- 添加驗證新密碼與確認新密碼 -->
-		<script>
-			function validatePasswords(event) {
-				const newPassword = document.querySelector('input[name="newpsd"]').value;
-				const confirmPassword = document.querySelector('input[name="newpsd2"]').value;
-
-				if (newPassword !== confirmPassword) {
-					event.preventDefault(); // 阻止表單提交
-					alert('新密碼與確認新密碼不一致，請重新輸入。');
-				}
-			}
-
-			// 將validatePasswords函式綁定到表單的submit事件
-			document.querySelector('.signin-form').addEventListener('submit', validatePasswords);
-		</script>
-
-		<div id='stars'></div>
-		<div id='stars2'></div>
-		<div id='stars3'></div>
-	</section>
-	<!-- 登入 end -->
-
-	<!-- 回到頁首(Top 箭頭)  -->
-	<a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
 
 
 	<!-- JavaScript Libraries -->

@@ -252,7 +252,8 @@ header("Pragma: no-cache");
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="留言介面n.php" class="nav-item nav-link" value="<?php echo htmlspecialchars($patient_id); ?>">留言</a>
+                    <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
+                    class="nav-item nav-link">留言</a>
                         <a href="n_Basic.php" class="nav-item nav-link">患者資料</a>
                         <a href="n_time.php" class="nav-item nav-link">醫生的班表時段</a>
                         <a href="n_records.php" class="nav-item nav-link">看診紀錄</a>

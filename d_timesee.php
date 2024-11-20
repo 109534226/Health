@@ -182,7 +182,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="留言介面d.php" class="nav-item nav-link"  value="<?php echo htmlspecialchars($patient_id); ?>">留言</a>
+                        <a href="留言頁面d.php?id=<?php echo htmlspecialchars($patient_id); ?>"
+                            class="nav-item nav-link">留言</a>
                         <a href="d_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
                         <a href="d_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
                         <a href="d_timesee.php" class="nav-item nav-link active">醫生的班表時段</a>
@@ -208,6 +209,29 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         </div>
     </div>
     <!-- 頁首 End -->
+    <?php
+    include "db.php"; // 連接資料庫
+    // 查詢登入使用者的身份（醫生或護士）
+    $查詢角色 = "SELECT grade FROM user WHERE username = '$帳號'";
+    $角色結果 = mysqli_query($link, $查詢角色);
+
+    if ($角色結果 && $row = mysqli_fetch_assoc($角色結果)) {
+        if ($row['grade'] == 1) {
+            $_SESSION['user_role'] = '醫生';
+        } elseif ($row['grade'] == 2) {
+            $_SESSION['user_role'] = '護士';
+        }
+        echo "<script>console.log('角色設定為: " . $_SESSION['user_role'] . "');</script>"; // 調試訊息
+    } else {
+        // 加入更多錯誤資訊以協助調試
+        echo "<script>alert('無法確定您的角色，請重新登入。'); console.error('角色查詢失敗或無此使用者');</script>";
+        echo "<script>window.location.href = 'login.php';</script>";
+        exit();
+    }
+
+    // 顯示當前角色
+    echo "<p>當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>";
+    ?>
 
     <!--醫生班表-->
     <div class="container-fluid"></div>

@@ -139,7 +139,8 @@ if (!$查詢結果) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="留言介面n.php" class="nav-item nav-link active">留言</a>
+                    <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
+                    class="nav-item nav-link">留言</a>
                         <a href="n_Basic.php" class="nav-item nav-link">患者資料</a>
                         <a href="n_records.php" class="nav-item nav-link">看診紀錄</a>
                         <a href="n_time.php" class="nav-item nav-link">醫生的班表時段</a>
@@ -165,9 +166,11 @@ if (!$查詢結果) {
         </div>
     </div>
     <!-- 頁首 End -->
+
 <?php
-    echo "<p>當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>"; // 顯示當前角色作為檢查
+    echo "<p style='font-size: 20px; font-weight: bold;'>當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>"; // 顯示當前角色作為檢查
 ?>
+
 <br/>
     <h2>醫生與護士的留言記錄</h2>
 

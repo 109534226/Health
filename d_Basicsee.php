@@ -115,11 +115,13 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="留言介面d.php" class="nav-item nav-link"  value="<?php echo htmlspecialchars($patient_id); ?>">留言</a>
-                        <a href="d_Basicsee.php" class="nav-item nav-link active">患者基本資訊</a>
+                        <a href="留言頁面d.php?id=<?php echo htmlspecialchars($patient_id); ?>"
+                            class="nav-item nav-link">留言</a>
+                        <a href="d_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
                         <a href="d_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
                         <a href="d_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
                         <a href="d_advicesee.php" class="nav-item nav-link">醫生建議</a>
+                        <!-- 個人檔案功能 -->
                         <div class="nav-item">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
@@ -136,6 +138,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             </ul>
                         </div>
                     </div>
+
                 </div>
             </nav>
         </div>
@@ -164,7 +167,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
     // 顯示當前角色
     echo "<p>當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>";
-?>
+    ?>
 
     <!--患者資料-->
     <div class="container-fluid"></div>
