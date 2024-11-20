@@ -388,6 +388,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             onclick="sLocation()">搜尋路線/交通方式</button>
                                     </div>
                                 </div>
+                                
                                 <script>
                                     function sLocation() {
                                         var location = document.getElementById("location").value;

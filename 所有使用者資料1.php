@@ -9,6 +9,7 @@ $出生年月日 = $_POST["userdate"];
 $身分證字號 = $_POST["useridcard"];
 $電話 = $_POST["userphone"];
 $電子郵件 = $_POST["useremail"];
+$隸屬醫院 = $_POST["hospital"];
 $profilePicture = $_FILES['profilePicture'];
 
 // 資料驗證
@@ -36,14 +37,14 @@ if ($userData) {
     $SQL指令 .= " WHERE name='$帳號'";
 } else {
     // 如果資料不存在，則插入新資料
-    $SQL指令 = "INSERT INTO profession (name, username, birthday, idcard, phone, email, ecname, ecphone";
+    $SQL指令 = "INSERT INTO profession (name, username, birthday, idcard, phone, email, ecname, ecphone,hospital";
 
     if (!empty($profilePicture['tmp_name']) && $profilePicture['error'] == 0) {
         $imageData = addslashes(file_get_contents($profilePicture['tmp_name']));
-        $SQL指令 .= ", image) VALUES ('$帳號', '$姓名', '$出生年月日', '$身分證字號', '$電話', '$電子郵件','$imageData')";
+        $SQL指令 .= ", image) VALUES ('$帳號', '$姓名', '$出生年月日', '$身分證字號', '$電話', '$電子郵件','$imageData','$hospital')";
     } else {
-        $SQL指令 .= ") VALUES ('$帳號', '$姓名', '$出生年月日', '$身分證字號', '$電話', '$電子郵件')";
-    }
+        $SQL指令 .= ") VALUES ('$帳號', '$姓名', '$出生年月日', '$身分證字號', '$電話', '$電子郵件','$隸屬醫院')";
+    
 }
 
 // 執行資料庫操作
