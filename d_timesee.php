@@ -182,8 +182,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="留言頁面d.php?id=<?php echo htmlspecialchars($patient_id); ?>"
-                            class="nav-item nav-link">留言</a>
+                        <a href="留言介面d.php" class="nav-item nav-link"
+                            value="<?php echo htmlspecialchars($patient_id); ?>">留言</a>
                         <a href="d_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
                         <a href="d_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
                         <a href="d_timesee.php" class="nav-item nav-link active">醫生的班表時段</a>
@@ -209,7 +209,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         </div>
     </div>
     <!-- 頁首 End -->
-
     <?php
     include "db.php"; // 連接資料庫
     // 查詢登入使用者的身份（醫生或護士）
@@ -275,33 +274,11 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             </div>
             <br />
 
-            
             <?php
             include "db.php"; // 連接資料庫
             
-            // 動態檢查是否有指定 hospital（優先檢查 POST，沒有則檢查 GET）
-            $指定醫院 = '';
-            if (isset($_POST['hospital'])) {
-                $指定醫院 = mysqli_real_escape_string($link, $_POST['hospital']);
-            } elseif (isset($_GET['hospital'])) {
-                $指定醫院 = mysqli_real_escape_string($link, $_GET['hospital']);
-            }
-
-            // 如果未指定 hospital，則提示錯誤
-            if (empty($指定醫院)) {
-                die("未指定醫院參數。");
-            }
-
-            // 查詢 profession 確認醫院是否存在
-            $醫院確認查詢 = "SELECT 1 FROM profession WHERE hospital = '$指定醫院' LIMIT 1";
-            $醫院確認結果 = mysqli_query($link, $醫院確認查詢);
-
-            if (!$醫院確認結果 || mysqli_num_rows($醫院確認結果) == 0) {
-                die("該醫院不存在或未授權。");
-            }
-
-            // 獲取 doctorshift 的資料
-            $查詢語句 = "SELECT * FROM doctorshift WHERE hospital = '$指定醫院'";
+            // 擷取資料
+            $查詢語句 = "SELECT * FROM doctorshift";
             $查詢結果 = mysqli_query($link, $查詢語句);
 
             if (!$查詢結果) {
@@ -309,7 +286,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             }
 
             // 獲取總記錄數
-            $總記錄數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM doctorshift WHERE hospital = '$指定醫院'");
+            $總記錄數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM doctorshift");
             if (!$總記錄數查詢) {
                 die("查詢失敗: " . mysqli_error($link));
             }
@@ -327,10 +304,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             // 計算起始記錄
             $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
 
-            // 查詢分頁資料
-            $查詢語句 = "SELECT * FROM doctorshift WHERE hospital = '$指定醫院' LIMIT $起始位置, $每頁記錄數";
-            $查詢結果 = mysqli_query($link, $查詢語句);
-
+            // 查詢當前頁碼的資料
+            $查詢結果 = mysqli_query($link, "SELECT * FROM doctorshift LIMIT $起始位置, $每頁記錄數");
             if (!$查詢結果) {
                 die("查詢失敗: " . mysqli_error($link));
             }
