@@ -289,7 +289,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <h1 class="mb-4">預約掛號</h1>
                         <form>
                             <div class="row g-3">
-                            <div class="col-12 col-sm-6">
+                                <div class="col-12 col-sm-6">
                                     <select class="form-select bg-light border-0" style="height: 55px;" name="county"
                                         id="county_box">
                                         <option selected value="">選擇縣市</option>
@@ -446,61 +446,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 </style>
 
-<script>
-                        // 取得所有星星的元素
-                        const stars = document.querySelectorAll('#star-rating .fa-star');
+                <script>
+                    // 取得所有星星的元素
+                    const stars = document.querySelectorAll('#star-rating .fa-star');
 
-                        // 將所有星星綁定點擊事件
-                        stars.forEach((star, index) => {
-                            star.addEventListener('click', function () {
-                                const ratingValue = index + 1; // 获取评分值
+                    // 將所有星星綁定點擊事件
+                    stars.forEach((star, index) => {
+                        star.addEventListener('click', function () {
+                            const ratingValue = index + 1; // 获取评分值
 
-                                // 移除所有星星的 selected 類別
-                                stars.forEach(s => s.classList.remove('selected'));
-                                // 為點選的星星和之前的星星加上 selected 類別
-                                for (let i = 0; i <= index; i++) {
-                                    stars[i].classList.add('selected');
-                                }
+                            // 移除所有星星的 selected 類別
+                            stars.forEach(s => s.classList.remove('selected'));
+                            // 為點選的星星和之前的星星加上 selected 類別
+                            for (let i = 0; i <= index; i++) {
+                                stars[i].classList.add('selected');
+                            }
 
-                                // 更新星星樣式
-                                document.querySelectorAll('#star-rating li').forEach(function (star) {
-                                    if (star.getAttribute('data-value') <= ratingValue) {
-                                        star.classList.add('text-warning');
-                                    } else {
-                                        star.classList.remove('text-warning');
-                                    }
-                                });
-
-                                // 使用 AJAX 发送评分数据
-                                const xhr = new XMLHttpRequest();
-                                xhr.open("POST", "評分.php", true);
-                                xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-                                xhr.onreadystatechange = function () {
-                                    if (xhr.readyState == 4 && xhr.status == 200) {
-                                        // 显示成功提示
-                                        swal("感謝您的評分！", "您給了 " + ratingValue + " 星！", "success");
-                                    }
-                                };
-                                xhr.send("score=" + ratingValue);
-
-                                // 彈出評分提示
-                                swal("感謝您的評分！", "您給了 " + ratingValue + " 星！", "success");
-                            });
-
-                            // 滑鼠移到星星上時，顯示即時的 hover 效果
-                            star.addEventListener('mouseover', function () {
-                                stars.forEach(s => s.classList.remove('hover'));
-                                for (let i = 0; i <= index; i++) {
-                                    stars[i].classList.add('hover');
+                            // 更新星星樣式
+                            document.querySelectorAll('#star-rating li').forEach(function (star) {
+                                if (star.getAttribute('data-value') <= ratingValue) {
+                                    star.classList.add('text-warning');
+                                } else {
+                                    star.classList.remove('text-warning');
                                 }
                             });
 
-                            // 滑鼠移出後，恢復到已點選的狀態
-                            star.addEventListener('mouseout', function () {
-                                stars.forEach(s => s.classList.remove('hover'));
-                            });
+                            // 使用 AJAX 发送评分数据
+                            const xhr = new XMLHttpRequest();
+                            xhr.open("POST", "評分.php", true);
+                            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                            xhr.onreadystatechange = function () {
+                                if (xhr.readyState == 4 && xhr.status == 200) {
+                                    // 显示成功提示
+                                    swal("感謝您的評分！", "您給了 " + ratingValue + " 星！", "success");
+                                }
+                            };
+                            xhr.send("score=" + ratingValue);
+
+                            // 彈出評分提示
+                            swal("感謝您的評分！", "您給了 " + ratingValue + " 星！", "success");
                         });
-                    </script>
+
+                        // 滑鼠移到星星上時，顯示即時的 hover 效果
+                        star.addEventListener('mouseover', function () {
+                            stars.forEach(s => s.classList.remove('hover'));
+                            for (let i = 0; i <= index; i++) {
+                                stars[i].classList.add('hover');
+                            }
+                        });
+
+                        // 滑鼠移出後，恢復到已點選的狀態
+                        star.addEventListener('mouseout', function () {
+                            stars.forEach(s => s.classList.remove('hover'));
+                        });
+                    });
+                </script>
 
 
             </div>
