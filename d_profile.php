@@ -313,34 +313,6 @@ header("Pragma: no-cache");
                         onchange="uploadImage(event)">
                 </div>
 
-                <div class="form-row">
-                    <label for="username">姓名 :</label>
-                    <input id="username" type="text" name="username" value="<?php echo $姓名; ?>" disabled />
-                </div>
-
-                <div class="form-row">
-                    <label for="userdate">出生年月日 :</label>
-                    <input id="userdate" type="date" name="userdate" value="<?php echo $出生年月日; ?>"
-                        max="<?php echo date('Y-m-d'); ?>" disabled>
-                </div>
-
-                <div class="form-row">
-                    <label for="useridcard">身分證字號 :</label>
-                    <input id="useridcard" type="text" name="useridcard" value="<?php echo $身分證字號; ?>"
-                        placeholder="ex:A123456789" disabled>
-                </div>
-
-                <div class="form-row">
-                    <label for="userphone">聯絡電話 :</label>
-                    <input id="userphone" type="tel" name="userphone" value="<?php echo $電話; ?>"
-                        placeholder="ex:0912345678" disabled>
-                </div>
-
-                <div class="form-row">
-                    <label for="useremail">電子郵件 :</label>
-                    <input id="useremail" type="email" name="useremail" value="<?php echo $電子郵件; ?>" disabled>
-                </div>
-
 
                 <?php
                 session_start();
@@ -352,31 +324,68 @@ header("Pragma: no-cache");
                     die("用戶未登入，請重新登入！");
                 }
 
-                // 預設隸屬醫院為空
+                // 預設值
                 $隸屬醫院 = "無";
+                $出生年月日 = $身分證字號 = $電話 = "";
 
-                // 查詢隸屬醫院資料
-                $SQL查詢 = "SELECT hospital FROM profession WHERE name = ?";
-                $stmt = $link->prepare($SQL查詢);
-                $stmt->bind_param("s", $帳號);
-                $stmt->execute();
-                $result = $stmt->get_result();
+                // 從 user 表抓取姓名和電子郵件
+                $SQL查詢使用者 = sprintf("SELECT name, email FROM user WHERE username = '%s'", mysqli_real_escape_string($link, $帳號));
+                $result = mysqli_query($link, $SQL查詢使用者);
 
-                if ($row = $result->fetch_assoc()) {
-                    // 如果 hospital 不為空，設置為查詢結果，否則顯示 "無"
-                    $隸屬醫院 = !empty($row['hospital']) ? $row['hospital'] : "無";
+                if ($row = mysqli_fetch_assoc($result)) {
+                    $姓名 = $row['name'] ?? "無名氏"; // 如果資料不存在，設為預設值 "無名氏"
+                    $電子郵件 = $row['email'] ?? "無";
                 }
 
-                $stmt->close();
-                $link->close();
+                // 從 profession 表抓取其他資料
+                $SQL查詢資料 = sprintf("SELECT * FROM profession WHERE name = '%s'", mysqli_real_escape_string($link, $帳號));
+                $result = mysqli_query($link, $SQL查詢資料);
+
+                if ($row = mysqli_fetch_assoc($result)) {
+                    $出生年月日 = $row['birthday'] ?? "";
+                    $身分證字號 = $row['idcard'] ?? "";
+                    $電話 = $row['phone'] ?? "";
+                    $隸屬醫院 = $row['hospital'] ?? "無";
+                }
+
+                mysqli_close($link);
                 ?>
 
 
                 <div class="form-row">
-                    <label for="hospital">隸屬醫院 :</label>
-                    <input id="hospital" type="text" name="hospital" value="<?php echo htmlspecialchars($隸屬醫院); ?>"
+                    <label for="username">姓名 :</label>
+                    <input id="username" type="text" name="username" value="<?php echo htmlspecialchars($姓名); ?>"
                         readonly>
                 </div>
+
+                <div class="form-row">
+                    <label for="userdate">出生年月日 :</label>
+                    <input id="userdate" type="date" name="userdate" value="<?php echo htmlspecialchars($出生年月日); ?>">
+                </div>
+
+                <div class="form-row">
+                    <label for="useridcard">身分證字號 :</label>
+                    <input id="useridcard" type="text" name="useridcard"
+                        value="<?php echo htmlspecialchars($身分證字號); ?>">
+                </div>
+
+                <div class="form-row">
+                    <label for="userphone">聯絡電話 :</label>
+                    <input id="userphone" type="text" name="userphone" value="<?php echo htmlspecialchars($電話); ?>">
+                </div>
+
+                <div class="form-row">
+                    <label for="useremail">電子郵件 :</label>
+                    <input id="useremail" type="email" name="useremail" value="<?php echo htmlspecialchars($電子郵件); ?>"
+                        readonly>
+                </div>
+                
+                <div class="form-row">
+                    <label for="hospital">隸屬醫院 :</label>
+                    <input id="hospital" type="text" name="hospital" value="<?php echo htmlspecialchars($隸屬醫院); ?>">
+                </div>
+
+
 
 
                 <!-- 操作按鈕 -->

@@ -1,6 +1,6 @@
 <?php
 session_start();
-include "db.php"; // 資料庫連線
+include "db.php"; // 連接資料庫
 
 // 假設從 session 獲取目前登入的帳號
 $帳號 = $_SESSION["帳號"];
@@ -8,23 +8,7 @@ if (!$帳號) {
     die("用戶未登入，請重新登入！");
 }
 
-
-// 預設隸屬醫院為 "無"
-$隸屬醫院 = "無";
-
-// 查詢 profession 表的 hospital 欄位
-$SQL查詢醫院 = "SELECT hospital FROM profession WHERE name = ?";
-$stmt = $link->prepare($SQL查詢醫院);
-$stmt->bind_param("s", $帳號);
-$stmt->execute();
-$result = $stmt->get_result();
-
-if ($row = $result->fetch_assoc()) {
-    $隸屬醫院 = $row['hospital'] ?: "無"; // 若為空則顯示預設值 "無"
-}
-
-
-// 檢查 POST 資料
+// 獲取 POST 資料
 $姓名 = $_POST["username"] ?? null;
 $出生年月日 = $_POST["userdate"] ?? null;
 $身分證字號 = $_POST["useridcard"] ?? null;
@@ -38,13 +22,13 @@ if (empty($出生年月日) || empty($身分證字號) || empty($電話)) {
     die("必要資料為空，請檢查後重新提交！");
 }
 
-// 處理圖片資料
+// 處理圖片檔案
 $imageData = null;
 if (!empty($profilePicture['tmp_name']) && $profilePicture['error'] === 0) {
     $imageData = addslashes(file_get_contents($profilePicture['tmp_name']));
 }
 
-// 使用 SQL 插入或更新邏輯
+// 插入或更新資料
 $sql = "
 INSERT INTO profession (name, username, birthday, idcard, phone, email, hospital, image)
 VALUES ('$帳號', '$姓名', '$出生年月日', '$身分證字號', '$電話', '$電子郵件', '$隸屬醫院', " . ($imageData ? "'$imageData'" : "NULL") . ")
