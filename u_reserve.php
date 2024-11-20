@@ -10,6 +10,11 @@ if (!isset($_SESSION["登入狀態"])) {
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 header("Pragma: no-cache");
+// header('Content-Type: application/json; charset=utf-8');
+
+// 清空輸出緩存
+ob_clean();
+flush();
 
 // 檢查 "帳號" 和 "姓名" 是否存在於 $_SESSION 中
 if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
@@ -23,6 +28,61 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
           </script>";
     exit();
 }
+
+// 檢查是否為 POST 請求
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+
+    // 驗證操作類型
+    if ($action !== 'get_clinics') {
+        echo json_encode(["message" => "無效的操作類型。"]);
+        exit;
+    }
+
+    // 獲取請求參數
+    $county = trim($_POST['county'] ?? '');
+    $district = trim($_POST['district'] ?? '');
+
+    // 驗證請求參數
+    if (empty($county) || empty($district)) {
+        echo json_encode(["message" => "請選擇縣市和地區！"]);
+        exit;
+    }
+
+    // 引入資料庫連線
+    include 'db.php';
+
+    // 查詢資料庫
+    $query = "SELECT DISTINCT `醫事機構` FROM `hospital` WHERE `縣市名稱` = ? AND `區域` = ?";
+    $stmt = $link->prepare($query);
+
+    if (!$stmt) {
+        echo json_encode(["message" => "伺服器內部錯誤，請稍後再試。"]);
+        exit;
+    }
+
+    // 綁定參數並執行查詢
+    $stmt->bind_param('ss', $county, $district);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // 處理結果
+    if ($result->num_rows > 0) {
+        $clinics = [];
+        while ($row = $result->fetch_assoc()) {
+            $clinics[] = htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8');
+        }
+        echo json_encode(["clinics" => $clinics]);
+    } else {
+        echo json_encode(["message" => "未找到符合條件的診所或醫院。"]);
+    }
+
+    // 關閉連線
+    $stmt->close();
+    $link->close();
+    exit;
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -34,7 +94,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="Free HTML Templates" name="keywords">
     <meta content="Free HTML Templates" name="description">
-
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Favicon -->
     <link href="img/favicon.ico" rel="icon">
 
@@ -229,7 +289,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <h1 class="mb-4">預約掛號</h1>
                         <form>
                             <div class="row g-3">
-                                <div class="col-12 col-sm-6">
+                            <div class="col-12 col-sm-6">
                                     <select class="form-select bg-light border-0" style="height: 55px;" name="county"
                                         id="county_box">
                                         <option selected value="">選擇縣市</option>
@@ -242,11 +302,59 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                     </select>
                                 </div>
                                 <div class="col-12 col-sm-6">
-                                    <select class="form-select bg-light border-0" style="height: 55px;" name="county"
-                                        id="county_box">
-                                        <option selected value="">選擇診所或醫院</option>
+                                    <!-- 診所下拉選單 -->
+                                    <select class="form-select bg-light border-0" style="height: 55px;" id="clinic"
+                                        name="clinic">
+                                        <option selected value="" disabled>選擇診所或醫院</option>
+                                        <?php
+                                        if ($result->num_rows > 0) {
+                                            while ($row = $result->fetch_assoc()) {
+                                                echo "<option value='" . htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8') . "</option>";
+                                            }
+                                        } else {
+                                            echo "<option value='' disabled>無可用醫事機構</option>";
+                                        }
+                                        ?>
                                     </select>
                                 </div>
+
+                                <script>
+                                    // 請求診所列表
+                                    $('#district_box').on('change', function () {
+                                        const county = $('#county_box').val();
+                                        const district = $(this).val();
+
+                                        if (!county || !district) {
+                                            alert("請先選擇縣市和地區！");
+                                            return;
+                                        }
+
+                                        $.ajax({
+                                            url: 'u_reserve.php',
+                                            type: 'POST',
+                                            data: {
+                                                action: 'get_clinics',
+                                                county: county,
+                                                district: district
+                                            },
+                                            success: function (response) {
+                                                const data = JSON.parse(response);
+                                                $('#clinic').empty().append('<option value="" disabled selected>選擇診所或醫院</option>');
+
+                                                if (data.clinics) {
+                                                    data.clinics.forEach(function (clinic) {
+                                                        $('#clinic').append(`<option value="${clinic}">${clinic}</option>`);
+                                                    });
+                                                } else if (data.message) {
+                                                    alert(data.message);
+                                                }
+                                            },
+                                            error: function () {
+                                                alert("發生錯誤，請稍後再試！");
+                                            }
+                                        });
+                                    });
+                                </script>
                                 <div class="col-12 col-sm-6">
                                     <select class="form-select bg-light border-0" style="height: 55px;" name="district"
                                         id="district_box">
