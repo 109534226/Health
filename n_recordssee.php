@@ -115,7 +115,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="留言介面n.php" class="nav-item nav-link" value="<?php echo htmlspecialchars($patient_id); ?>">留言</a>
+                    <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
+                    class="nav-item nav-link">留言</a>
                         <a href="n_Basic.php" class="nav-item nav-link">患者資料</a>
                         <a href="n_records.php" class="nav-item nav-link active">看診紀錄</a>
                         <a href="n_time.php" class="nav-item nav-link">醫生的班表時段</a>
@@ -141,57 +142,32 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         </div>
     </div>
     <!-- 頁首 End -->
+    <?php
+    include "db.php"; // 連接資料庫
+// 查詢登入使用者的身份（醫生或護士）
+    $查詢角色 = "SELECT grade FROM user WHERE username = '$帳號'";
+    $角色結果 = mysqli_query($link, $查詢角色);
 
-    <!-- 回到頁首(Top 箭頭 -->
-    <a href="#" class="btn btn-lg btn-primary  back-to-top"><i class="bi bi-arrow-up"></i></a>
-    <!-- 登出對話框 Start -->
-    <div id="logoutBox" class="logout-box">
-        <div class="logout-dialog">
-            <p>你確定要登出嗎？</p>
-            <button onclick="logout()">確定</button>
-            <button onclick="hideLogoutBox()">取消</button>
-        </div>
-    </div>
-    <!-- 登出對話框 End -->
-
-    <!-- 刪除帳號對話框 Start -->
-    <div id="deleteAccountBox" class="logout-box">
-        <div class="logout-dialog">
-            <p>你確定要刪除帳號嗎？這個操作無法撤銷！</p>
-            <button onclick="deleteAccount()">確定</button>
-            <button onclick="hideDeleteAccountBox()">取消</button>
-        </div>
-    </div>
-    <!-- 刪除帳號對話框 End -->
-
-    <!-- JavaScript -->
-    <script>
-        function showLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'flex';
+    if ($角色結果 && $row = mysqli_fetch_assoc($角色結果)) {
+        if ($row['grade'] == 1) {
+            $_SESSION['user_role'] = '醫生';
+        } elseif ($row['grade'] == 2) {
+            $_SESSION['user_role'] = '護士';
         }
+        echo "<script>console.log('角色設定為: " . $_SESSION['user_role'] . "');</script>"; // 調試訊息
+    } else {
+        // 加入更多錯誤資訊以協助調試
+        echo "<script>alert('無法確定您的角色，請重新登入。'); console.error('角色查詢失敗或無此使用者');</script>";
+        echo "<script>window.location.href = 'login.php';</script>";
+        exit();
+    }
 
-        function hideLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'none';
-        }
+    // 顯示當前角色
+    echo "<p>當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>";
+    ?>
 
-        function logout() {
-            alert('你已經登出！');
-            hideLogoutBox();
-            window.location.href = 'login.php'; // 替換為登出後的頁面
-        }
 
-        function showDeleteAccountBox() {
-            document.getElementById('deleteAccountBox').style.display = 'flex';
-        }
 
-        function hideDeleteAccountBox() {
-            document.getElementById('deleteAccountBox').style.display = 'none';
-        }
-
-        function deleteAccount() {
-            document.getElementById('deleteAccountForm').submit();
-        }
-    </script>
     <div class="container-fluid"></div>
     <section class="resume-section p-0" id="about"> <!-- 將內邊距設為 0 -->
         <div class="my-auto">
@@ -420,6 +396,57 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     /* 與分頁按鈕之間留些距離 */
                 }
             </style>
+
+            <!-- 回到頁首(Top 箭頭 -->
+            <a href="#" class="btn btn-lg btn-primary  back-to-top"><i class="bi bi-arrow-up"></i></a>
+            <!-- 登出對話框 Start -->
+            <div id="logoutBox" class="logout-box">
+                <div class="logout-dialog">
+                    <p>你確定要登出嗎？</p>
+                    <button onclick="logout()">確定</button>
+                    <button onclick="hideLogoutBox()">取消</button>
+                </div>
+            </div>
+            <!-- 登出對話框 End -->
+
+            <!-- 刪除帳號對話框 Start -->
+            <div id="deleteAccountBox" class="logout-box">
+                <div class="logout-dialog">
+                    <p>你確定要刪除帳號嗎？這個操作無法撤銷！</p>
+                    <button onclick="deleteAccount()">確定</button>
+                    <button onclick="hideDeleteAccountBox()">取消</button>
+                </div>
+            </div>
+            <!-- 刪除帳號對話框 End -->
+
+            <!-- JavaScript -->
+            <script>
+                function showLogoutBox() {
+                    document.getElementById('logoutBox').style.display = 'flex';
+                }
+
+                function hideLogoutBox() {
+                    document.getElementById('logoutBox').style.display = 'none';
+                }
+
+                function logout() {
+                    alert('你已經登出！');
+                    hideLogoutBox();
+                    window.location.href = 'login.php'; // 替換為登出後的頁面
+                }
+
+                function showDeleteAccountBox() {
+                    document.getElementById('deleteAccountBox').style.display = 'flex';
+                }
+
+                function hideDeleteAccountBox() {
+                    document.getElementById('deleteAccountBox').style.display = 'none';
+                }
+
+                function deleteAccount() {
+                    document.getElementById('deleteAccountForm').submit();
+                }
+            </script>
 
             <!-- JavaScript Libraries -->
             <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>

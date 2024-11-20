@@ -32,14 +32,16 @@ if ($角色結果 && $row = mysqli_fetch_assoc($角色結果)) {
     } elseif ($row['grade'] == 2) {
         $_SESSION['user_role'] = '護士';
     }
-    echo "<script>console.log('角色設定為: " . $_SESSION['user_role'] . "');</script>"; // 調試訊息
+    // 調試訊息，用於確認角色設定
+    echo "<script>console.log('角色設定為: " . $_SESSION['user_role'] . "');</script>";
 } else {
     echo "<script>alert('無法確定您的角色，請重新登入。'); window.location.href = 'login.php';</script>";
     exit();
 }
 
 // 使用 Session 中的 user_role 確保顯示正確角色
-$user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '醫生';
+$user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '護士';
+
 
 // 取得所有來自醫生和護士的留言，按時間排序
 $查詢指令 = "SELECT sender, message, timestamp FROM chatmessages WHERE sender IN ('醫生', '護士') ORDER BY timestamp DESC";
@@ -50,7 +52,7 @@ if (!$查詢結果) {
 }
 ?>
 
-
+<input type="hidden" name="sender" value="<?php echo htmlspecialchars($_SESSION['user_role']); ?>">
 <!DOCTYPE html>
 <html lang="en">
 
@@ -137,7 +139,8 @@ if (!$查詢結果) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="留言介面d.php" class="nav-item nav-link active">留言</a>
+                        <a href="留言頁面d.php?id=<?php echo htmlspecialchars($patient_id); ?>"
+                            class="nav-item nav-link">留言</a>
                         <a href="d_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
                         <a href="d_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
                         <a href="d_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
@@ -147,7 +150,7 @@ if (!$查詢結果) {
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a href="d_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="d_change.php" class="dropdown-item">變更密碼</a></li>
+                                <li><a href="d_change.php" class="dropdown-item">忘記密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -163,11 +166,10 @@ if (!$查詢結果) {
         </div>
     </div>
     <!-- 頁首 End -->
-
     <?php
-    echo "<p>當前角色: " . htmlspecialchars($user_role) . "</p>"; // 顯示當前角色作為檢查
+    echo "<p>當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>"; // 顯示當前角色作為檢查
     ?>
-
+    <br />
     <h2>醫生與護士的留言記錄</h2>
 
     <!-- 顯示留言記錄 -->
@@ -188,8 +190,8 @@ if (!$查詢結果) {
 
     <!-- 留言輸入表單 -->
     <h3>發送新留言</h3>
-    <form method="POST" action="醫生護士互相留言處理d.php">
-        <!-- 使用隱藏欄位設置 sender 的值為 session 中的 user_role -->
+    <form method="POST" action="醫生護士互相留言處理n.php">
+        <!-- 使用 Session 中的 user_role 設置 sender 的值 -->
         <input type="hidden" name="sender" value="<?php echo htmlspecialchars($_SESSION['user_role']); ?>">
         <textarea name="message" rows="4" cols="50" placeholder="請輸入留言"></textarea><br>
         <button type="submit">送出留言</button>
