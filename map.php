@@ -153,27 +153,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <h1 class="mb-4">交通工具</h1>
                         <form>
                             <div class="row g-3">
-
                                 <div class="mx-auto" style="width: 100%; max-width: 600px;">
                                     <div class="input-group">
+                                        <!-- 搜尋輸入框 -->
                                         <input type="text" class="form-control border-primary w-50" id="location"
                                             placeholder="搜尋醫院或診所">
-                                        <!-- <button class="btn btn-dark border-0 w-25"
-                                            onclick="searchLocation()">查詢</button> -->
+                                        <button class="btn btn-dark border-0 w-25"
+                                            onclick="searchLocation()">查詢</button>
                                     </div>
                                 </div>
+
                                 <script>
+                                    // 查詢功能
                                     function searchLocation() {
-                                        var location = document.getElementById("location").value;
+                                        const location = document.getElementById("location").value;
                                         if (location) {
-                                            var url = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(location);
-                                            window.open(url, '_blank');
+                                            const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+                                            window.open(url, "_blank");
                                         } else {
                                             alert("請輸入地點");
                                         }
-                                    }
+                                    }                                    
                                 </script>
-
                                 <div class="col-12 col-sm-6">
                                     <select class="form-select bg-light border-0" style="height: 55px;" name="county"
                                         id="county_box">
@@ -203,6 +204,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </select>
                                 </div>
                                 <script>
+                                    // 診所選擇事件：修改 placeholder 並同步值
+                                    document.getElementById("clinic").addEventListener("change", function () {
+                                        const selectedClinic = this.value; // 獲取選中的診所名稱
+                                        const locationInput = document.getElementById("location");
+
+                                        if (selectedClinic) {
+                                            locationInput.value = selectedClinic; // 同步診所名稱到輸入框
+                                            locationInput.placeholder = `目前選擇：${selectedClinic}`; // 修改 placeholder
+                                        } else {
+                                            locationInput.value = ""; // 清空輸入框值
+                                            locationInput.placeholder = "搜尋醫院或診所"; // 還原預設 placeholder
+                                        }
+                                    });
                                     // 請求診所列表
                                     $('#district_box').on('change', function () {
                                         const county = $('#county_box').val();

@@ -10,6 +10,11 @@ if (!isset($_SESSION["登入狀態"])) {
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 header("Pragma: no-cache");
+// header('Content-Type: application/json; charset=utf-8');
+
+// 清空輸出緩存
+ob_clean();
+flush();
 
 // 檢查 "帳號" 和 "姓名" 是否存在於 $_SESSION 中
 if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
@@ -23,6 +28,61 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
           </script>";
     exit();
 }
+
+// 檢查是否為 POST 請求
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+
+    // 驗證操作類型
+    if ($action !== 'get_clinics') {
+        echo json_encode(["message" => "無效的操作類型。"]);
+        exit;
+    }
+
+    // 獲取請求參數
+    $county = trim($_POST['county'] ?? '');
+    $district = trim($_POST['district'] ?? '');
+
+    // 驗證請求參數
+    if (empty($county) || empty($district)) {
+        echo json_encode(["message" => "請選擇縣市和地區！"]);
+        exit;
+    }
+
+    // 引入資料庫連線
+    include 'db.php';
+
+    // 查詢資料庫
+    $query = "SELECT DISTINCT `醫事機構` FROM `hospital` WHERE `縣市名稱` = ? AND `區域` = ?";
+    $stmt = $link->prepare($query);
+
+    if (!$stmt) {
+        echo json_encode(["message" => "伺服器內部錯誤，請稍後再試。"]);
+        exit;
+    }
+
+    // 綁定參數並執行查詢
+    $stmt->bind_param('ss', $county, $district);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // 處理結果
+    if ($result->num_rows > 0) {
+        $clinics = [];
+        while ($row = $result->fetch_assoc()) {
+            $clinics[] = htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8');
+        }
+        echo json_encode(["clinics" => $clinics]);
+    } else {
+        echo json_encode(["message" => "未找到符合條件的診所或醫院。"]);
+    }
+
+    // 關閉連線
+    $stmt->close();
+    $link->close();
+    exit;
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -34,7 +94,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="Free HTML Templates" name="keywords">
     <meta content="Free HTML Templates" name="description">
-
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Favicon -->
     <link href="img/favicon.ico" rel="icon">
 
@@ -242,11 +302,59 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                     </select>
                                 </div>
                                 <div class="col-12 col-sm-6">
-                                    <select class="form-select bg-light border-0" style="height: 55px;" name="county"
-                                        id="county_box">
-                                        <option selected value="">選擇診所或醫院</option>
+                                    <!-- 診所下拉選單 -->
+                                    <select class="form-select bg-light border-0" style="height: 55px;" id="clinic"
+                                        name="clinic">
+                                        <option selected value="" disabled>選擇診所或醫院</option>
+                                        <?php
+                                        if ($result->num_rows > 0) {
+                                            while ($row = $result->fetch_assoc()) {
+                                                echo "<option value='" . htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8') . "</option>";
+                                            }
+                                        } else {
+                                            echo "<option value='' disabled>無可用醫事機構</option>";
+                                        }
+                                        ?>
                                     </select>
                                 </div>
+
+                                <script>
+                                    // 請求診所列表
+                                    $('#district_box').on('change', function () {
+                                        const county = $('#county_box').val();
+                                        const district = $(this).val();
+
+                                        if (!county || !district) {
+                                            alert("請先選擇縣市和地區！");
+                                            return;
+                                        }
+
+                                        $.ajax({
+                                            url: 'u_reserve.php',
+                                            type: 'POST',
+                                            data: {
+                                                action: 'get_clinics',
+                                                county: county,
+                                                district: district
+                                            },
+                                            success: function (response) {
+                                                const data = JSON.parse(response);
+                                                $('#clinic').empty().append('<option value="" disabled selected>選擇診所或醫院</option>');
+
+                                                if (data.clinics) {
+                                                    data.clinics.forEach(function (clinic) {
+                                                        $('#clinic').append(`<option value="${clinic}">${clinic}</option>`);
+                                                    });
+                                                } else if (data.message) {
+                                                    alert(data.message);
+                                                }
+                                            },
+                                            error: function () {
+                                                alert("發生錯誤，請稍後再試！");
+                                            }
+                                        });
+                                    });
+                                </script>
                                 <div class="col-12 col-sm-6">
                                     <select class="form-select bg-light border-0" style="height: 55px;" name="district"
                                         id="district_box">
@@ -338,61 +446,61 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     }
                 </style>
 
-<script>
-                        // 取得所有星星的元素
-                        const stars = document.querySelectorAll('#star-rating .fa-star');
+                <script>
+                    // 取得所有星星的元素
+                    const stars = document.querySelectorAll('#star-rating .fa-star');
 
-                        // 將所有星星綁定點擊事件
-                        stars.forEach((star, index) => {
-                            star.addEventListener('click', function () {
-                                const ratingValue = index + 1; // 获取评分值
+                    // 將所有星星綁定點擊事件
+                    stars.forEach((star, index) => {
+                        star.addEventListener('click', function () {
+                            const ratingValue = index + 1; // 获取评分值
 
-                                // 移除所有星星的 selected 類別
-                                stars.forEach(s => s.classList.remove('selected'));
-                                // 為點選的星星和之前的星星加上 selected 類別
-                                for (let i = 0; i <= index; i++) {
-                                    stars[i].classList.add('selected');
-                                }
+                            // 移除所有星星的 selected 類別
+                            stars.forEach(s => s.classList.remove('selected'));
+                            // 為點選的星星和之前的星星加上 selected 類別
+                            for (let i = 0; i <= index; i++) {
+                                stars[i].classList.add('selected');
+                            }
 
-                                // 更新星星樣式
-                                document.querySelectorAll('#star-rating li').forEach(function (star) {
-                                    if (star.getAttribute('data-value') <= ratingValue) {
-                                        star.classList.add('text-warning');
-                                    } else {
-                                        star.classList.remove('text-warning');
-                                    }
-                                });
-
-                                // 使用 AJAX 发送评分数据
-                                const xhr = new XMLHttpRequest();
-                                xhr.open("POST", "評分.php", true);
-                                xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-                                xhr.onreadystatechange = function () {
-                                    if (xhr.readyState == 4 && xhr.status == 200) {
-                                        // 显示成功提示
-                                        swal("感謝您的評分！", "您給了 " + ratingValue + " 星！", "success");
-                                    }
-                                };
-                                xhr.send("score=" + ratingValue);
-
-                                // 彈出評分提示
-                                swal("感謝您的評分！", "您給了 " + ratingValue + " 星！", "success");
-                            });
-
-                            // 滑鼠移到星星上時，顯示即時的 hover 效果
-                            star.addEventListener('mouseover', function () {
-                                stars.forEach(s => s.classList.remove('hover'));
-                                for (let i = 0; i <= index; i++) {
-                                    stars[i].classList.add('hover');
+                            // 更新星星樣式
+                            document.querySelectorAll('#star-rating li').forEach(function (star) {
+                                if (star.getAttribute('data-value') <= ratingValue) {
+                                    star.classList.add('text-warning');
+                                } else {
+                                    star.classList.remove('text-warning');
                                 }
                             });
 
-                            // 滑鼠移出後，恢復到已點選的狀態
-                            star.addEventListener('mouseout', function () {
-                                stars.forEach(s => s.classList.remove('hover'));
-                            });
+                            // 使用 AJAX 发送评分数据
+                            const xhr = new XMLHttpRequest();
+                            xhr.open("POST", "評分.php", true);
+                            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                            xhr.onreadystatechange = function () {
+                                if (xhr.readyState == 4 && xhr.status == 200) {
+                                    // 显示成功提示
+                                    swal("感謝您的評分！", "您給了 " + ratingValue + " 星！", "success");
+                                }
+                            };
+                            xhr.send("score=" + ratingValue);
+
+                            // 彈出評分提示
+                            swal("感謝您的評分！", "您給了 " + ratingValue + " 星！", "success");
                         });
-                    </script>
+
+                        // 滑鼠移到星星上時，顯示即時的 hover 效果
+                        star.addEventListener('mouseover', function () {
+                            stars.forEach(s => s.classList.remove('hover'));
+                            for (let i = 0; i <= index; i++) {
+                                stars[i].classList.add('hover');
+                            }
+                        });
+
+                        // 滑鼠移出後，恢復到已點選的狀態
+                        star.addEventListener('mouseout', function () {
+                            stars.forEach(s => s.classList.remove('hover'));
+                        });
+                    });
+                </script>
 
 
             </div>
