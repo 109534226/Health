@@ -295,9 +295,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         } else {
                                             alert("請輸入地點");
                                         }
-                                    }
-
-                                    
+                                    }                                    
                                 </script>
 
                                 <div class="col-12 col-sm-6">
