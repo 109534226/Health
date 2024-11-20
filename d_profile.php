@@ -279,59 +279,8 @@ header("Pragma: no-cache");
         </div>
     </div>
     <!-- 頁首 End -->
-    <!-- 回到頁首(Top 箭頭 -->
-    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
 
-    <!-- 登出對話框 Start -->
-    <div id="logoutBox" class="logout-box">
-        <div class="logout-dialog">
-            <p>你確定要登出嗎？</p>
-            <button onclick="logout()">確定</button>
-            <button onclick="hideLogoutBox()">取消</button>
-        </div>
-    </div>
-    <!-- 登出對話框 End -->
 
-    <!-- 刪除帳號對話框 Start -->
-    <div id="deleteAccountBox" class="logout-box">
-        <div class="logout-dialog">
-            <p>你確定要刪除帳號嗎？這個操作無法撤銷！</p>
-            <button onclick="deleteAccount()">確定</button>
-            <button onclick="hideDeleteAccountBox()">取消</button>
-        </div>
-    </div>
-    <!-- 刪除帳號對話框 End -->
-
-    <!-- JavaScript -->
-    <script>
-
-        function showLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'flex';
-        }
-
-        function hideLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'none';
-        }
-
-        function logout() {
-            // 移除登入狀態
-            sessionStorage.removeItem('isLoggedIn');
-            // 跳轉到登出頁面
-            window.location.href = '登出.php';
-        }
-
-        function showDeleteAccountBox() {
-            document.getElementById('deleteAccountBox').style.display = 'flex';
-        }
-
-        function hideDeleteAccountBox() {
-            document.getElementById('deleteAccountBox').style.display = 'none';
-        }
-
-        function deleteAccount() {
-            document.getElementById('deleteAccountForm').submit();
-        }
-    </script>
     <?php
     // 檢查是否有錯誤訊息
     if (isset($_GET['error'])) {
@@ -392,12 +341,42 @@ header("Pragma: no-cache");
                     <input id="useremail" type="email" name="useremail" value="<?php echo $電子郵件; ?>" disabled>
                 </div>
 
+
+                <?php
+                session_start();
+                include "db.php"; // 連接資料庫
+                
+                // 假設從 session 獲取目前登入的帳號
+                $帳號 = $_SESSION["帳號"];
+                if (!$帳號) {
+                    die("用戶未登入，請重新登入！");
+                }
+
+                // 預設隸屬醫院為空
+                $隸屬醫院 = "無";
+
+                // 查詢隸屬醫院資料
+                $SQL查詢 = "SELECT hospital FROM profession WHERE name = ?";
+                $stmt = $link->prepare($SQL查詢);
+                $stmt->bind_param("s", $帳號);
+                $stmt->execute();
+                $result = $stmt->get_result();
+
+                if ($row = $result->fetch_assoc()) {
+                    // 如果 hospital 不為空，設置為查詢結果，否則顯示 "無"
+                    $隸屬醫院 = !empty($row['hospital']) ? $row['hospital'] : "無";
+                }
+
+                $stmt->close();
+                $link->close();
+                ?>
+
+
                 <div class="form-row">
                     <label for="hospital">隸屬醫院 :</label>
-                    <input id="hospital" type="text" name="hospital"
-                        value="<?php echo empty($隸屬醫院) ? '沒有資料' : htmlspecialchars($隸屬醫院); ?>">
+                    <input id="hospital" type="text" name="hospital" value="<?php echo htmlspecialchars($隸屬醫院); ?>"
+                        readonly>
                 </div>
-
 
 
                 <!-- 操作按鈕 -->
@@ -460,6 +439,7 @@ header("Pragma: no-cache");
             const useridcard = document.getElementById('useridcard').value.trim();
             const userphone = document.getElementById('userphone').value.trim();
             const useremail = document.getElementById('useremail').value.trim();
+            const hospital = document.getElementById('hospital').value.trim();
 
             // 驗證欄位格式
 
@@ -574,6 +554,13 @@ header("Pragma: no-cache");
                 return;
             }
 
+            // 隸屬醫院驗證: 空白檢查
+            if (!hospital) {
+                alert('隸屬醫院欄位不能為空');
+                return;
+            }
+
+
             const confirmMessage =
                 `請確認您的資料:\n` +
                 `姓名: ${username}\n` +
@@ -618,6 +605,61 @@ header("Pragma: no-cache");
         }
     </script>
     <!-- 個人檔案表單 End -->
+
+
+    <!-- 回到頁首(Top 箭頭 -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+
+    <!-- 登出對話框 Start -->
+    <div id="logoutBox" class="logout-box">
+        <div class="logout-dialog">
+            <p>你確定要登出嗎？</p>
+            <button onclick="logout()">確定</button>
+            <button onclick="hideLogoutBox()">取消</button>
+        </div>
+    </div>
+    <!-- 登出對話框 End -->
+
+    <!-- 刪除帳號對話框 Start -->
+    <div id="deleteAccountBox" class="logout-box">
+        <div class="logout-dialog">
+            <p>你確定要刪除帳號嗎？這個操作無法撤銷！</p>
+            <button onclick="deleteAccount()">確定</button>
+            <button onclick="hideDeleteAccountBox()">取消</button>
+        </div>
+    </div>
+    <!-- 刪除帳號對話框 End -->
+
+    <!-- JavaScript -->
+    <script>
+
+        function showLogoutBox() {
+            document.getElementById('logoutBox').style.display = 'flex';
+        }
+
+        function hideLogoutBox() {
+            document.getElementById('logoutBox').style.display = 'none';
+        }
+
+        function logout() {
+            // 移除登入狀態
+            sessionStorage.removeItem('isLoggedIn');
+            // 跳轉到登出頁面
+            window.location.href = '登出.php';
+        }
+
+        function showDeleteAccountBox() {
+            document.getElementById('deleteAccountBox').style.display = 'flex';
+        }
+
+        function hideDeleteAccountBox() {
+            document.getElementById('deleteAccountBox').style.display = 'none';
+        }
+
+        function deleteAccount() {
+            document.getElementById('deleteAccountForm').submit();
+        }
+    </script>
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
