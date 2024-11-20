@@ -395,8 +395,9 @@ header("Pragma: no-cache");
                 <div class="form-row">
                     <label for="hospital">隸屬醫院 :</label>
                     <input id="hospital" type="text" name="hospital"
-                        value="<?php echo empty($隸屬醫院) ? '沒有資料' : $隸屬醫院; ?>">
+                        value="<?php echo empty($隸屬醫院) ? '沒有資料' : htmlspecialchars($隸屬醫院); ?>">
                 </div>
+
 
 
                 <!-- 操作按鈕 -->

@@ -214,7 +214,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     <?php
     include "db.php"; // 連接資料庫
     // 查詢登入使用者的身份（醫生或護士）
-    $查詢角色 = "SELECT grade FROM user WHERE username = '$帳號'";
+    $查詢角色 = "SELECT grade FROM user WHERE name = '$帳號'";
     $角色結果 = mysqli_query($link, $查詢角色);
 
     if ($角色結果 && $row = mysqli_fetch_assoc($角色結果)) {

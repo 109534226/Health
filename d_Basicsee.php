@@ -148,7 +148,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     <?php
     include "db.php"; // 連接資料庫
     // 查詢登入使用者的身份（醫生或護士）
-    $查詢角色 = "SELECT grade FROM user WHERE username = '$帳號'";
+    $查詢角色 = "SELECT grade FROM user WHERE name = '$帳號'";
     $角色結果 = mysqli_query($link, $查詢角色);
 
     if ($角色結果 && $row = mysqli_fetch_assoc($角色結果)) {
@@ -216,14 +216,14 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     include "db.php"; // 連接資料庫
     
     // 檢查是否指定了 hospital 參數
-    $指定醫院 = isset($_GET['hospital']) ? mysqli_real_escape_string($link, $_GET['hospital']) : '';
+    // $指定醫院 = isset($_GET['hospital']) ? mysqli_real_escape_string($link, $_GET['hospital']) : '';
 
-    if (empty($指定醫院)) {
-        die("未指定醫院。");
-    }
+    // if (empty($指定醫院)) {
+    //     die("未指定醫院。");
+    // }
 
     // 查詢該醫院的數據
-    $查詢語句 = "SELECT * FROM doctorshift WHERE hospital = '$指定醫院'";
+    $查詢語句 = "SELECT * FROM doctorshift WHERE  = doctorname";
     $查詢結果 = mysqli_query($link, $查詢語句);
 
     if (!$查詢結果) {
