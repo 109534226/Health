@@ -392,6 +392,13 @@ header("Pragma: no-cache");
                     <input id="useremail" type="email" name="useremail" value="<?php echo $電子郵件; ?>" disabled>
                 </div>
 
+                <div class="form-row">
+                    <label for="hospital">隸屬醫院 :</label>
+                    <input id="hospital" type="text" name="hospital"
+                        value="<?php echo empty($隸屬醫院) ? '沒有資料' : $隸屬醫院; ?>">
+                </div>
+
+
                 <!-- 操作按鈕 -->
                 <div class="form-buttons">
                     <button type="button" id="editButton">修改資料</button>
@@ -438,10 +445,10 @@ header("Pragma: no-cache");
                         // 上傳成功後更新頁面上的頭像
                         document.getElementById('profilePicturePreview').src = data.imageUrl;
                     } else {
-                        alert('頭像上传失败，请重试');
+                        alert('頭像上傳失败，請重試');
                     }
                 })
-                .catch(error => console.error('上传错误:', error));
+                .catch(error => console.error('上船錯誤:', error));
         }
 
 
@@ -573,6 +580,7 @@ header("Pragma: no-cache");
                 `身分證字號: ${useridcard}\n` +
                 `聯絡電話: ${userphone}\n` +
                 `電子郵件: ${useremail}\n` +
+                `隸屬醫院: ${hospital}\n` +
                 `確定要提交資料嗎？`;
 
             // 顯示確認 alert

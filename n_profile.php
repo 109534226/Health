@@ -396,7 +396,7 @@ header("Pragma: no-cache");
                 <div class="form-row">
                     <label for="hospital">隸屬醫院 :</label>
                     <input id="hospital" type="text" name="hospital"
-                        value="<?php echo empty($隸屬醫院) ? '沒有資料' : $隸屬醫院; ?>" disabled>
+                        value="<?php echo empty($隸屬醫院) ? '沒有資料' : $隸屬醫院; ?>">
                 </div>
 
                 <!-- 操作按鈕 -->
@@ -565,6 +565,7 @@ header("Pragma: no-cache");
                 `身分證字號: ${useridcard}\n` +
                 `聯絡電話: ${userphone}\n` +
                 `電子郵件: ${useremail}\n` +
+                `隸屬醫院: ${hospital}\n` +
                 `確定要提交資料嗎？`;
 
             // 顯示確認 alert
