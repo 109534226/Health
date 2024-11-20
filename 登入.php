@@ -30,7 +30,7 @@ if ($密碼 == "") {
 
 // 防止SQL注入
 $帳號 = mysqli_real_escape_string($link, $帳號);
-$密碼 = mysqli_real_escape_string($link, $密碼); // 建議對密碼也做相同處理
+$密碼 = mysqli_real_escape_string($link, $密碼); 
 
 // 構造SQL查詢語句，根據帳號查找用戶
 $SQL指令 = "SELECT * FROM `user` WHERE `name` = '$帳號' AND `password` = '$密碼';";
