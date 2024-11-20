@@ -10,8 +10,6 @@ $身分證字號 = $_POST["useridcard"];
 $電話 = $_POST["userphone"];
 $電子郵件 = $_POST["useremail"];
 $profilePicture = $_FILES['profilePicture'];
-$緊急聯絡人 = "";
-$緊急聯絡人電話 = "";
 
 // 資料驗證
 if (empty($出生年月日) || empty($身分證字號) || empty($電話)) {
@@ -20,14 +18,14 @@ if (empty($出生年月日) || empty($身分證字號) || empty($電話)) {
 }
 
 // 檢查資料庫中是否已有該使用者的資料
-$SQL檢查 = "SELECT * FROM people WHERE name = '$帳號'";
+$SQL檢查 = "SELECT * FROM profession WHERE name = '$帳號'";
 $result = mysqli_query($link, $SQL檢查);
 $userData = mysqli_fetch_assoc($result);
 
 if ($userData) {
     // 如果資料已存在，則執行更新
-    $SQL指令 = "UPDATE people SET username='$姓名', birthday='$出生年月日', idcard='$身分證字號', 
-     phone='$電話', email='$電子郵件', ecname='$緊急聯絡人', ecphone='$緊急聯絡人電話'";
+    $SQL指令 = "UPDATE profession SET username='$姓名', birthday='$出生年月日', idcard='$身分證字號', 
+     phone='$電話', email='$電子郵件'";
 
     // 如果有上傳新圖片，更新 image 欄位
     if (!empty($profilePicture['tmp_name']) && $profilePicture['error'] == 0) {
@@ -38,13 +36,13 @@ if ($userData) {
     $SQL指令 .= " WHERE name='$帳號'";
 } else {
     // 如果資料不存在，則插入新資料
-    $SQL指令 = "INSERT INTO people (name, username, birthday, idcard, phone, email, ecname, ecphone";
+    $SQL指令 = "INSERT INTO profession (name, username, birthday, idcard, phone, email, ecname, ecphone";
 
     if (!empty($profilePicture['tmp_name']) && $profilePicture['error'] == 0) {
         $imageData = addslashes(file_get_contents($profilePicture['tmp_name']));
-        $SQL指令 .= ", image) VALUES ('$帳號', '$姓名', '$出生年月日', '$身分證字號', '$電話', '$電子郵件', '$緊急聯絡人', '$緊急聯絡人電話', '$imageData')";
+        $SQL指令 .= ", image) VALUES ('$帳號', '$姓名', '$出生年月日', '$身分證字號', '$電話', '$電子郵件','$imageData')";
     } else {
-        $SQL指令 .= ") VALUES ('$帳號', '$姓名', '$出生年月日', '$身分證字號', '$電話', '$電子郵件', '$緊急聯絡人', '$緊急聯絡人電話')";
+        $SQL指令 .= ") VALUES ('$帳號', '$姓名', '$出生年月日', '$身分證字號', '$電話', '$電子郵件')";
     }
 }
 

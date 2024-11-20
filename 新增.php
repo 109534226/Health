@@ -1,3 +1,4 @@
+<html>      
 <?php
 session_start();
 
@@ -34,7 +35,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
 <head>
     <meta charset="utf-8">
-    <title>健康醫療網站 </title>
+    <title>健康醫療網站</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="Free HTML Templates" name="keywords">
     <meta content="Free HTML Templates" name="description">
@@ -118,8 +119,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="c_user.php" class="nav-item nav-link active">用戶管理</a>
-                        <a href="c_content.php" class="nav-item nav-link ">內容管理</a>
+                        <a href="c_user.php" class="nav-item nav-link ">用戶管理</a>
+                        <a href="c_content.php" class="nav-item nav-link active">內容管理</a>
                         <a href="c_security.php" class="nav-item nav-link">安全管理</a>
 
                         <div class="nav-item">
@@ -144,6 +145,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         </div>
     </div>
     <!-- 頁首 End -->
+     
     <!-- 回到頁首(Top 箭頭 -->
     <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
 
@@ -167,86 +169,45 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     </div>
     <!-- 刪除帳號對話框 End -->
 
-    <?php
-    include 'db.php';
+<form method="POST" action="發布.php">
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>調整文字樣式</title>
 
-    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        $username = $_POST['username'];
-        $email = $_POST['email'];
-        $role = $_POST['role'];
-
-        $sql = "INSERT INTO user (username, email, role) VALUES ('$username', '$email', '$role')";
-        if ($conn->query($sql) === TRUE) {
-            header("Location: index.php");
-        } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
+    標題: <input type="text" name="username" required><br>
+    副標題: <input type="text" name="name" required><br>
+    內容: <textarea class="text-box" name="account" required></textarea><br>
+    
+    <!-- 包裹按鈕的div -->
+    <div class="button-container">
+        <button type="submit">發布</button>
+    </div>
+    
+    <style>
+        /* 調整文字框樣式 */
+        .text-box {
+            width: 1800px; /* 調整寬度到合適大小 */
+            height: 500px; /* 初始高度 */
+            border: 1px solid black;
+            padding: 5px; /* 增加邊距使文字不貼著邊框 */
+            font-size: 16px; /* 調整字體大小 */
+            font-family: Arial, sans-serif; /* 設定字體 */
+            line-height: 1.2; /* 調整行距 */
+            resize: both; /* 允許水平與垂直方向調整大小 */
+            overflow: auto; /* 顯示滾動條 */
         }
-    }
-    ?>
 
-    <!DOCTYPE html>
-    <html>
-
-    <head>
-        <title>新增用戶</title>
-    </head>
-
-    <body>
-            <h1>新增用戶</h1>
-            <form method="POST" action="000.php">
-            帳號: <input type="text" name="username" required><br>
-            姓名: <input type="text" name="name" required><br>
-            密碼: <input type="text" name="password" required><br>
-            電子郵件: <input type="email" name="email" required><br>
-            角色:
-            <select name="grade">
-                <option value="3">管理員</option>
-                <option value="1">醫生</option>
-                <option value="2">護士</option>
-                <option value="0">使用者</option>
-            </select><br>
-            <button type="submit">新增</button>
-        </form>
-        <!-- JavaScript -->
-        <script>
-            function showLogoutBox() {
-                document.getElementById('logoutBox').style.display = 'flex';
-            }
-
-            function hideLogoutBox() {
-                document.getElementById('logoutBox').style.display = 'none';
-            }
-
-            function logout() {
-                alert('你已經登出！');
-                hideLogoutBox();
-                window.location.href = 'login.php'; // 替換為登出後的頁面
-            }
-
-            function showDeleteAccountBox() {
-                document.getElementById('deleteAccountBox').style.display = 'flex';
-            }
-
-            function hideDeleteAccountBox() {
-                document.getElementById('deleteAccountBox').style.display = 'none';
-            }
-
-            function deleteAccount() {
-                document.getElementById('deleteAccountForm').submit();
-            }
-        </script>
-        <!-- JavaScript Libraries -->
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="lib/easing/easing.min.js"></script>
-        <script src="lib/waypoints/waypoints.min.js"></script>
-        <script src="lib/owlcarousel/owl.carousel.min.js"></script>
-        <script src="lib/tempusdominus/js/moment.min.js"></script>
-        <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
-        <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
-
-        <!-- Template Javascript -->
-        <script src="js/main.js"></script>
-    </body>
-
-    </html>
+        /* 置中按鈕容器 */
+        .button-container {
+            display: flex;
+            justify-content: center; /* 水平置中 */
+            margin-top: 10px; /* 與上方表單元素保持距離 */
+        }
+    </style>
+</form>
+</form>
+</head>
+</html>

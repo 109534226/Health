@@ -1,8 +1,13 @@
 <?php
 session_start();
 
+// 顯示所有錯誤
+// error_reporting(E_ALL);
+// ini_set('display_errors', 1);
+
+// 確保用戶已登入
 if (!isset($_SESSION["登入狀態"])) {
-    header("Location: login.html");
+    echo json_encode(["message" => "用戶未登入，請重新登入。"]);
     exit;
 }
 
@@ -10,19 +15,69 @@ if (!isset($_SESSION["登入狀態"])) {
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 header("Pragma: no-cache");
+// header('Content-Type: application/json; charset=utf-8');
 
-// 檢查 "帳號" 和 "姓名" 是否存在於 $_SESSION 中
-if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
-    // 獲取用戶帳號和姓名
-    $帳號 = $_SESSION['帳號'];
-    $姓名 = $_SESSION['姓名'];
-} else {
-    echo "<script>
-            alert('會話過期或資料遺失，請重新登入。');
-            window.location.href = 'login.html';
-          </script>";
-    exit();
+// 清空輸出緩存
+ob_clean();
+flush();
+
+// 檢查是否為 POST 請求
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+
+    // 驗證操作類型
+    if ($action !== 'get_clinics') {
+        echo json_encode(["message" => "無效的操作類型。"]);
+        exit;
+    }
+
+    // 獲取請求參數
+    $county = trim($_POST['county'] ?? '');
+    $district = trim($_POST['district'] ?? '');
+
+    // 驗證請求參數
+    if (empty($county) || empty($district)) {
+        echo json_encode(["message" => "請選擇縣市和地區！"]);
+        exit;
+    }
+
+    // 引入資料庫連線
+    include 'db.php';
+
+    // 查詢資料庫
+    $query = "SELECT DISTINCT `醫事機構` FROM `hospital` WHERE `縣市名稱` = ? AND `區域` = ?";
+    $stmt = $link->prepare($query);
+
+    if (!$stmt) {
+        echo json_encode(["message" => "伺服器內部錯誤，請稍後再試。"]);
+        exit;
+    }
+
+    // 綁定參數並執行查詢
+    $stmt->bind_param('ss', $county, $district);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // 處理結果
+    if ($result->num_rows > 0) {
+        $clinics = [];
+        while ($row = $result->fetch_assoc()) {
+            $clinics[] = htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8');
+        }
+        echo json_encode(["clinics" => $clinics]);
+    } else {
+        echo json_encode(["message" => "未找到符合條件的診所或醫院。"]);
+    }
+
+    // 關閉連線
+    $stmt->close();
+    $link->close();
+    exit;
 }
+
+// // 非 POST 請求的處理
+// echo json_encode(["message" => "無效的請求方法。"]);
+// exit;
 ?>
 
 <!DOCTYPE html>
@@ -37,6 +92,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
     <!-- Favicon -->
     <link href="img/favicon.ico" rel="icon">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <!-- SweetAlert CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
@@ -254,10 +310,72 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 </div>
 
                                 <div class="col-12 col-sm-6" style="width: 100%; max-width: 600px;">
-                                    <select class="form-select bg-light border-0" style="height: 55px;">
-                                        <option selected value="">選擇診所或醫院</option>
+                                    <select class="form-select bg-light border-0" style="height: 55px;" id="clinic"
+                                        name="clinic">
+                                        <option selected value="" disabled>選擇診所或醫院</option>
+                                        <?php
+                                        if ($result->num_rows > 0) {
+                                            while ($row = $result->fetch_assoc()) {
+                                                echo "<option value='" . $row['醫事機構'] . "'>" . $row['醫事機構'] . "</option>";
+                                            }
+                                        } else {
+                                            echo "<option value='' disabled>無可用醫事機構</option>";
+                                        }
+                                        ?>
                                     </select>
                                 </div>
+                                <script>
+                                    // 請求診所列表
+                                    $('#district_box').on('change', function () {
+                                        const county = $('#county_box').val();
+                                        const district = $(this).val();
+
+                                        if (!county || !district) {
+                                            alert("請先選擇縣市和地區！");
+                                            return;
+                                        }
+
+                                        $.ajax({
+                                            url: 'u_map.php',
+                                            type: 'POST',
+                                            data: {
+                                                action: 'get_clinics',
+                                                county: county,
+                                                district: district
+                                            },
+                                            success: function (response) {
+                                                const data = JSON.parse(response);
+                                                $('#clinic').empty().append('<option value="" disabled selected>選擇診所或醫院</option>');
+
+                                                if (data.clinics) {
+                                                    data.clinics.forEach(function (clinic) {
+                                                        $('#clinic').append(`<option value="${clinic}">${clinic}</option>`);
+                                                    });
+                                                } else if (data.message) {
+                                                    alert(data.message);
+                                                }
+                                            },
+                                            error: function () {
+                                                alert("發生錯誤，請稍後再試！");
+                                            }
+                                        });
+                                    });
+
+                                    // $(document).ready(function () {
+                                    //     // 當用戶更改縣市或地區時，觸發事件
+                                    //     $('#county_box, #district_box').on('change', function () {
+                                    //         // 獲取縣市和地區的選擇值
+                                    //         const county = $('#county_box').val();
+                                    //         const district = $('#district_box').val();
+
+                                    //         // 如果縣市和地區都有選擇，則顯示結果
+                                    //         if (county && district) {
+                                    //             alert(`您選擇的縣市是：${county}\n您選擇的地區是：${district}`);
+                                    //         }
+                                    //     });
+                                    // });
+                                </script>
+
                                 <div class="row">
                                     <p><br /></p>
                                     <div class="col-md-6 mb-3">
@@ -418,7 +536,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
 
     <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <!-- <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="lib/easing/easing.min.js"></script>
     <script src="lib/waypoints/waypoints.min.js"></script>

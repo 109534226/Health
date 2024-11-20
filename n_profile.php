@@ -14,7 +14,7 @@ $姓名 = $_SESSION["姓名"];
 $電子郵件 = $_SESSION["電子郵件"];
 
 // 查詢該帳號的使用者資料
-$SQL檢查 = "SELECT * FROM people WHERE name = '$帳號'";
+$SQL檢查 = "SELECT * FROM profession WHERE name = '$帳號'";
 $result = mysqli_query($link, $SQL檢查);
 $userData = mysqli_fetch_assoc($result);
 
