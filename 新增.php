@@ -119,8 +119,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="c_user.php" class="nav-item nav-link active">用戶管理</a>
-                        <a href="c_content.php" class="nav-item nav-link ">內容管理</a>
+                        <a href="c_user.php" class="nav-item nav-link ">用戶管理</a>
+                        <a href="c_content.php" class="nav-item nav-link active">內容管理</a>
                         <a href="c_security.php" class="nav-item nav-link">安全管理</a>
 
                         <div class="nav-item">
