@@ -209,6 +209,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         </div>
     </div>
     <!-- 頁首 End -->
+     
     <?php
     include "db.php"; // 連接資料庫
     // 查詢登入使用者的身份（醫生或護士）
@@ -275,66 +276,65 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             <br />
 
             <?php
-            include "db.php"; // 連接資料庫
-            
-            // 擷取資料
-            $查詢語句 = "SELECT * FROM doctorshift";
-            $查詢結果 = mysqli_query($link, $查詢語句);
+    include "db.php"; // 連接資料庫
 
-            if (!$查詢結果) {
-                die("查詢失敗: " . mysqli_error($link));
-            }
+    // 動態檢查是否有指定 hospital（優先檢查 POST，沒有則檢查 GET）
+    $指定醫院 = '';
+    if (isset($_POST['hospital'])) {
+        $指定醫院 = mysqli_real_escape_string($link, $_POST['hospital']);
+    } elseif (isset($_GET['hospital'])) {
+        $指定醫院 = mysqli_real_escape_string($link, $_GET['hospital']);
+    }
 
-            // 獲取總記錄數
-            $總記錄數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM doctorshift");
-            if (!$總記錄數查詢) {
-                die("查詢失敗: " . mysqli_error($link));
-            }
-            $總記錄數結果 = mysqli_fetch_assoc($總記錄數查詢);
-            $總記錄數 = $總記錄數結果['總數'];
+    // 如果未指定 hospital，則提示錯誤
+    if (empty($指定醫院)) {
+        die("未指定醫院參數。");
+    }
 
-            // 設定每頁顯示的記錄數
-            $每頁記錄數 = 15;
-            $總頁數 = ceil($總記錄數 / $每頁記錄數);
+    // 查詢 profession 確認醫院是否存在
+    $醫院確認查詢 = "SELECT 1 FROM profession WHERE hospital = '$指定醫院' LIMIT 1";
+    $醫院確認結果 = mysqli_query($link, $醫院確認查詢);
 
-            // 獲取當前頁碼
-            $當前頁碼 = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-            $當前頁碼 = max(1, min($總頁數, $當前頁碼)); // 確保當前頁碼在範圍內
-            
-            // 計算起始記錄
-            $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
+    if (!$醫院確認結果 || mysqli_num_rows($醫院確認結果) == 0) {
+        die("該醫院不存在或未授權。");
+    }
 
-            // 查詢當前頁碼的資料
-            $查詢結果 = mysqli_query($link, "SELECT * FROM doctorshift LIMIT $起始位置, $每頁記錄數");
-            if (!$查詢結果) {
-                die("查詢失敗: " . mysqli_error($link));
-            }
-            ?>
+    // 獲取 doctorshift 的資料
+    $查詢語句 = "SELECT * FROM doctorshift WHERE hospital = '$指定醫院'";
+    $查詢結果 = mysqli_query($link, $查詢語句);
 
-            <table border="1">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>日期</th>
-                        <th>診間號</th>
-                        <th>醫生姓名</th>
-                        <th>看診時間</th>
-                        <th>紀錄創建時間</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while ($資料列 = mysqli_fetch_assoc($查詢結果)): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($資料列['id']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['dateday']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['clinicnumber']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['doctorname']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['consultationperiod']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
-                        </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
+    if (!$查詢結果) {
+        die("查詢失敗: " . mysqli_error($link));
+    }
+
+    // 獲取總記錄數
+    $總記錄數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM doctorshift WHERE hospital = '$指定醫院'");
+    if (!$總記錄數查詢) {
+        die("查詢失敗: " . mysqli_error($link));
+    }
+    $總記錄數結果 = mysqli_fetch_assoc($總記錄數查詢);
+    $總記錄數 = $總記錄數結果['總數'];
+
+    // 設定每頁顯示的記錄數
+    $每頁記錄數 = 15;
+    $總頁數 = ceil($總記錄數 / $每頁記錄數);
+
+    // 獲取當前頁碼
+    $當前頁碼 = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+    $當前頁碼 = max(1, min($總頁數, $當前頁碼)); // 確保當前頁碼在範圍內
+
+    // 計算起始記錄
+    $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
+
+    // 查詢分頁資料
+    $查詢語句 = "SELECT * FROM doctorshift WHERE hospital = '$指定醫院' LIMIT $起始位置, $每頁記錄數";
+    $查詢結果 = mysqli_query($link, $查詢語句);
+
+    if (!$查詢結果) {
+        die("查詢失敗: " . mysqli_error($link));
+    }
+?>
+
 
             <div class="pagination">
                 <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p> <!-- 顯示總資料筆數 -->
