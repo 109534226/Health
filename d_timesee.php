@@ -274,7 +274,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </div>
             </div>
             <br />
-
             <?php
     include "db.php"; // 連接資料庫
 
@@ -335,6 +334,30 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     }
 ?>
 
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>日期</th>
+                        <th>診間號</th>
+                        <th>醫生姓名</th>
+                        <th>看診時間</th>
+                        <th>紀錄創建時間</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php while ($資料列 = mysqli_fetch_assoc($查詢結果)): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($資料列['id']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['dateday']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['clinicnumber']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['doctorname']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['consultationperiod']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
+                        </tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
 
             <div class="pagination">
                 <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p> <!-- 顯示總資料筆數 -->
