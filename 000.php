@@ -1,43 +1,58 @@
 <?php
-// 引入資料庫連接
+// 引入資料庫連接檔案
 include 'db.php';
 
+// 啟動會話（用於管理登入等狀態）
+session_start();
+
+// 如果請求方式是 POST
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // 獲取表單數據
-    $id = $_POST['id'];
-    $username = $_POST['username'];
-    $name = $_POST['name'];
-    $password = $_POST['password'];
-    $email = $_POST['email'];
-    $grade = $_POST['grade'];
-    $state = $_POST['state'];
+    // 從表單獲取數據
+    $id = $_POST['id']; // 用戶 ID
+    $username = $_POST['username']; // 用戶名
+    $name = $_POST['name']; // 帳號名稱
+    $password = $_POST['password']; // 密碼
+    $email = $_POST['email']; // 電子郵件
+    $grade = $_POST['grade']; // 用戶權限等級
+    $state = $_POST['state']; // 用戶狀態
 
-    // 防止 SQL 注入的措施
-    $username = mysqli_real_escape_string($link, $username);
-    $email = mysqli_real_escape_string($link, $email);
-    $grade = mysqli_real_escape_string($link, $grade);
-    $name = mysqli_real_escape_string($link, $name);
-    $password = mysqli_real_escape_string($link, $password);
-
-
-    // SQL 插入指令
-    $sql = "INSERT INTO user (username,name,password, email, grade) VALUES ('$username','$name','$password', '$email', '$grade')";
+    // 檢查是否已經存在該帳號
+    $SQL檢查 = "SELECT COUNT(*) as cnt FROM `user` WHERE `name` = '$name'";
+    $result = mysqli_query($link, $SQL檢查); // 執行檢查帳號的 SQL 語句
+    $row = mysqli_fetch_assoc($result); // 獲取查詢結果
     
-
-
-    // 使用 mysqli_query 執行 SQL
-    if (mysqli_query($link, $sql)) {
-        echo "";
+    // 如果查詢結果顯示帳號已存在
+    if ($row['cnt'] > 0) {
         echo "<script>
-                alert('新用戶新增成功');
-                window.location.href = '新增用戶.php';
-              </script>";
+                alert('帳號已存在，請選擇其他帳號。'); // 提示用戶帳號已存在
+                window.location.href = '新增用戶.php'; // 返回新增用戶頁面
+            </script>";
+        exit(); // 終止執行
+    }
 
+    // 防止 SQL 注入的措施，轉義特殊字符
+    $username = mysqli_real_escape_string($link, $username); // 轉義用戶名
+    $email = mysqli_real_escape_string($link, $email); // 轉義電子郵件
+    $grade = mysqli_real_escape_string($link, $grade); // 轉義權限等級
+    $name = mysqli_real_escape_string($link, $name); // 轉義帳號名稱
+    $password = mysqli_real_escape_string($link, $password); // 轉義密碼
+
+    // SQL 插入語句，將用戶數據插入資料庫
+    $sql = "INSERT INTO `user` (`username`,`name`,`password`, `email`, `grade`) VALUES ('$username','$name','$password', '$email', '$grade')";
+
+    // 使用 mysqli_query 執行 SQL 插入語句
+    if (mysqli_query($link, $sql)) {
+        echo ""; // 不顯示其他訊息
+        echo "<script>
+                alert('新用戶新增成功'); // 提示新增成功
+                window.location.href = '新增用戶.php'; // 返回新增用戶頁面
+              </script>";
     } else {
+        // 如果執行失敗，顯示錯誤訊息
         echo "新增失敗: " . mysqli_error($link);
     }
 
-    // 關閉連接
+    // 關閉與資料庫的連接
     mysqli_close($link);
 }
 ?>

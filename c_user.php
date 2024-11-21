@@ -180,13 +180,13 @@ if (!$result) {
 // 將所有查詢結果放入陣列中
 $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
 ?>
-
+<!-- 
 <!DOCTYPE html>
 <html>
 <head>
     <title>用戶管理</title>
 </head>
-<body>
+<body> -->
     <h1>用戶管理</h1>
     <a href="新增用戶.php">新增用戶</a>
     <table while="100%" border="1">
@@ -208,6 +208,7 @@ $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
                 <td>
                     <!-- <a href="編輯用戶.php?id=<?php echo $row['id']; ?>">編輯</a> -->
                     <a href="刪除用戶.php?id=<?php echo $row['id']; ?>" onclick="return confirm('確定要刪除這位用戶嗎？');">刪除</a>
+                    <!-- <?php echo $row['id']; ?> -->
                 </td>
             </tr>
         <?php endforeach; ?>

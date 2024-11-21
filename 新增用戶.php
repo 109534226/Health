@@ -167,35 +167,18 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     </div>
     <!-- 刪除帳號對話框 End -->
 
-    <?php
-    include 'db.php';
-
-    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        $username = $_POST['username'];
-        $email = $_POST['email'];
-        $role = $_POST['role'];
-
-        $sql = "INSERT INTO user (username, email, role) VALUES ('$username', '$email', '$role')";
-        if ($conn->query($sql) === TRUE) {
-            header("Location: index.php");
-        } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
-        }
-    }
-    ?>
-
-    <!DOCTYPE html>
+    <!-- <!DOCTYPE html>
     <html>
 
     <head>
         <title>新增用戶</title>
     </head>
 
-    <body>
+    <body> -->
             <h1>新增用戶</h1>
             <form method="POST" action="000.php">
-            帳號: <input type="text" name="username" required><br>
-            姓名: <input type="text" name="name" required><br>
+            帳號: <input type="text" name="name" required><br>
+            姓名: <input type="text" name="username" required><br>
             密碼: <input type="text" name="password" required><br>
             電子郵件: <input type="email" name="email" required><br>
             角色:
@@ -204,6 +187,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 <option value="1">醫生</option>
                 <option value="2">護士</option>
                 <option value="0">使用者</option>
+                <option value="4">醫院</option>
             </select><br>
             <button type="submit">新增</button>
         </form>
