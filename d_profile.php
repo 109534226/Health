@@ -442,10 +442,10 @@ header("Pragma: no-cache");
                         // 上傳成功後更新頁面上的頭像
                         document.getElementById('profilePicturePreview').src = data.imageUrl;
                     } else {
-                        alert('頭像上傳失败，請重試');
+                        alert('頭像上傳失敗，請重試');
                     }
                 })
-                .catch(error => console.error('上船錯誤:', error));
+                .catch(error => console.error('上傳錯誤:', error));
         }
 
 

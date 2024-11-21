@@ -299,6 +299,7 @@ header("Pragma: no-cache");
                 </div>
 
                 <?php
+                session_start();
                 include "db.php"; // 連接資料庫
                 
                 // 假設從 session 獲取目前登入的帳號
@@ -330,50 +331,52 @@ header("Pragma: no-cache");
                     $電話 = $row['phone'] ?? "";
                     $隸屬醫院 = $row['hospital'] ?? "";
                     $科別 = $row['department'] ?? "";
-
+                    
                 }
 
                 mysqli_close($link);
                 ?>
 
+
                 <div class="form-row">
                     <label for="username">姓名 :</label>
-                    <input id="username" type="text" name="username" value="<?php echo $姓名; ?>" disabled />
+                    <input id="username" type="text" name="username" value="<?php echo htmlspecialchars($姓名); ?>"
+                        disabled>
                 </div>
 
                 <div class="form-row">
                     <label for="userdate">出生年月日 :</label>
-                    <input id="userdate" type="date" name="userdate" value="<?php echo $出生年月日; ?>"
-                        max="<?php echo date('Y-m-d'); ?>" disabled>
+                    <input id="userdate" type="date" name="userdate" value="<?php echo htmlspecialchars($出生年月日); ?>"
+                        disabled>
                 </div>
 
                 <div class="form-row">
                     <label for="useridcard">身分證字號 :</label>
-                    <input id="useridcard" type="text" name="useridcard" value="<?php echo $身分證字號; ?>"
-                        placeholder="ex:A123456789">
+                    <input id="useridcard" type="text" name="useridcard" value="<?php echo htmlspecialchars($身分證字號); ?>"
+                        disabled>
                 </div>
-
 
                 <div class="form-row">
                     <label for="userphone">聯絡電話 :</label>
-                    <input id="userphone" type="tel" name="userphone" value="<?php echo $電話; ?>"
-                        placeholder="ex:0912345678" disabled>
+                    <input id="userphone" type="text" name="userphone" value="<?php echo htmlspecialchars($電話); ?>"
+                        disabled>
                 </div>
 
                 <div class="form-row">
                     <label for="useremail">電子郵件 :</label>
-                    <input id="useremail" type="email" name="useremail" value="<?php echo $電子郵件; ?>" disabled>
+                    <input id="useremail" type="email" name="useremail" value="<?php echo htmlspecialchars($電子郵件); ?>"
+                        disabled>
                 </div>
 
                 <div class="form-row">
                     <label for="hospital">隸屬醫院 :</label>
-                    <input id="hospital" type="text" name="hospital" value="<?php echo $隸屬醫院; ?>"
+                    <input id="hospital" type="text" name="hospital" value="<?php echo htmlspecialchars($隸屬醫院); ?>"
                         disabled>
                 </div>
 
                 <div class="form-row">
                     <label for="department">科別 :</label>
-                    <input id="department" type="text" name="department" value="<?php echo $科別; ?>"
+                    <input id="department" type="text" name="department" value="<?php echo htmlspecialchars($科別); ?>"
                         disabled>
                 </div>
 
@@ -423,7 +426,7 @@ header("Pragma: no-cache");
                         // 上傳成功後更新頁面上的頭像
                         document.getElementById('profilePicturePreview').src = data.imageUrl;
                     } else {
-                        alert('頭像上傳失敗，请重試');
+                        alert('頭像上傳失敗，請重試');
                     }
                 })
                 .catch(error => console.error('上傳錯誤:', error));
@@ -437,8 +440,7 @@ header("Pragma: no-cache");
             const useridcard = document.getElementById('useridcard').value.trim();
             const userphone = document.getElementById('userphone').value.trim();
             const useremail = document.getElementById('useremail').value.trim();
-            // const hospital = document.getElementById('hospital').value.trim();
-            // const hospital = document.getElementById('department').value.trim();
+            const hospital = document.getElementById('hospital').value.trim();
 
             // 驗證欄位格式
 
@@ -529,6 +531,21 @@ header("Pragma: no-cache");
 
 
 
+            // 聯絡電話驗證: 台灣手機號碼格式（09開頭，後面8位數字，且不允許後8位數出現6位或以上的重複數字）
+            const phonePattern = /^09\d{8}$/;
+            const repeatedPattern = /(\d)\1{5,}/; // 檢查是否有6個或更多相同的數字連續出現
+
+            if (!userphone) {
+                alert('聯絡電話欄位不能為空');
+                return;
+            } else if (!phonePattern.test(userphone)) {
+                alert('聯絡電話格式錯誤，台灣手機號碼需為09開頭並有8位數字');
+                return;
+            } else if (repeatedPattern.test(userphone.slice(2))) {
+                alert('聯絡電話格式錯誤，後面8位數字不可出現6位或以上重複的數字');
+                return;
+            }
+
             // 電子郵件驗證: 空白檢查與格式檢查
             if (!useremail) {
                 alert('電子郵件欄位不能為空');
@@ -545,16 +562,11 @@ header("Pragma: no-cache");
             }
 
             // 科別驗證: 空白檢查
-            if (!department) {
+            if (!hospital) {
                 alert('科別欄位不能為空');
                 return;
             }
 
-            // 確保提交的是值而不是 HTML 元素
-            var hospitalValue = document.getElementById('hospital').value;
-            var departmentValue = document.getElementById('department').value;
-
-            console.log(hospitalValue, departmentValue); // 應輸出欄位中的文字
 
             const confirmMessage =
                 `請確認您的資料:\n` +
@@ -564,9 +576,8 @@ header("Pragma: no-cache");
                 `聯絡電話: ${userphone}\n` +
                 `電子郵件: ${useremail}\n` +
                 `隸屬醫院: ${hospital}\n` +
-                `科別: ${department}\n` +
+                `科別: ${hospital}\n` +
                 `確定要提交資料嗎？`;
-
 
             // 顯示確認 alert
             if (confirm(confirmMessage)) {
