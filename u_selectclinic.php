@@ -58,8 +58,17 @@ while ($row = mysqli_fetch_assoc($result)) {
     }
 }
 
+// 從 profession 資料表中獲取醫生名稱對應的使用者名稱
+$doctorUsernames = [];
+$professionQuery = "SELECT name, username FROM profession";
+$professionResult = mysqli_query($link, $professionQuery);
+while ($professionRow = mysqli_fetch_assoc($professionResult)) {
+    $doctorUsernames[$professionRow['name']] = $professionRow['username'];
+}
+
 // 顯示排班資訊的函數
 function displayShifts($shifts, $timePeriod) {
+    global $doctorUsernames;
     echo "<div class='shift-section'>";
     echo "<h2>$timePeriod:</h2>";
     echo "<table class='table table-bordered'>";
@@ -95,7 +104,9 @@ function displayShifts($shifts, $timePeriod) {
             $hasShift = false;
             foreach ($shifts as $shift) {
                 if ($shift['clinicnumber'] == $clinicNumber && $shift['dateday'] == $date) {
-                    echo "<td style='font-weight: bold; text-align: center;'>{$shift['doctorname']}</td>";
+                    $doctorName = $shift['doctorname'];
+                    $username = isset($doctorUsernames[$doctorName]) ? $doctorUsernames[$doctorName] : $doctorName;
+                    echo "<td style='font-weight: bold; text-align: center;'>$username</td>";
                     $hasShift = true;
                     break;
                 }
