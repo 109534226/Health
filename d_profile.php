@@ -457,7 +457,7 @@ header("Pragma: no-cache");
             const userphone = document.getElementById('userphone').value.trim();
             const useremail = document.getElementById('useremail').value.trim();
             const hospital = document.getElementById('hospital').value.trim();
-            const hospital = document.getElementById('department').value.trim();
+
             // 驗證欄位格式
 
             // 姓名驗證: 空白檢查與格式檢查（只允許中文、英文和數字）

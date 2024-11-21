@@ -15,7 +15,7 @@ $profilePicture = $_FILES[''];
 
 // 資料驗證
 if (empty($出生年月日) || empty($身分證字號) || empty($電話)) {
-    echo "<script>alert('必要資料為空，請填寫所有欄位！'); window.location.href = 'd_profile.php';</script>";
+    echo "<script>alert('必要資料為空，請填寫所有欄位！'); window.location.href = 'n_profile.php';</script>";
     exit;
 }
 
@@ -51,10 +51,10 @@ if ($userData) {
 
 // 執行資料庫操作
 if (mysqli_query($link, $SQL指令)) {
-    header("Location: d_profile.php?帳號=$帳號&success=資料已成功修改");
+    header("Location: n_profile.php?帳號=$帳號&success=資料已成功修改");
 } else {
     error_log("SQL Error: " . mysqli_error($link));
-    header("Location: d_profile.php?帳號=$帳號&error=修改失敗，請稍後再試");
+    header("Location: n_profile.php?帳號=$帳號&error=修改失敗，請稍後再試");
 }
 
 mysqli_close($link);

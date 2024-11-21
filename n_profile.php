@@ -330,7 +330,7 @@ header("Pragma: no-cache");
                     $電話 = $row['phone'] ?? "";
                     $隸屬醫院 = $row['hospital'] ?? "";
                     $科別 = $row['department'] ?? "";
-                    
+
                 }
 
                 mysqli_close($link);
@@ -367,13 +367,13 @@ header("Pragma: no-cache");
 
                 <div class="form-row">
                     <label for="hospital">隸屬醫院 :</label>
-                    <input id="hospital" type="text" name="hospital" value="<?php echo htmlspecialchars($隸屬醫院); ?>"
+                    <input id="hospital" type="text" name="hospital" value="<?php echo $隸屬醫院; ?>"
                         disabled>
                 </div>
 
                 <div class="form-row">
                     <label for="department">科別 :</label>
-                    <input id="department" type="text" name="department" value="<?php echo htmlspecialchars($科別); ?>"
+                    <input id="department" type="text" name="department" value="<?php echo $科別; ?>"
                         disabled>
                 </div>
 
@@ -437,8 +437,8 @@ header("Pragma: no-cache");
             const useridcard = document.getElementById('useridcard').value.trim();
             const userphone = document.getElementById('userphone').value.trim();
             const useremail = document.getElementById('useremail').value.trim();
-            const hospital = document.getElementById('hospital').value.trim();
-            const hospital = document.getElementById('department').value.trim();
+            // const hospital = document.getElementById('hospital').value.trim();
+            // const hospital = document.getElementById('department').value.trim();
 
             // 驗證欄位格式
 
@@ -549,6 +549,12 @@ header("Pragma: no-cache");
                 alert('科別欄位不能為空');
                 return;
             }
+
+            // 確保提交的是值而不是 HTML 元素
+            var hospitalValue = document.getElementById('hospital').value;
+            var departmentValue = document.getElementById('department').value;
+
+            console.log(hospitalValue, departmentValue); // 應輸出欄位中的文字
 
             const confirmMessage =
                 `請確認您的資料:\n` +
