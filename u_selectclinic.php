@@ -1,8 +1,9 @@
 <?php
 session_start();
 // 引入資料庫連線
-include 'db.php';
+include('db.php');
 
+// 檢查是否登入
 if (!isset($_SESSION["登入狀態"])) {
     header("Location: login.html");
     exit;
@@ -30,62 +31,99 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     exit();
 }
 
-// 從前一頁取得診所和科別資料
-$affiliated = $_POST['clinic'];
-$department = $_POST['department'];
+// 獲取目前的日期
+$currentDate = date('Y-m-d');
 
-// 查詢符合條件的醫生排班資料
-$stmt_shifts = $link->prepare("SELECT doctorshift.*, hospitaldoctor.affiliated, hospitaldoctor.department FROM doctorshift INNER JOIN hospitaldoctor ON doctorshift.doctorname = hospitaldoctor.name WHERE hospitaldoctor.affiliated = ? AND hospitaldoctor.department = ?");
-$stmt_shifts->bind_param("ss", $affiliated, $department);
-$stmt_shifts->execute();
-$result_shifts = $stmt_shifts->get_result();
+// 查詢醫生班表的SQL語句
+$query = "SELECT * FROM doctorshift WHERE dateday >= '$currentDate' ORDER BY dateday ASC";
+$result = mysqli_query($link, $query);
 
-$doctor_shifts = [];
-if ($result_shifts->num_rows > 0) {
-    while ($shift = $result_shifts->fetch_assoc()) {
-        $doctor_shifts[] = $shift;
-    }
-} else {
-    echo "<p>未找到符合條件的排班資料。</p>";
-}
+// 初始化陣列來儲存早、午、晚班的資料
+$morningShifts = [];
+$afternoonShifts = [];
+$eveningShifts = [];
 
-// 計算本週的日期範圍（從星期一到星期日）
-$week_dates = [];
-$today = strtotime(date('Y-m-d'));
-$start_of_week = strtotime("last Monday", $today);
-$end_of_week = strtotime("next Sunday", $start_of_week);
-
-for ($i = 0; $i < 7; $i++) {
-    $week_dates[] = date('Y-m-d', strtotime("+$i day", $start_of_week));
-}
-
-// 將星期名稱轉換為中文
-$week_days_cn = [
-    'Monday' => '星期一',
-    'Tuesday' => '星期二',
-    'Wednesday' => '星期三',
-    'Thursday' => '星期四',
-    'Friday' => '星期五',
-    'Saturday' => '星期六',
-    'Sunday' => '星期日'
-];
-
-// 初始化每個診間的排班資料
-$clinic_shifts = [];
-foreach ($doctor_shifts as $shift) {
-    $clinicnumber = $shift['clinicnumber'];
-    if (!isset($clinic_shifts[$clinicnumber])) {
-        $clinic_shifts[$clinicnumber] = array_fill(0, 7, '-');
-    }
-    $shift_date = date('Y-m-d', strtotime($shift['dateday']));
-    $day_index = array_search($shift_date, $week_dates);
-
-    if ($day_index !== false) {
-        $clinic_shifts[$clinicnumber][$day_index] = $shift['doctorname'] . '<br>' . $shift['doctorid'];
+// 根據不同的班次來分類資料
+while ($row = mysqli_fetch_assoc($result)) {
+    switch ($row['consultationperiod']) {
+        case '早':
+            $morningShifts[] = $row;
+            break;
+        case '午':
+            $afternoonShifts[] = $row;
+            break;
+        case '晚':
+            $eveningShifts[] = $row;
+            break;
     }
 }
+
+// 從 profession 資料表中獲取醫生名稱對應的使用者名稱
+$doctorUsernames = [];
+$professionQuery = "SELECT name, username FROM profession";
+$professionResult = mysqli_query($link, $professionQuery);
+while ($professionRow = mysqli_fetch_assoc($professionResult)) {
+    $doctorUsernames[$professionRow['name']] = $professionRow['username'];
+}
+
+// 顯示排班資訊的函數
+function displayShifts($shifts, $timePeriod) {
+    global $doctorUsernames;
+    echo "<div class='shift-section'>";
+    echo "<h2>$timePeriod:</h2>";
+    echo "<table class='table table-bordered'>";
+    echo "<thead><tr class='bg-success text-white' style='color: white;'><th style='text-align: center;'>診間號</th>";
+    for ($i = 0; $i < 7; $i++) {
+        // 顯示表格標頭，包含星期幾和日期
+        $dayOffset = "+$i day";
+        $date = date('Y-m-d', strtotime($dayOffset));
+        $dayName = date('l', strtotime($dayOffset));
+        $weekDaysCn = [
+            'Monday' => '星期一',
+            'Tuesday' => '星期二',
+            'Wednesday' => '星期三',
+            'Thursday' => '星期四',
+            'Friday' => '星期五',
+            'Saturday' => '星期六',
+            'Sunday' => '星期日'
+        ];
+        $dayNameCn = $weekDaysCn[$dayName];
+        echo "<th style='text-align: center;'>$dayNameCn<br>" . date('m-d', strtotime($date)) . "</th>";
+    }
+    echo "</tr></thead>";
+
+    // 顯示每一天的班次資訊
+    echo "<tbody>";
+    $clinicNumbers = array_unique(array_column($shifts, 'clinicnumber'));
+    foreach ($clinicNumbers as $clinicNumber) {
+        echo "<tr>";
+        echo "<td style='color: red; font-weight: bold; text-align: center;'>$clinicNumber</td>";
+        for ($i = 0; $i < 7; $i++) {
+            $dayOffset = "+$i day";
+            $date = date('Y-m-d', strtotime($dayOffset));
+            $hasShift = false;
+            foreach ($shifts as $shift) {
+                if ($shift['clinicnumber'] == $clinicNumber && $shift['dateday'] == $date) {
+                    $doctorName = $shift['doctorname'];
+                    $username = isset($doctorUsernames[$doctorName]) ? $doctorUsernames[$doctorName] : $doctorName;
+                    echo "<td style='font-weight: bold; text-align: center;'>$username</td>";
+                    $hasShift = true;
+                    break;
+                }
+            }
+            if (!$hasShift) {
+                echo "<td style='font-weight: bold; text-align: center;'></td>";
+            }
+        }
+        echo "</tr>";
+    }
+    echo "</tbody>";
+    echo "</table>";
+    echo "</div>";
+}
+
+// 顯示早、午、晚班排班資訊
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -99,7 +137,7 @@ foreach ($doctor_shifts as $shift) {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Favicon -->
     <link href="img/favicon.ico" rel="icon">
-
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link
@@ -120,26 +158,16 @@ foreach ($doctor_shifts as $shift) {
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
     <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
-        }
-
-        th,
-        td {
-            border: 1px solid black;
-            padding: 10px;
+        .table th, .table td {
             text-align: center;
+            vertical-align: middle;
+            font-weight: bold;
         }
-
-        th {
-            background-color: #4CAF50;
+        .table th {
             color: white;
         }
-
-        .gray-background {
-            background-color: #f2f2f2;
+        .table td {
+            color: black;
         }
 
         /* 彈出對話框的樣式 */
@@ -293,39 +321,16 @@ foreach ($doctor_shifts as $shift) {
         }
     </script>
 
-    <h2>上午診</h2>
-    <table>
-        <thead>
-            <tr class="gray-background">
-                <th>診間號</th>
-                <?php
-                foreach ($week_dates as $date) {
-                    $day_of_week = date('l', strtotime($date));
-                    // 將英文星期轉換為中文
-                    $day_cn = $week_days_cn[$day_of_week];
-                    echo "<th>" . $day_cn . "<br>" . date('m-d', strtotime($date)) . "</th>";
-                }
-                ?>
-            </tr>
-        </thead>
-        <tbody>
+    <main>
+        <div class="container">
             <?php
-            // 顯示有排班資料的診間
-            if (!empty($clinic_shifts)) {
-                foreach ($clinic_shifts as $clinic => $shifts) {
-                    echo "<tr>";
-                    echo "<td>" . sprintf('%04d', $clinic) . "</td>"; // 格式化診間號碼，補零到四位數
-                    foreach ($shifts as $shift_info) {
-                        echo "<td>" . (!empty($shift_info) ? $shift_info : '-') . "</td>";
-                    }
-                    echo "</tr>";
-                }
-            } else {
-                echo "<tr><td colspan='8'>目前沒有可顯示的排班資料。</td></tr>";
-            }
+            // 顯示各個時段的排班
+            displayShifts($morningShifts, '上午診');
+            displayShifts($afternoonShifts, '下午診');
+            displayShifts($eveningShifts, '晚上診');
             ?>
-        </tbody>
-    </table>
+        </div>
+    </main>
 
     <!-- 頁尾 Start -->
     <div class="container-fluid bg-dark text-light mt-5 py-5">
@@ -467,3 +472,7 @@ foreach ($doctor_shifts as $shift) {
 </body>
 
 </html>
+<?php
+// 關閉資料庫連接
+mysqli_close($link);
+?>
