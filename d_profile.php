@@ -325,8 +325,8 @@ header("Pragma: no-cache");
                 }
 
                 // 預設值
-                $隸屬醫院 = "無";
-                $出生年月日 = $身分證字號 = $電話 = "";
+                $隸屬醫院 = $科別 = "無";
+
 
                 // 從 user 表抓取姓名和電子郵件
                 $SQL查詢使用者 = sprintf("SELECT name, email FROM user WHERE username = '%s'", mysqli_real_escape_string($link, $帳號));
@@ -345,7 +345,9 @@ header("Pragma: no-cache");
                     $出生年月日 = $row['birthday'] ?? "";
                     $身分證字號 = $row['idcard'] ?? "";
                     $電話 = $row['phone'] ?? "";
-                    $隸屬醫院 = $row['hospital'] ?? "無";
+                    $隸屬醫院 = $row['hospital'] ?? "";
+                    $科別 = $row['department'] ?? "";
+                    
                 }
 
                 mysqli_close($link);
@@ -355,38 +357,44 @@ header("Pragma: no-cache");
                 <div class="form-row">
                     <label for="username">姓名 :</label>
                     <input id="username" type="text" name="username" value="<?php echo htmlspecialchars($姓名); ?>"
-                        readonly>
+                        disabled>
                 </div>
 
                 <div class="form-row">
                     <label for="userdate">出生年月日 :</label>
-                    <input id="userdate" type="date" name="userdate" value="<?php echo htmlspecialchars($出生年月日); ?>">
+                    <input id="userdate" type="date" name="userdate" value="<?php echo htmlspecialchars($出生年月日); ?>"
+                        disabled>
                 </div>
 
                 <div class="form-row">
                     <label for="useridcard">身分證字號 :</label>
-                    <input id="useridcard" type="text" name="useridcard"
-                        value="<?php echo htmlspecialchars($身分證字號); ?>">
+                    <input id="useridcard" type="text" name="useridcard" value="<?php echo htmlspecialchars($身分證字號); ?>"
+                        disabled>
                 </div>
 
                 <div class="form-row">
                     <label for="userphone">聯絡電話 :</label>
-                    <input id="userphone" type="text" name="userphone" value="<?php echo htmlspecialchars($電話); ?>">
+                    <input id="userphone" type="text" name="userphone" value="<?php echo htmlspecialchars($電話); ?>"
+                        disabled>
                 </div>
 
                 <div class="form-row">
                     <label for="useremail">電子郵件 :</label>
                     <input id="useremail" type="email" name="useremail" value="<?php echo htmlspecialchars($電子郵件); ?>"
-                        readonly>
+                        disabled>
                 </div>
-                
+
                 <div class="form-row">
                     <label for="hospital">隸屬醫院 :</label>
-                    <input id="hospital" type="text" name="hospital" value="<?php echo htmlspecialchars($隸屬醫院); ?>">
+                    <input id="hospital" type="text" name="hospital" value="<?php echo htmlspecialchars($隸屬醫院); ?>"
+                        disabled>
                 </div>
 
-
-
+                <div class="form-row">
+                    <label for="department">科別 :</label>
+                    <input id="department" type="text" name="department" value="<?php echo htmlspecialchars($科別); ?>"
+                        disabled>
+                </div>
 
                 <!-- 操作按鈕 -->
                 <div class="form-buttons">
@@ -449,7 +457,7 @@ header("Pragma: no-cache");
             const userphone = document.getElementById('userphone').value.trim();
             const useremail = document.getElementById('useremail').value.trim();
             const hospital = document.getElementById('hospital').value.trim();
-
+            const hospital = document.getElementById('department').value.trim();
             // 驗證欄位格式
 
             // 姓名驗證: 空白檢查與格式檢查（只允許中文、英文和數字）
@@ -569,6 +577,12 @@ header("Pragma: no-cache");
                 return;
             }
 
+            // 科別驗證: 空白檢查
+            if (!hospital) {
+                alert('科別欄位不能為空');
+                return;
+            }
+
 
             const confirmMessage =
                 `請確認您的資料:\n` +
@@ -578,6 +592,7 @@ header("Pragma: no-cache");
                 `聯絡電話: ${userphone}\n` +
                 `電子郵件: ${useremail}\n` +
                 `隸屬醫院: ${hospital}\n` +
+                `科別: ${hospital}\n` +
                 `確定要提交資料嗎？`;
 
             // 顯示確認 alert
