@@ -2,8 +2,8 @@
 session_start();
 
 if (!isset($_SESSION["登入狀態"])) {
-    header("Location: login.php");
-    exit;
+	header("Location: login.php");
+	exit;
 }
 
 // 防止頁面被瀏覽器緩存
@@ -13,15 +13,15 @@ header("Pragma: no-cache");
 
 // 檢查 "帳號" 和 "姓名" 是否存在於 $_SESSION 中
 if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
-    // 獲取用戶帳號和姓名
-    $帳號 = $_SESSION['帳號'];
-    $姓名 = $_SESSION['姓名'];
+	// 獲取用戶帳號和姓名
+	$帳號 = $_SESSION['帳號'];
+	$姓名 = $_SESSION['姓名'];
 } else {
-    echo "<script>
+	echo "<script>
             alert('會話過期或資料遺失，請重新登入。');
             window.location.href = 'login.php';
           </script>";
-    exit();
+	exit();
 }
 ?>
 
@@ -64,44 +64,44 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 	<!-- Style -->
 	<link rel="stylesheet" href="css/style.css" type="text/css" media="all" />
 	<style>
-        /* 彈出對話框的樣式 */
-        .logout-box {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            justify-content: center;
-            align-items: center;
-            display: none;
-            z-index: 9999;
-        }
+		/* 彈出對話框的樣式 */
+		.logout-box {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.7);
+			justify-content: center;
+			align-items: center;
+			display: none;
+			z-index: 9999;
+		}
 
-        .logout-dialog {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        }
+		.logout-dialog {
+			background: white;
+			padding: 20px;
+			border-radius: 8px;
+			text-align: center;
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+		}
 
-        .logout-dialog button {
-            margin: 10px;
-        }
+		.logout-dialog button {
+			margin: 10px;
+		}
 
-        .navbar {
-            margin-bottom: 0;
-        }
+		.navbar {
+			margin-bottom: 0;
+		}
 
-        .navbar-collapse {
-            margin: 0;
-            padding: 0;
-        }
-    </style>
-   	<script>
-    	// 用戶成功登入後，設置登錄狀態
-    	sessionStorage.setItem('isLoggedIn', 'true');
+		.navbar-collapse {
+			margin: 0;
+			padding: 0;
+		}
+	</style>
+	<script>
+		// 用戶成功登入後，設置登錄狀態
+		sessionStorage.setItem('isLoggedIn', 'true');
 	</script>
 </head>
 
@@ -118,26 +118,27 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 				</button>
 				<div class="collapse navbar-collapse" id="navbarCollapse">
 					<div class="navbar-nav ms-auto py-0">
-					<a href="留言介面d.php" class="nav-item nav-link"  value="<?php echo htmlspecialchars($patient_id); ?>">留言</a>
-					<a href="d_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
-                    <a href="d_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
-                    <a href="d_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
-                    <a href="d_advicesee.php" class="nav-item nav-link">醫生建議</a>
+						<a href="留言頁面d.php?id=<?php echo htmlspecialchars($patient_id); ?>"
+							class="nav-item nav-link">留言</a>
+						<a href="d_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
+						<a href="d_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
+						<a href="d_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
+						<a href="d_advicesee.php" class="nav-item nav-link">醫生建議</a>
 						<div class="nav-item">
-                            <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown"
-                                aria-expanded="false">個人檔案</a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="d_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="d_change.php" class="dropdown-item active">變更密碼</a></li>
-                                <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
-                                <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
-                                <!-- 隱藏表單，用於提交刪除帳號請求 -->
-                                <form id="deleteAccountForm" action="刪除.php" method="POST" style="display:none;">
-                                    <input type="hidden" name="帳號" value="<?php echo $帳號; ?>">
-                                    <input type="hidden" name="姓名" value="<?php echo $姓名; ?>">
-                                </form>
-                            </ul>
-                        </div>
+							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown"
+								aria-expanded="false">個人檔案</a>
+							<ul class="dropdown-menu dropdown-menu-end">
+								<li><a href="d_profile.php" class="dropdown-item">關於我</a></li>
+								<li><a href="d_change.php" class="dropdown-item active">變更密碼</a></li>
+								<li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
+								<li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
+								<!-- 隱藏表單，用於提交刪除帳號請求 -->
+								<form id="deleteAccountForm" action="刪除.php" method="POST" style="display:none;">
+									<input type="hidden" name="帳號" value="<?php echo $帳號; ?>">
+									<input type="hidden" name="姓名" value="<?php echo $姓名; ?>">
+								</form>
+							</ul>
+						</div>
 					</div>
 				</div>
 			</nav>
@@ -146,61 +147,61 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 	<!-- 頁首 End -->
 
 	<!-- 回到頁首(Top 箭頭 -->
-    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+	<a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
 
-    <!-- 登出對話框 Start -->
-    <div id="logoutBox" class="logout-box">
-        <div class="logout-dialog">
-            <p>你確定要登出嗎？</p>
-            <button onclick="logout()">確定</button>
-            <button onclick="hideLogoutBox()">取消</button>
-        </div>
-    </div>
-    <!-- 登出對話框 End -->
+	<!-- 登出對話框 Start -->
+	<div id="logoutBox" class="logout-box">
+		<div class="logout-dialog">
+			<p>你確定要登出嗎？</p>
+			<button onclick="logout()">確定</button>
+			<button onclick="hideLogoutBox()">取消</button>
+		</div>
+	</div>
+	<!-- 登出對話框 End -->
 
-    <!-- 刪除帳號對話框 Start -->
-    <div id="deleteAccountBox" class="logout-box">
-        <div class="logout-dialog">
-            <p>你確定要刪除帳號嗎？這個操作無法撤銷！</p>
-            <button onclick="deleteAccount()">確定</button>
-            <button onclick="hideDeleteAccountBox()">取消</button>
-        </div>
-    </div>
-    <!-- 刪除帳號對話框 End -->
+	<!-- 刪除帳號對話框 Start -->
+	<div id="deleteAccountBox" class="logout-box">
+		<div class="logout-dialog">
+			<p>你確定要刪除帳號嗎？這個操作無法撤銷！</p>
+			<button onclick="deleteAccount()">確定</button>
+			<button onclick="hideDeleteAccountBox()">取消</button>
+		</div>
+	</div>
+	<!-- 刪除帳號對話框 End -->
 
-    <!-- JavaScript -->
-    <script>
+	<!-- JavaScript -->
+	<script>
 
-        function showLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'flex';
-        }
+		function showLogoutBox() {
+			document.getElementById('logoutBox').style.display = 'flex';
+		}
 
-        function hideLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'none';
-        }
+		function hideLogoutBox() {
+			document.getElementById('logoutBox').style.display = 'none';
+		}
 
-        function logout() {
-            // 移除登入狀態
-            sessionStorage.removeItem('isLoggedIn');
-            // 跳轉到登出頁面
-            window.location.href = '登出.php';
-        }
+		function logout() {
+			// 移除登入狀態
+			sessionStorage.removeItem('isLoggedIn');
+			// 跳轉到登出頁面
+			window.location.href = '登出.php';
+		}
 
-        function showDeleteAccountBox() {
-            document.getElementById('deleteAccountBox').style.display = 'flex';
-        }
+		function showDeleteAccountBox() {
+			document.getElementById('deleteAccountBox').style.display = 'flex';
+		}
 
-        function hideDeleteAccountBox() {
-            document.getElementById('deleteAccountBox').style.display = 'none';
-        }
+		function hideDeleteAccountBox() {
+			document.getElementById('deleteAccountBox').style.display = 'none';
+		}
 
-        function deleteAccount() {
-            document.getElementById('deleteAccountForm').submit();
-        }
-    </script>
+		function deleteAccount() {
+			document.getElementById('deleteAccountForm').submit();
+		}
+	</script>
 
 
-	
+
 	<!-- 登入 start -->
 	<section class="w3l-login">
 		<div class="overlay">

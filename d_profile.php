@@ -252,7 +252,8 @@ header("Pragma: no-cache");
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="留言介面d.php" class="nav-item nav-link"  value="<?php echo htmlspecialchars($patient_id); ?>">留言</a>
+                        <a href="留言頁面d.php?id=<?php echo htmlspecialchars($patient_id); ?>"
+                            class="nav-item nav-link">留言</a>
                         <a href="d_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
                         <a href="d_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
                         <a href="d_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
@@ -278,59 +279,8 @@ header("Pragma: no-cache");
         </div>
     </div>
     <!-- 頁首 End -->
-    <!-- 回到頁首(Top 箭頭 -->
-    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
 
-    <!-- 登出對話框 Start -->
-    <div id="logoutBox" class="logout-box">
-        <div class="logout-dialog">
-            <p>你確定要登出嗎？</p>
-            <button onclick="logout()">確定</button>
-            <button onclick="hideLogoutBox()">取消</button>
-        </div>
-    </div>
-    <!-- 登出對話框 End -->
 
-    <!-- 刪除帳號對話框 Start -->
-    <div id="deleteAccountBox" class="logout-box">
-        <div class="logout-dialog">
-            <p>你確定要刪除帳號嗎？這個操作無法撤銷！</p>
-            <button onclick="deleteAccount()">確定</button>
-            <button onclick="hideDeleteAccountBox()">取消</button>
-        </div>
-    </div>
-    <!-- 刪除帳號對話框 End -->
-
-    <!-- JavaScript -->
-    <script>
-
-        function showLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'flex';
-        }
-
-        function hideLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'none';
-        }
-
-        function logout() {
-            // 移除登入狀態
-            sessionStorage.removeItem('isLoggedIn');
-            // 跳轉到登出頁面
-            window.location.href = '登出.php';
-        }
-
-        function showDeleteAccountBox() {
-            document.getElementById('deleteAccountBox').style.display = 'flex';
-        }
-
-        function hideDeleteAccountBox() {
-            document.getElementById('deleteAccountBox').style.display = 'none';
-        }
-
-        function deleteAccount() {
-            document.getElementById('deleteAccountForm').submit();
-        }
-    </script>
     <?php
     // 檢查是否有錯誤訊息
     if (isset($_GET['error'])) {
@@ -363,32 +313,87 @@ header("Pragma: no-cache");
                         onchange="uploadImage(event)">
                 </div>
 
+
+                <?php
+                session_start();
+                include "db.php"; // 連接資料庫
+                
+                // 假設從 session 獲取目前登入的帳號
+                $帳號 = $_SESSION["帳號"];
+                if (!$帳號) {
+                    die("用戶未登入，請重新登入！");
+                }
+
+                // 預設值
+                $隸屬醫院 = $科別 = "無";
+
+
+                // 從 user 表抓取姓名和電子郵件
+                $SQL查詢使用者 = sprintf("SELECT name, email FROM user WHERE username = '%s'", mysqli_real_escape_string($link, $帳號));
+                $result = mysqli_query($link, $SQL查詢使用者);
+
+                if ($row = mysqli_fetch_assoc($result)) {
+                    $姓名 = $row['name'] ?? "無名氏"; // 如果資料不存在，設為預設值 "無名氏"
+                    $電子郵件 = $row['email'] ?? "無";
+                }
+
+                // 從 profession 表抓取其他資料
+                $SQL查詢資料 = sprintf("SELECT * FROM profession WHERE name = '%s'", mysqli_real_escape_string($link, $帳號));
+                $result = mysqli_query($link, $SQL查詢資料);
+
+                if ($row = mysqli_fetch_assoc($result)) {
+                    $出生年月日 = $row['birthday'] ?? "";
+                    $身分證字號 = $row['idcard'] ?? "";
+                    $電話 = $row['phone'] ?? "";
+                    $隸屬醫院 = $row['hospital'] ?? "";
+                    $科別 = $row['department'] ?? "";
+                    
+                }
+
+                mysqli_close($link);
+                ?>
+
+
                 <div class="form-row">
                     <label for="username">姓名 :</label>
-                    <input id="username" type="text" name="username" value="<?php echo $姓名; ?>" disabled />
+                    <input id="username" type="text" name="username" value="<?php echo htmlspecialchars($姓名); ?>"
+                        disabled>
                 </div>
 
                 <div class="form-row">
                     <label for="userdate">出生年月日 :</label>
-                    <input id="userdate" type="date" name="userdate" value="<?php echo $出生年月日; ?>"
-                        max="<?php echo date('Y-m-d'); ?>" disabled>
+                    <input id="userdate" type="date" name="userdate" value="<?php echo htmlspecialchars($出生年月日); ?>"
+                        disabled>
                 </div>
 
                 <div class="form-row">
                     <label for="useridcard">身分證字號 :</label>
-                    <input id="useridcard" type="text" name="useridcard" value="<?php echo $身分證字號; ?>"
-                        placeholder="ex:A123456789" disabled>
+                    <input id="useridcard" type="text" name="useridcard" value="<?php echo htmlspecialchars($身分證字號); ?>"
+                        disabled>
                 </div>
 
                 <div class="form-row">
                     <label for="userphone">聯絡電話 :</label>
-                    <input id="userphone" type="tel" name="userphone" value="<?php echo $電話; ?>"
-                        placeholder="ex:0912345678" disabled>
+                    <input id="userphone" type="text" name="userphone" value="<?php echo htmlspecialchars($電話); ?>"
+                        disabled>
                 </div>
 
                 <div class="form-row">
                     <label for="useremail">電子郵件 :</label>
-                    <input id="useremail" type="email" name="useremail" value="<?php echo $電子郵件; ?>" disabled>
+                    <input id="useremail" type="email" name="useremail" value="<?php echo htmlspecialchars($電子郵件); ?>"
+                        disabled>
+                </div>
+
+                <div class="form-row">
+                    <label for="hospital">隸屬醫院 :</label>
+                    <input id="hospital" type="text" name="hospital" value="<?php echo htmlspecialchars($隸屬醫院); ?>"
+                        disabled>
+                </div>
+
+                <div class="form-row">
+                    <label for="department">科別 :</label>
+                    <input id="department" type="text" name="department" value="<?php echo htmlspecialchars($科別); ?>"
+                        disabled>
                 </div>
 
                 <!-- 操作按鈕 -->
@@ -437,10 +442,10 @@ header("Pragma: no-cache");
                         // 上傳成功後更新頁面上的頭像
                         document.getElementById('profilePicturePreview').src = data.imageUrl;
                     } else {
-                        alert('頭像上传失败，请重试');
+                        alert('頭像上傳失敗，請重試');
                     }
                 })
-                .catch(error => console.error('上传错误:', error));
+                .catch(error => console.error('上傳錯誤:', error));
         }
 
 
@@ -451,6 +456,7 @@ header("Pragma: no-cache");
             const useridcard = document.getElementById('useridcard').value.trim();
             const userphone = document.getElementById('userphone').value.trim();
             const useremail = document.getElementById('useremail').value.trim();
+            const hospital = document.getElementById('hospital').value.trim();
 
             // 驗證欄位格式
 
@@ -565,6 +571,19 @@ header("Pragma: no-cache");
                 return;
             }
 
+            // 隸屬醫院驗證: 空白檢查
+            if (!hospital) {
+                alert('隸屬醫院欄位不能為空');
+                return;
+            }
+
+            // 科別驗證: 空白檢查
+            if (!hospital) {
+                alert('科別欄位不能為空');
+                return;
+            }
+
+
             const confirmMessage =
                 `請確認您的資料:\n` +
                 `姓名: ${username}\n` +
@@ -572,6 +591,8 @@ header("Pragma: no-cache");
                 `身分證字號: ${useridcard}\n` +
                 `聯絡電話: ${userphone}\n` +
                 `電子郵件: ${useremail}\n` +
+                `隸屬醫院: ${hospital}\n` +
+                `科別: ${hospital}\n` +
                 `確定要提交資料嗎？`;
 
             // 顯示確認 alert
@@ -608,6 +629,61 @@ header("Pragma: no-cache");
         }
     </script>
     <!-- 個人檔案表單 End -->
+
+
+    <!-- 回到頁首(Top 箭頭 -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+
+    <!-- 登出對話框 Start -->
+    <div id="logoutBox" class="logout-box">
+        <div class="logout-dialog">
+            <p>你確定要登出嗎？</p>
+            <button onclick="logout()">確定</button>
+            <button onclick="hideLogoutBox()">取消</button>
+        </div>
+    </div>
+    <!-- 登出對話框 End -->
+
+    <!-- 刪除帳號對話框 Start -->
+    <div id="deleteAccountBox" class="logout-box">
+        <div class="logout-dialog">
+            <p>你確定要刪除帳號嗎？這個操作無法撤銷！</p>
+            <button onclick="deleteAccount()">確定</button>
+            <button onclick="hideDeleteAccountBox()">取消</button>
+        </div>
+    </div>
+    <!-- 刪除帳號對話框 End -->
+
+    <!-- JavaScript -->
+    <script>
+
+        function showLogoutBox() {
+            document.getElementById('logoutBox').style.display = 'flex';
+        }
+
+        function hideLogoutBox() {
+            document.getElementById('logoutBox').style.display = 'none';
+        }
+
+        function logout() {
+            // 移除登入狀態
+            sessionStorage.removeItem('isLoggedIn');
+            // 跳轉到登出頁面
+            window.location.href = '登出.php';
+        }
+
+        function showDeleteAccountBox() {
+            document.getElementById('deleteAccountBox').style.display = 'flex';
+        }
+
+        function hideDeleteAccountBox() {
+            document.getElementById('deleteAccountBox').style.display = 'none';
+        }
+
+        function deleteAccount() {
+            document.getElementById('deleteAccountForm').submit();
+        }
+    </script>
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
