@@ -29,7 +29,7 @@ if (!empty($errors)) {
     exit;
 }
 
-$SQL指令 = "INSERT INTO medicalrecords (dateday, medicalnumber, patientname, 	gender, birthdaydate , department, doctorname) 
+$SQL指令 = "INSERT INTO patients (dateday, medicalnumber, patientname, 	gender, birthdaydate , department, doctorname) 
 VALUES ('$日期', '$病例號', '$患者姓名', '$性別', '$出生年月日','$看診科別', '$看診醫生');";  
 
 

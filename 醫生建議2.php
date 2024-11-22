@@ -41,7 +41,7 @@ if (!empty($errors)) {
 }
 
 // 準備 SQL 指令
-$SQL指令 = "INSERT INTO `medicaladvice` 
+$SQL指令 = "INSERT INTO `patients` 
     (`dateday`, `clinicnumber`, `patientname`, `birthdaydate`, `gender`, `doctorname`, `doctoradvice`, `followup`, `created_at`) 
 VALUES 
     ('$日期', '$病例號', '$患者姓名', '$出生日期', '$性別', '$看診醫生', '$醫生建議', '$是否回診', CURRENT_TIMESTAMP);";
