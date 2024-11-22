@@ -214,7 +214,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
             if (!empty($搜尋詞) && strlen($搜尋詞) >= $最小搜尋長度) {
                 // 進行精確比對查詢
-                $查詢語句 = "SELECT * FROM medicalrecords WHERE patientname = ?";
+                $查詢語句 = "SELECT * FROM patients WHERE patientname = ?";
                 $查詢準備 = mysqli_prepare($link, $查詢語句);
                 mysqli_stmt_bind_param($查詢準備, "s", $搜尋詞);
                 mysqli_stmt_execute($查詢準備);
@@ -236,7 +236,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     $起始位置 = ($當前頁碼 - 1) * $每頁筆數;
 
                     // 查詢當前頁碼的資料
-                    $查詢語句 = "SELECT * FROM medicalrecords WHERE patientname = ? LIMIT ?, ?";
+                    $查詢語句 = "SELECT * FROM patients WHERE patientname = ? LIMIT ?, ?";
                     $查詢準備 = mysqli_prepare($link, $查詢語句);
                     mysqli_stmt_bind_param($查詢準備, "sii", $搜尋詞, $起始位置, $每頁筆數);
                     mysqli_stmt_execute($查詢準備);

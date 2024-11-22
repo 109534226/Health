@@ -220,7 +220,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             }
 
             // 準備查詢
-            $查詢語句 = "SELECT * FROM medicalrecords WHERE patientname = ?";
+            $查詢語句 = "SELECT * FROM patients WHERE patientname = ?";
             $查詢準備 = $link->prepare($查詢語句);
             $查詢準備->bind_param("s", $搜尋詞); // 綁定參數
             $查詢準備->execute();
@@ -245,7 +245,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
 
             // 查詢當前頁碼的資料
-            $查詢語句 = "SELECT * FROM medicalrecords WHERE patientname = ? LIMIT ?, ?";
+            $查詢語句 = "SELECT * FROM patients WHERE patientname = ? LIMIT ?, ?";
             $查詢準備 = $link->prepare($查詢語句);
             $查詢準備->bind_param("sii", $搜尋詞, $起始位置, $每頁記錄數);
             $查詢準備->execute();
