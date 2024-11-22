@@ -211,7 +211,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
                     <label for="clinic_number">病歷號</label>
                     <input id="clinic_number" type="text" name="clinic_number"
-                        value="<?php echo htmlspecialchars($row['clinicnumber']); ?>" required />
+                        value="<?php echo htmlspecialchars($row['medicalnumber']); ?>" required />
 
                     <label for="patient_name">患者姓名</label>
                     <input id="patient_name" type="text" name="patient_name"

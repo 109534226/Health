@@ -337,7 +337,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <tr>
                                 <td><?php echo htmlspecialchars($資料列['id']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['dateday']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['clinicnumber']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['medicalnumber']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['patientname']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['birthdaydate']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['gender']); ?></td>
