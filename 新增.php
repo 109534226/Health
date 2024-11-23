@@ -145,7 +145,12 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         </div>
     </div>
     <!-- 頁首 End -->
-     
+     <!-- 頁首 End -->
+
+    </form>
+</div>
+<!-- 回到頁首(Top 箭頭 -->
+
     <!-- 回到頁首(Top 箭頭 -->
     <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
 
@@ -177,36 +182,93 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>調整文字樣式</title>
 
-    標題: <input type="text" name="username" required><br>
-    副標題: <input type="text" name="name" required><br>
-    內容: <textarea class="text-box" name="account" required></textarea><br>
-    
-    <!-- 包裹按鈕的div -->
-    <div class="button-container">
-        <button type="submit">發布</button>
-    </div>
-    
+    <!DOCTYPE html>
+<html lang="en">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自動調整大小的表單</title>
     <style>
         /* 調整文字框樣式 */
         .text-box {
-            width: 1800px; /* 調整寬度到合適大小 */
-            height: 500px; /* 初始高度 */
+            width: 100%; /* 自適應寬度 */
+            height: 40px; /* 固定高度 */
             border: 1px solid black;
             padding: 5px; /* 增加邊距使文字不貼著邊框 */
             font-size: 16px; /* 調整字體大小 */
             font-family: Arial, sans-serif; /* 設定字體 */
-            line-height: 1.2; /* 調整行距 */
-            resize: both; /* 允許水平與垂直方向調整大小 */
+            box-sizing: border-box; /* 包括內邊距和邊框在寬度內 */
+        }
+
+        /* 特別設計內容框的樣式 */
+        .content-box {
+            width: 100%; /* 自適應寬度 */
+            height: 150px; /* 初始高度 */
+            border: 1px solid black;
+            padding: 10px;
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            line-height: 1.5; /* 調整行距 */
+            resize: both; /* 允許手動調整大小 */
             overflow: auto; /* 顯示滾動條 */
+            box-sizing: border-box;
+        }
+
+        /* 表單標籤樣式 */
+        label {
+            display: block;
+            margin-top: 10px; /* 與上方元素保持距離 */
+            font-weight: bold;
         }
 
         /* 置中按鈕容器 */
         .button-container {
             display: flex;
             justify-content: center; /* 水平置中 */
-            margin-top: 10px; /* 與上方表單元素保持距離 */
+            margin-top: 20px; /* 與上方表單元素保持距離 */
+        }
+
+        /* 提交按鈕樣式 */
+        .submit-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            cursor: pointer;
+            border: 1px solid #000;
+            background-color: #f0f0f0;
+            transition: background-color 0.3s;
+        }
+
+        .submit-button:hover {
+            background-color: #ddd;
         }
     </style>
+</head>
+<body>
+    <<form method="POST" action="save_article.php"> <!-- 確保 action 指向 save_article.php -->
+        <label for="title">標題:</label>
+        <input type="text" id="title" name="title" class="text-box" placeholder="請輸入標題" required>
+
+        <label for="subtitle">內容:</label>
+        <textarea id="subtitle" name="subtitle" class="content-box" placeholder="請輸入內容" required></textarea>
+
+        <label for="source">資料來源:</label>
+        <input type="text" id="source" name="source" class="text-box" placeholder="請輸入資料來源" required>
+
+        <label for="url">連結:</label>
+        <input type="url" id="url" name="url" class="text-box" placeholder="請輸入連結" required>
+
+        <label for="image">圖片路徑:</label>
+        <input type="text" id="image" name="image" class="text-box" placeholder="請輸入圖片路徑" required>
+
+        <div class="button-container">
+            <button type="submit" class="submit-button">提交</button>
+        </div>
+    </form>
+</body>
+</html>
 </form>
 </form>
 </head>

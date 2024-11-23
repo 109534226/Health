@@ -24,13 +24,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         } else {
             echo "<script>
                     alert('資料未更新（可能資料未更動或用戶不存在）。');
-                    window.location.href = 'c_user.php';
+                    window.location.href = '用戶列表.php';
                   </script>";
         }
     } else {
         echo "<script>
                 alert('更新失敗：" . mysqli_stmt_error($stmt) . "');
-                window.location.href = 'c_user.php';
+                window.location.href = '用戶列表.php';
               </script>";
     }
 

@@ -200,7 +200,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
         <label for="username">姓名:</label> <!-- 顯示用戶姓名的輸入欄位 -->
         <input type="text" name="username" value="<?php echo htmlspecialchars($user['username']); ?>"><br>
-
+        
         <label for="password">密碼:</label> <!-- 顯示用戶密碼的輸入欄位 -->
         <input type="password" name="password" value=""><br> <!-- 密碼欄位留空，要求用戶輸入新密碼 -->
 
