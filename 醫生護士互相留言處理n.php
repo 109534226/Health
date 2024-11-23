@@ -20,11 +20,11 @@ if (!$sender || !in_array($sender, ['醫生', '護士'])) {
 
 // 插入留言到 chatmessages 資料表
 $插入指令 = "INSERT INTO chatmessages (sender, message, timestamp) VALUES ('$sender', '$message', NOW())";
-if (mysqli_query($link, $插入指令)) {
-    echo "<script>alert('留言已送出'); window.location.href = '留言頁面n.php';</script>";
-} else {
-    echo "<script>alert('留言失敗：" . mysqli_error($link) . "'); window.location.href = '留言頁面n.php';</script>";
-}
+// if (mysqli_query($link, $插入指令)) {
+//     echo "<script>alert('留言已送出'); window.location.href = '留言頁面n.php';</script>";
+// } else {
+//     echo "<script>alert('留言失敗：" . mysqli_error($link) . "'); window.location.href = '留言頁面n.php';</script>";
+// }
 
 // 關閉資料庫連線
 mysqli_close($link);

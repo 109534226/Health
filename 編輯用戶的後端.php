@@ -6,7 +6,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $id = intval($_POST["id"]);
     $username = $_POST["username"];
     $name = $_POST["name"];
-    $password = password_hash($_POST["password"], PASSWORD_BCRYPT);
+    $password =$_POST["password"];
     $email = $_POST["email"];
     $grade = intval($_POST["grade"]);
 
