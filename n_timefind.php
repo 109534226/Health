@@ -115,8 +115,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="留言介面n.php" class="nav-item nav-link"
-                            value="<?php echo htmlspecialchars($patient_id); ?>">留言</a>
+                        <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
+                            class="nav-item nav-link">留言</a>
                         <a href="n_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
                         <a href="n_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
                         <a href="n_timesee.php" class="nav-item nav-link active">醫生的班表時段</a>

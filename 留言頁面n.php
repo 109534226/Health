@@ -143,9 +143,9 @@ if (!$查詢結果) {
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
-                <div class="navbar-nav ms-auto py-0">
-                <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
-                class="nav-item nav-link active">留言</a>
+                    <div class="navbar-nav ms-auto py-0">
+                        <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
+                            class="nav-item nav-link active">留言</a>
                         <a href="n_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
                         <a href="n_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
                         <a href="n_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
