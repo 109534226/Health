@@ -49,7 +49,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         rel="stylesheet">
 
     <!-- Icon Font Stylesheet -->
-     
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -100,9 +100,9 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         }
     </style>
     <script>
-    	// 用戶成功登入後，設置登錄狀態
-    	sessionStorage.setItem('isLoggedIn', 'true');
-	</script>
+        // 用戶成功登入後，設置登錄狀態
+        sessionStorage.setItem('isLoggedIn', 'true');
+    </script>
 </head>
 
 <body>
@@ -118,10 +118,10 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                    <a href="c_user.php" class="nav-item nav-link active">用戶管理</a>
-                    <a href="c_content.php" class="nav-item nav-link ">內容管理</a> 
-                    <a href="c_security.php" class="nav-item nav-link">安全管理</a>
-              
+                        <a href="c_user.php" class="nav-item nav-link active">用戶管理</a>
+                        <a href="c_content.php" class="nav-item nav-link ">內容管理</a>
+                        <a href="c_security.php" class="nav-item nav-link">安全管理</a>
+
                         <div class="nav-item">
                             <a href="c_profile.php" class="nav-link dropdown-toggle " data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
@@ -144,43 +144,43 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         </div>
     </div>
     <!-- 頁首 End -->
-  <!-- 回到頁首(Top 箭頭 -->
-  <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    <!-- 回到頁首(Top 箭頭 -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
 
-<!-- 登出對話框 Start -->
-<div id="logoutBox" class="logout-box">
-    <div class="logout-dialog">
-        <p>你確定要登出嗎？</p>
-        <button onclick="logout()">確定</button>
-        <button onclick="hideLogoutBox()">取消</button>
+    <!-- 登出對話框 Start -->
+    <div id="logoutBox" class="logout-box">
+        <div class="logout-dialog">
+            <p>你確定要登出嗎？</p>
+            <button onclick="logout()">確定</button>
+            <button onclick="hideLogoutBox()">取消</button>
+        </div>
     </div>
-</div>
-<!-- 登出對話框 End -->
+    <!-- 登出對話框 End -->
 
-<!-- 刪除帳號對話框 Start -->
-<div id="deleteAccountBox" class="logout-box">
-    <div class="logout-dialog">
-        <p>你確定要刪除帳號嗎？這個操作無法撤銷！</p>
-        <button onclick="deleteAccount()">確定</button>
-        <button onclick="hideDeleteAccountBox()">取消</button>
+    <!-- 刪除帳號對話框 Start -->
+    <div id="deleteAccountBox" class="logout-box">
+        <div class="logout-dialog">
+            <p>你確定要刪除帳號嗎？這個操作無法撤銷！</p>
+            <button onclick="deleteAccount()">確定</button>
+            <button onclick="hideDeleteAccountBox()">取消</button>
+        </div>
     </div>
-</div>
-<!-- 刪除帳號對話框 End -->
+    <!-- 刪除帳號對話框 End -->
 
-<?php
-include 'db.php';
+    <?php
+    include 'db.php';
 
-$sql = "SELECT * FROM user";
-$result = mysqli_query($link, $sql);
+    $sql = "SELECT * FROM user";
+    $result = mysqli_query($link, $sql);
 
-if (!$result) {
-    die("Query Failed: " . mysqli_error($link));
-}
+    if (!$result) {
+        die("Query Failed: " . mysqli_error($link));
+    }
 
-// 將所有查詢結果放入陣列中
-$rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
-?>
-<!-- 
+    // 將所有查詢結果放入陣列中
+    $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    ?>
+    <!-- 
 <!DOCTYPE html>
 <html>
 <head>
@@ -201,17 +201,19 @@ $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
         <?php foreach ($rows as $row): ?>
             <tr>
                 <td><?php echo $row['id']; ?></td>
-                <td><?php echo $row['username']; ?></td>
+                <td><?php echo $row['username']; ?></td> <!-- 姓名 -->
                 <td><?php echo $row['email']; ?></td>
                 <td><?php echo $row['grade']; ?></td>
-                <!-- <td><?php echo $row['status']; ?></td> -->
                 <td>
-                    <!-- <a href="編輯用戶.php?id=<?php echo $row['id']; ?>">編輯</a> -->
-                    <a href="編輯用戶.php?id=<?php echo $row['id']; ?>" onclick="return confirm('你要編輯這位用戶嗎？');">編輯</a>
+                    <?php
+                    // 儲存 `name` 到 Session，供後續使用
+                    $_SESSION['編輯用戶'] = $row['name'];
+                    ?>
+                    <!-- 帶入帳號到編輯表單 -->
+                    <a href="編輯用戶.php?name=<?php echo urlencode($row['name']); ?>"
+                        onclick="return confirm('你要編輯帳號為 <?php echo $row['name']; ?>，姓名為 <?php echo $row['username']; ?> 這位用戶嗎？');">編輯</a>
                     <a href="刪除用戶.php?id=<?php echo $row['id']; ?>" onclick="return confirm('確定要刪除這位用戶嗎？');">刪除</a>
-                    <!-- <?php echo $row['id']; ?> -->
                 </td>
-                
             </tr>
         <?php endforeach; ?>
     </table>
@@ -256,34 +258,34 @@ $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
 
 
-<!-- JavaScript -->
-<script>
-    function showLogoutBox() {
-        document.getElementById('logoutBox').style.display = 'flex';
-    }
+    <!-- JavaScript -->
+    <script>
+        function showLogoutBox() {
+            document.getElementById('logoutBox').style.display = 'flex';
+        }
 
-    function hideLogoutBox() {
-        document.getElementById('logoutBox').style.display = 'none';
-    }
+        function hideLogoutBox() {
+            document.getElementById('logoutBox').style.display = 'none';
+        }
 
-    function logout() {
-        alert('你已經登出！');
-        hideLogoutBox();
-        window.location.href = 'login.php'; // 替換為登出後的頁面
-    }
+        function logout() {
+            alert('你已經登出！');
+            hideLogoutBox();
+            window.location.href = 'login.php'; // 替換為登出後的頁面
+        }
 
-    function showDeleteAccountBox() {
-        document.getElementById('deleteAccountBox').style.display = 'flex';
-    }
+        function showDeleteAccountBox() {
+            document.getElementById('deleteAccountBox').style.display = 'flex';
+        }
 
-    function hideDeleteAccountBox() {
-        document.getElementById('deleteAccountBox').style.display = 'none';
-    }
+        function hideDeleteAccountBox() {
+            document.getElementById('deleteAccountBox').style.display = 'none';
+        }
 
-    function deleteAccount() {
-        document.getElementById('deleteAccountForm').submit();
-    }
-</script>
+        function deleteAccount() {
+            document.getElementById('deleteAccountForm').submit();
+        }
+    </script>
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>

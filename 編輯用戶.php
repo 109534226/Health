@@ -49,7 +49,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         rel="stylesheet">
 
     <!-- Icon Font Stylesheet -->
-     
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -100,9 +100,9 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         }
     </style>
     <script>
-    	// 用戶成功登入後，設置登錄狀態
-    	sessionStorage.setItem('isLoggedIn', 'true');
-	</script>
+        // 用戶成功登入後，設置登錄狀態
+        sessionStorage.setItem('isLoggedIn', 'true');
+    </script>
 </head>
 
 <body>
@@ -118,10 +118,10 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                    <a href="c_user.php" class="nav-item nav-link active">用戶管理</a>
-                    <a href="c_content.php" class="nav-item nav-link ">內容管理</a> 
-                    <a href="c_security.php" class="nav-item nav-link">安全管理</a>
-              
+                        <a href="c_user.php" class="nav-item nav-link active">用戶管理</a>
+                        <a href="c_content.php" class="nav-item nav-link ">內容管理</a>
+                        <a href="c_security.php" class="nav-item nav-link">安全管理</a>
+
                         <div class="nav-item">
                             <a href="c_profile.php" class="nav-link dropdown-toggle " data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
@@ -166,37 +166,53 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         </div>
     </div>
     <!-- 刪除帳號對話框 End -->
+    <?php
+    session_start(); // 啟動 PHP Session，確保可以使用 $_SESSION 變數。
+    include 'db.php'; // 引入資料庫連線檔案。
+    
+    // 從 URL 或 Session 中獲取用戶帳號 `name`，優先使用 URL 傳入的值。
+    $name = $_GET['name'] ?? $_SESSION['編輯用戶'] ?? null;
 
-    <?php include 'db.php'; ?> <!-- 引入頁首 -->
+    if (!$name) { // 如果沒有從 URL 或 Session 中獲得 `name`，則提示錯誤並終止程式。
+        echo "未指定用戶帳號。"; // 顯示錯誤訊息。
+        exit; // 終止程式執行。
+    }
 
-    <!-- <!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>編輯使用者</title>
-</head>
-<body> -->
-    <<h1>編輯使用者</h1>
-<form method="POST" action="編輯用戶的後端.php">
-    <input type="hidden" name="id" value="1"> <!-- 輸入有效的 id -->
+    // 從資料庫中查詢該用戶的所有資料。
+    $sql = "SELECT * FROM user WHERE name = ?"; // 使用 `name` 作為條件查詢。
+    $stmt = mysqli_prepare($link, $sql); // 準備 SQL 查詢。
+    mysqli_stmt_bind_param($stmt, "s", $name); // 綁定 `name` 參數到查詢語句，避免 SQL 注入。
+    mysqli_stmt_execute($stmt); // 執行查詢。
+    $result = mysqli_stmt_get_result($stmt); // 獲取查詢結果。
+    $user = mysqli_fetch_assoc($result); // 將查詢結果轉換為關聯陣列形式。
+    mysqli_stmt_close($stmt); // 關閉查詢語句。
     
-    <label for="username">使用者名稱:</label>
-    <input type="text" name="username" value=""><br>
-    
-    <label for="name">姓名:</label>
-    <input type="text" name="name" value=""><br>
-    
-    <label for="password">密碼:</label>
-    <input type="password" name="password" value=""><br>
-    
-    <label for="email">電子郵件:</label>
-    <input type="email" name="email" value="@gmail.com"><br>
-    
-    <label for="grade">使用者等級:</label>
-    <input type="number" name="grade" value=""><br>
-    
-    <button type="submit">更新</button>
-</form>
+    if (!$user) { // 如果查詢結果為空，表示找不到該用戶資料。
+        echo "找不到該用戶資料！"; // 顯示錯誤訊息。
+        exit; // 終止程式執行。
+    }
+    ?>
+
+    <h1>編輯使用者</h1>
+    <form method="POST" action="編輯用戶的後端.php"> <!-- 表單，提交到後端進行資料更新 -->
+        <!-- 隱藏欄位，帶入用戶帳號 `name` 作為唯一標識 -->
+        <input type="hidden" name="name" value="<?php echo htmlspecialchars($user['name']); ?>">
+
+        <label for="username">姓名:</label> <!-- 顯示用戶姓名的輸入欄位 -->
+        <input type="text" name="username" value="<?php echo htmlspecialchars($user['username']); ?>"><br>
+        
+        <label for="password">密碼:</label> <!-- 顯示用戶密碼的輸入欄位 -->
+        <input type="password" name="password" value=""><br> <!-- 密碼欄位留空，要求用戶輸入新密碼 -->
+
+        <label for="email">電子郵件:</label> <!-- 顯示用戶電子郵件的輸入欄位 -->
+        <input type="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>"><br>
+
+        <label for="grade">使用者等級:</label> <!-- 顯示用戶等級的輸入欄位 -->
+        <input type="number" name="grade" value="<?php echo htmlspecialchars($user['grade']); ?>"><br>
+
+        <button type="submit">更新</button> <!-- 表單提交按鈕 -->
+    </form>
+
 </body>
+
 </html>
