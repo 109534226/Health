@@ -207,9 +207,11 @@ $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
                 <!-- <td><?php echo $row['status']; ?></td> -->
                 <td>
                     <!-- <a href="編輯用戶.php?id=<?php echo $row['id']; ?>">編輯</a> -->
+                    <a href="編輯用戶.php?id=<?php echo $row['id']; ?>" onclick="return confirm('你要編輯這位用戶嗎？');">編輯</a>
                     <a href="刪除用戶.php?id=<?php echo $row['id']; ?>" onclick="return confirm('確定要刪除這位用戶嗎？');">刪除</a>
                     <!-- <?php echo $row['id']; ?> -->
                 </td>
+                
             </tr>
         <?php endforeach; ?>
     </table>
