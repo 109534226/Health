@@ -143,57 +143,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     </div>
     <!-- 頁首 End -->
 
-    <!-- 回到頁首(Top 箭頭 -->
-    <a href="#" class="btn btn-lg btn-primary  back-to-top"><i class="bi bi-arrow-up"></i></a>
-    <!-- 登出對話框 Start -->
-    <div id="logoutBox" class="logout-box">
-        <div class="logout-dialog">
-            <p>你確定要登出嗎？</p>
-            <button onclick="logout()">確定</button>
-            <button onclick="hideLogoutBox()">取消</button>
-        </div>
-    </div>
-    <!-- 登出對話框 End -->
-
-    <!-- 刪除帳號對話框 Start -->
-    <div id="deleteAccountBox" class="logout-box">
-        <div class="logout-dialog">
-            <p>你確定要刪除帳號嗎？這個操作無法撤銷！</p>
-            <button onclick="deleteAccount()">確定</button>
-            <button onclick="hideDeleteAccountBox()">取消</button>
-        </div>
-    </div>
-    <!-- 刪除帳號對話框 End -->
-
-    <!-- JavaScript -->
-    <script>
-        function showLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'flex';
-        }
-
-        function hideLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'none';
-        }
-
-        function logout() {
-            alert('你已經登出！');
-            hideLogoutBox();
-            window.location.href = 'login.php'; // 替換為登出後的頁面
-        }
-
-        function showDeleteAccountBox() {
-            document.getElementById('deleteAccountBox').style.display = 'flex';
-        }
-
-        function hideDeleteAccountBox() {
-            document.getElementById('deleteAccountBox').style.display = 'none';
-        }
-
-        function deleteAccount() {
-            document.getElementById('deleteAccountForm').submit();
-        }
-    </script>
-
     <?php
     include "db.php"; // 連接資料庫
 // 查詢登入使用者的身份和姓名
@@ -367,27 +316,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 <?php endif; ?>
             </div>
 
-
-            <!-- 刪除 -->
-            <!-- <th>功能選項</th> -->
-            <!-- <td>
-                                    <form method="POST" action="醫生班表刪除d.php" style="display:inline;">
-                                        <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
-                                        <input type="hidden" name="source" value="n_advicefind">
-                                        <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
-                                    </form>
-                                </td> -->
-            <!-- <script>
-        function deleteRow(id) {
-            // 確認是否刪除
-            if (confirm('確認要刪除這筆資料嗎？')) {
-                alert('資料已刪除');
-            } else {
-                alert('取消刪除動作');
-            }
-        }
-    </script> -->
-
             <style>
                 table {
                     width: 100%;
@@ -453,6 +381,58 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     /* 與分頁按鈕之間留些距離 */
                 }
             </style>
+
+
+            <!-- 回到頁首(Top 箭頭 -->
+            <a href="#" class="btn btn-lg btn-primary  back-to-top"><i class="bi bi-arrow-up"></i></a>
+            <!-- 登出對話框 Start -->
+            <div id="logoutBox" class="logout-box">
+                <div class="logout-dialog">
+                    <p>你確定要登出嗎？</p>
+                    <button onclick="logout()">確定</button>
+                    <button onclick="hideLogoutBox()">取消</button>
+                </div>
+            </div>
+            <!-- 登出對話框 End -->
+
+            <!-- 刪除帳號對話框 Start -->
+            <div id="deleteAccountBox" class="logout-box">
+                <div class="logout-dialog">
+                    <p>你確定要刪除帳號嗎？這個操作無法撤銷！</p>
+                    <button onclick="deleteAccount()">確定</button>
+                    <button onclick="hideDeleteAccountBox()">取消</button>
+                </div>
+            </div>
+            <!-- 刪除帳號對話框 End -->
+
+            <!-- JavaScript -->
+            <script>
+                function showLogoutBox() {
+                    document.getElementById('logoutBox').style.display = 'flex';
+                }
+
+                function hideLogoutBox() {
+                    document.getElementById('logoutBox').style.display = 'none';
+                }
+
+                function logout() {
+                    alert('你已經登出！');
+                    hideLogoutBox();
+                    window.location.href = 'login.php'; // 替換為登出後的頁面
+                }
+
+                function showDeleteAccountBox() {
+                    document.getElementById('deleteAccountBox').style.display = 'flex';
+                }
+
+                function hideDeleteAccountBox() {
+                    document.getElementById('deleteAccountBox').style.display = 'none';
+                }
+
+                function deleteAccount() {
+                    document.getElementById('deleteAccountForm').submit();
+                }
+            </script>
 
             <!-- JavaScript Libraries -->
             <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>

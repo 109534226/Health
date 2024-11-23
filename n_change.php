@@ -122,14 +122,14 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             value="<?php echo htmlspecialchars($patient_id); ?>">留言</a>
                         <a href="n_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
                         <a href="n_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
-                        <a href="n_timesee.php" class="nav-item nav-link active">醫生的班表時段</a>
+                        <a href="n_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
                         <a href="n_advicesee.php" class="nav-item nav-link">醫生建議</a>
                         <div class="nav-item">
-                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
+                            <a href="#" class="nav-link dropdown-toggle  active" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a href="n_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="n_change.php" class="dropdown-item">忘記密碼</a></li>
+                                <li><a href="n_change.php" class="dropdown-item active">忘記密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->

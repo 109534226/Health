@@ -117,10 +117,10 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     <div class="navbar-nav ms-auto py-0">
                         <a href="留言頁面d.php?id=<?php echo htmlspecialchars($patient_id); ?>"
                             class="nav-item nav-link">留言</a>
-                        <a href="d_Basic.php" class="nav-item nav-link">患者資料</a>
-                        <a href="d_records.php" class="nav-item nav-link">看診紀錄</a>
-                        <a href="d_time.php" class="nav-item nav-link">醫生的班表時段</a>
-                        <a href="d_advice.php" class="nav-item nav-link active">醫生建議</a>
+                        <a href="d_Basicsee.php" class="nav-item nav-link active">患者資料</a>
+                        <a href="d_recordssee.php" class="nav-item nav-link">看診紀錄</a>
+                        <a href="d_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
+                        <a href="d_advicesee.php" class="nav-item nav-link">醫生建議</a>
                         <div class="nav-item">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
@@ -212,7 +212,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 <h1 class="me-3 flex-shrink-0">患者資料&gt;&gt;&gt;&gt;&gt;</h1>
                 <div class="input-group ms-auto" style="max-width: 550px;">
                     <form method="POST" action="n_Basicfind.php" class="d-flex w-100">
-                        <input type="text" name="search" class="form-control p-3" placeholder="搜尋">
+                        <input type="text" name="search" class="form-control p-3" placeholder="搜尋完整病患姓名">
                         <button class="btn btn-primary px-3" type="submit"><i class="fa fa-search"></i></button>
                     </form>
                 </div>

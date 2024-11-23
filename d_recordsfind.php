@@ -117,10 +117,10 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     <div class="navbar-nav ms-auto py-0">
                         <a href="留言頁面d.php?id=<?php echo htmlspecialchars($patient_id); ?>"
                             class="nav-item nav-link">留言</a>
-                        <a href="d_Basic.php" class="nav-item nav-link">患者資料</a>
-                        <a href="d_records.php" class="nav-item nav-link">看診紀錄</a>
-                        <a href="d_time.php" class="nav-item nav-link">醫生的班表時段</a>
-                        <a href="d_advice.php" class="nav-item nav-link active">醫生建議</a>
+                        <a href="d_Basicsee.php" class="nav-item nav-link">患者資料</a>
+                        <a href="d_recordssee.php" class="nav-item nav-link active">看診紀錄</a>
+                        <a href="d_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
+                        <a href="d_advicesee.php" class="nav-item nav-link active">醫生建議</a>
                         <div class="nav-item">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
@@ -369,25 +369,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 }
             </style>
 
-            <style>
-                /* 設置全域字體和背景 */
-                body {
-                    font-family: Arial, sans-serif;
-                    background-color: #f8f9fa;
-                    margin: 0;
-                    padding: 0;
-                }
-
-                /* 主容器樣式 */
-                .form-container {
-                    max-width: 1000px;
-                    margin: 20px auto;
-                    padding: 20px;
-                    background-color: #ffffff;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-                }
-
+<style>
                 /* 表格樣式 */
                 table {
                     width: 100%;
@@ -396,6 +378,10 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 }
 
                 th {
+                    font-weight: bold;
+                    /* 設置表頭文字為粗體 */
+                    font-size: 1.3em;
+                    /* 設置表格內容文字大小 */
                     padding: 12px;
                     text-align: center;
                     border: 1px solid #dee2e6;
@@ -405,6 +391,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 }
 
                 td {
+                    font-size: 1em;
+                    /* 設置表格內容文字大小 */
                     padding: 12px;
                     text-align: center;
                     border: 1px solid #dee2e6;
@@ -415,43 +403,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 }
             </style>
 
-
-
-            <!-- 
-        <style>
-        table {
-            width: 100%;
-            /* 設定表格寬度為 100% */
-            border-collapse: collapse;
-            /* 將內框和外框線合併，避免雙線 */
-            border: 2px solid black;
-            /* 外框，設定表格外邊框線 */
-        }
-
-        th,
-        td {
-            border: 1px solid black;
-            /* 內框，設定每個表格單元格之間的邊框 */
-            padding: 10px;
-            /* 單元格內部的間距 */
-            text-align: center;
-            /* 將文字置中 */
-        }
-
-        thead {
-            background-color: #f2f2f2;
-            /* 表頭背景顏色 */
-            font-weight: bold;
-            /* 設置表頭文字為粗體 */
-            font-size: 1.5em;
-            /* 設置表頭文字大小 */
-        }
-
-        tbody td {
-            font-size: 1.2em;
-            /* 設置表格內容文字大小 */
-        }
-         </style> -->
             <!-- 回到頁首(Top 箭頭 -->
             <a href="#" class="btn btn-lg btn-primary  back-to-top"><i class="bi bi-arrow-up"></i></a>
             <!-- 登出對話框 Start -->

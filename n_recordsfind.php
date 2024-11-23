@@ -118,8 +118,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <a href="留言介面n.php" class="nav-item nav-link"
                             value="<?php echo htmlspecialchars($patient_id); ?>">留言</a>
                         <a href="n_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
-                        <a href="n_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
-                        <a href="n_timesee.php" class="nav-item nav-link active">醫生的班表時段</a>
+                        <a href="n_recordssee.php" class="nav-item nav-link active">病例歷史紀錄</a>
+                        <a href="n_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
                         <a href="n_advicesee.php" class="nav-item nav-link">醫生建議</a>
                         <div class="nav-item">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
@@ -319,27 +319,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     <a href="?page=<?php echo $當前頁碼 + 1; ?>">下一頁</a>
                 <?php endif; ?>
             </div>
-
-
-            <!-- 刪除 -->
-            <!-- <th>功能選項</th> -->
-            <!-- <td>
-                                    <form method="POST" action="看診紀錄刪除d.php" style="display:inline;">
-                                        <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
-                                        <input type="hidden" name="source" value="n_advicefind">
-                                        <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
-                                    </form>
-                                </td> -->
-            <!-- <script>
-        function deleteRow(id) {
-            // 確認是否刪除
-            if (confirm('確認要刪除這筆資料嗎？')) {
-                alert('資料已刪除');
-            } else {
-                alert('取消刪除動作');
-            }
-        }
-    </script> -->
 
             <style>
                 table {
