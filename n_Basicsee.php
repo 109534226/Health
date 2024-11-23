@@ -115,18 +115,17 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                    <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
-                    class="nav-item nav-link">留言</a>
-                        <a href="n_Basic.php" class="nav-item nav-link active">患者資料</a>
-                        <a href="n_records.php" class="nav-item nav-link">看診紀錄</a>
-                        <a href="n_time.php" class="nav-item nav-link">醫生的班表時段</a>
-                        <a href="n_advice.php" class="nav-item nav-link">醫生建議</a>
+                        <a href="留言頁面d.php?id=<?php echo urlencode($patient_id); ?>" class="nav-item nav-link">留言</a>
+                        <a href="d_Basicsee.php" class="nav-item nav-link active">患者基本資訊</a>
+                        <a href="d_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
+                        <a href="d_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
+                        <a href="d_advicesee.php" class="nav-item nav-link">醫生建議</a>
                         <div class="nav-item">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="n_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="n_change.php" class="dropdown-item">忘記密碼</a></li>
+                                <li><a href="d_profile.php" class="dropdown-item">關於我</a></li>
+                                <li><a href="d_change.php" class="dropdown-item">忘記密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -180,6 +179,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
     <!--患者資料-->
     <div class="container-fluid"></div>
+    <br />
     <section class="resume-section p-0" id="about"> <!-- 將內邊距設為 0 -->
         <div class="my-auto">
             <style>
@@ -210,14 +210,15 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             <div class="d-flex align-items-center mb-5">
                 <h1 class="me-3 flex-shrink-0">患者資料&gt;&gt;&gt;&gt;&gt;</h1>
                 <div class="input-group ms-auto" style="max-width: 550px;">
-                    <form method="POST" action="n_Basicfind.php" class="d-flex w-100">
+                    <form method="POST" action="d_Basicfind.php" class="d-flex w-100">
                         <input type="text" name="search" class="form-control p-3" placeholder="搜尋">
                         <button class="btn btn-primary px-3" type="submit"><i class="fa fa-search"></i></button>
                     </form>
                 </div>
-                <a href="n_Basic.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a>
             </div>
+
         </div>
+        <br />
 
         <?php
         include "db.php"; // 連接資料庫
@@ -231,12 +232,12 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         }
 
         // 獲取總記錄數
-        $總筆數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM patients");
-        if (!$總筆數查詢) {
+        $總記錄數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM patients");
+        if (!$總記錄數查詢) {
             die("查詢失敗: " . mysqli_error($link));
         }
-        $總筆數結果 = mysqli_fetch_assoc($總筆數查詢);
-        $總記錄數 = $總筆數結果['總數'];
+        $總記錄數結果 = mysqli_fetch_assoc($總記錄數查詢);
+        $總記錄數 = $總記錄數結果['總數'];
 
         // 設定每頁顯示的記錄數
         $每頁記錄數 = 15;
@@ -269,7 +270,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <th>過敏藥物</th>
                         <th>歷史重大疾病</th>
                         <th>紀錄創建時間</th>
-                        <th>功能選項</th>
+                        <!-- <th>功能選項</th> -->
                     </tr>
                 </thead>
                 <tbody>
@@ -284,117 +285,86 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <td><?php echo htmlspecialchars($資料列['allergies']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['medicalhistory']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
-                            <td>
-                                <form action="患者資料修改00.php" method="post" style="display:inline;">
-                                    <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
-                                    <button type="submit">修改</button>
+                            <!-- <td>
+                                <form method="POST" action="留言頁面d.php" style="display:inline;">
+                                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($patient_id); ?>">
+                                    <button type="submit">留言</button>
                                 </form>
-
-                                <form method="POST" action="患者資料刪除ns.php" style="display:inline;">
-                                    <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
-                                    <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
-                                </form>
-                            </td>
+                            </td> -->
                         </tr>
                     <?php endwhile; ?>
                 </tbody>
             </table>
+
+            <div class="pagination">
+                <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p> <!-- 顯示總資料筆數 -->
+
+                <?php if ($當前頁碼 > 1): ?>
+                    <a href="?page=<?php echo $當前頁碼 - 1; ?>">上一頁</a>
+                <?php endif; ?>
+
+                <span>第 <?php echo $當前頁碼; ?> 頁 / 共 <?php echo $總頁數; ?> 頁</span>
+
+                <?php if ($當前頁碼 < $總頁數): ?>
+                    <a href="?page=<?php echo $當前頁碼 + 1; ?>">下一頁</a>
+                <?php endif; ?>
+            </div>
         </div>
 
-        <!-- 修改 -->
-        <script>
-            function leaveMessage(patientId) {
-                document.getElementById('patientId').value = patientId; // 設定隱藏的患者ID
-                document.getElementById('messageModal').style.display = "block"; // 顯示彈跳視窗
+
+        <!-- 刪除 -->
+        <!-- <th>功能選項</th> -->
+        <!-- <td>
+                                <form method="POST" action="患者資料刪除d.php" style="display:inline;">
+                                    <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+                                    <input type="hidden" name="source" value="n_advicefind">
+                                    <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
+                                </form>
+                            </td> -->
+        <!-- <script>
+                function deleteRow(id) {
+                    // 確認是否刪除
+                    if (confirm('確認要刪除這筆資料嗎？')) {
+                        alert('資料已刪除');
+                    } else {
+                        alert('取消刪除動作');
+                    }
+                }
+            </script> -->
+
+        <style>
+            /* 頁碼 上一頁 下一頁 */
+            .pagination {
+                display: flex;
+                flex-direction: column;
+                /* 讓顯示的資料筆數與按鈕垂直排列 */
+                justify-content: center;
+                align-items: center;
+                margin: 20px 0;
             }
 
-            function closeModal() {
-                document.getElementById('messageModal').style.display = "none"; // 隱藏彈跳視窗
+            .pagination a {
+                margin: 0 10px;
+                text-decoration: none;
+                color: #007BFF;
             }
-        </script>
 
+            .pagination a:hover {
+                text-decoration: underline;
+            }
 
-        <!-- 頁碼 -->
-        <div class="pagination">
-            <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p> <!-- 顯示總資料筆數 -->
+            .pagination span {
+                margin: 0 10px;
+            }
 
-            <?php if ($當前頁碼 > 1): ?>
-                <a href="?page=<?php echo $當前頁碼 - 1; ?>">上一頁</a>
-            <?php endif; ?>
-
-            <span>第 <?php echo $當前頁碼; ?> 頁 / 共 <?php echo $總頁數; ?> 頁</span>
-
-            <?php if ($當前頁碼 < $總頁數): ?>
-                <a href="?page=<?php echo $當前頁碼 + 1; ?>">下一頁</a>
-            <?php endif; ?>
-        </div>
+            .pagination p {
+                margin-bottom: 10px;
+                /* 與分頁按鈕之間留些距離 */
+            }
+        </style>
         </div>
     </section>
     <style>
-        /* 表格樣式 */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-
-        th {
-            font-weight: bold;
-            /* 設置表頭文字為粗體 */
-            font-size: 1.3em;
-            /* 設置表格內容文字大小 */
-            padding: 12px;
-            text-align: center;
-            border: 1px solid #dee2e6;
-            background-color: #007bff;
-            color: #ffffff;
-            font-weight: bold;
-        }
-
-        td {
-            font-size: 1em;
-            /* 設置表格內容文字大小 */
-            padding: 12px;
-            text-align: center;
-            border: 1px solid #dee2e6;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-    </style>
-    <style>
-        /* 頁碼 上一頁 下一頁 */
-        .pagination {
-            display: flex;
-            flex-direction: column;
-            /* 讓顯示的資料筆數與按鈕垂直排列 */
-            justify-content: center;
-            align-items: center;
-            margin: 20px 0;
-        }
-
-        .pagination a {
-            margin: 0 10px;
-            text-decoration: none;
-            color: #007BFF;
-        }
-
-        .pagination a:hover {
-            text-decoration: underline;
-        }
-
-        .pagination span {
-            margin: 0 10px;
-        }
-
-        .pagination p {
-            margin-bottom: 10px;
-            /* 與分頁按鈕之間留些距離 */
-        }
-    </style>
-
-    <!-- <style>
         table {
             width: 100%;
             /* 設定表格寬度為 100% */
@@ -427,8 +397,13 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             font-size: 1.2em;
             /* 設置表格內容文字大小 */
         }
-    </style> -->
+    </style>
 
+
+    </div>
+    </section>
+
+    </section>
     <!-- 回到頁首(Top 箭頭 -->
     <a href="#" class="btn btn-lg btn-primary  back-to-top"><i class="bi bi-arrow-up"></i></a>
 

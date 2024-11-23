@@ -73,73 +73,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             background: rgba(0, 0, 0, 0.7);
             justify-content: center;
             align-items: center;
-
-            body {
-                font-family: 'Arial', sans-serif;
-                background-color: #f8f9fa;
-                padding: 20px;
-            }
-
-            .form-container {
-                background: #ffffff;
-                border-radius: 10px;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-                padding: 30px;
-                max-width: 400px;
-                /* 設定最大寬度 */
-                margin: auto;
-                /* 讓表單居中 */
-            }
-
-            h1 {
-                text-align: center;
-                color: #343a40;
-            }
-
-            .form-row {
-                margin-bottom: 15px;
-            }
-
-            label {
-                font-weight: bold;
-                margin-bottom: 5px;
-                display: block;
-                /* 確保標籤在輸入框上方 */
-            }
-
-            input[type="text"],
-            input[type="date"],
-            select {
-                width: 100%;
-                /* 保持輸入框100%寬度 */
-                padding: 10px;
-                /* 調整內邊距 */
-                border: 1px solid #ced4da;
-                border-radius: 5px;
-            }
-
-            small {
-                margin-top: 5px;
-                font-size: 0.8em;
-                /* 小字大小 */
-                color: #6c757d;
-                /* 小字顏色 */
-            }
-
-            .aa {
-                width: 100%;
-                background-color: #007bff;
-                color: white;
-                padding: 10px;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-            }
-
-            button:hover {
-                background-color: #0056b3;
-            }
-
             display: none;
             z-index: 9999;
         }
@@ -166,6 +99,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         }
     </style>
 
+
 </head>
 
 <body>
@@ -182,12 +116,12 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="留言介面d.php" class="nav-item nav-link"
-                            value="<?php echo htmlspecialchars($patient_id); ?>">留言</a>
-                        <a href="d_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
-                        <a href="d_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
-                        <a href="d_timesee.php" class="nav-item nav-link active">醫生的班表時段</a>
-                        <a href="d_advicesee.php" class="nav-item nav-link">醫生建議</a>
+                    <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
+                    class="nav-item nav-link">留言</a>
+                        <a href="n_Basic.php" class="nav-item nav-link">患者資料</a>
+                        <a href="n_records.php" class="nav-item nav-link">看診紀錄</a>
+                        <a href="n_time.php" class="nav-item nav-link active">醫生的班表時段</a>
+                        <a href="n_advice.php" class="nav-item nav-link">醫生建議</a>
                         <div class="nav-item">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
@@ -210,12 +144,12 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     </div>
     <!-- 頁首 End -->
 
-    <?php
+     <?php
     include "db.php"; // 連接資料庫
 // 查詢登入使用者的身份和姓名
     $查詢資料 = "SELECT grade, username FROM user WHERE name = '$帳號'";
     $結果 = mysqli_query($link, $查詢資料);
-        
+
     if ($結果 && $row = mysqli_fetch_assoc($結果)) {
         // 設置角色
         if ($row['grade'] == 1) {
@@ -245,9 +179,9 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     ?>
 
 
+    
     <!--醫生班表-->
     <div class="container-fluid"></div>
-    <br />
     <section class="resume-section p-0" id="about"> <!-- 將內邊距設為 0 -->
         <div class="my-auto">
             <style>
@@ -278,13 +212,13 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             <div class="d-flex align-items-center mb-5">
                 <h1 class="me-3 flex-shrink-0">醫生班表&gt;&gt;&gt;&gt;&gt;</h1>
                 <div class="input-group ms-auto" style="max-width: 550px;">
-                    <form method="POST" action="d_timefind.php" class="d-flex w-100">
+                    <form method="POST" action="n_timefind.php" class="d-flex w-100">
                         <input type="text" name="search" class="form-control p-3" placeholder="搜尋">
                         <button class="btn btn-primary px-3" type="submit"><i class="fa fa-search"></i></button>
                     </form>
                 </div>
+                <a href="n_time.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a>
             </div>
-            <br />
 
             <?php
             include "db.php"; // 連接資料庫
@@ -332,6 +266,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <th>醫生姓名</th>
                         <th>看診時間</th>
                         <th>紀錄創建時間</th>
+                        <th>功能選項</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -343,6 +278,16 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <td><?php echo htmlspecialchars($資料列['doctorname']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['consultationperiod']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
+                            <td>
+                                <form action="醫生班表修改000.php" method="post" style="display:inline;">
+                                    <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
+                                    <button type="submit">修改</button>
+                                </form>
+                                <form method="POST" action="醫生班表刪除ns.php" style="display:inline;">
+                                    <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
+                                    <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
+                                </form>
+                            </td>
                         </tr>
                     <?php endwhile; ?>
                 </tbody>
@@ -363,60 +308,40 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             </div>
 
 
-            <!-- 刪除 -->
-            <!-- <th>功能選項</th> -->
-            <!-- <td>
-      <form method="POST" action="醫生班表刪除d.php" style="display:inline;">
-      <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
-      <input type="hidden" name="source" value="n_advicefind">
-     <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
-       </form>
-      </td> -->
-            <!-- <script>
-        function deleteRow(id) {
-            // 確認是否刪除
-            if (confirm('確認要刪除這筆資料嗎？')) {
-                alert('資料已刪除');
-            } else {
-                alert('取消刪除動作');
-            }
-        }
-    </script> -->
-
             <style>
+                /* 表格樣式 */
                 table {
                     width: 100%;
-                    /* 設定表格寬度為 100% */
                     border-collapse: collapse;
-                    /* 將內框和外框線合併，避免雙線 */
-                    border: 2px solid black;
-                    /* 外框，設定表格外邊框線 */
+                    margin: 20px 0;
                 }
 
-                th,
-                td {
-                    border: 1px solid black;
-                    /* 內框，設定每個表格單元格之間的邊框 */
-                    padding: 10px;
-                    /* 單元格內部的間距 */
-                    text-align: center;
-                    /* 將文字置中 */
-                }
-
-                thead {
-                    background-color: #f2f2f2;
-                    /* 表頭背景顏色 */
+                th {
                     font-weight: bold;
                     /* 設置表頭文字為粗體 */
-                    font-size: 1.5em;
-                    /* 設置表頭文字大小 */
+                    font-size: 1.3em;
+                    /* 設置表格內容文字大小 */
+                    padding: 12px;
+                    text-align: center;
+                    border: 1px solid #dee2e6;
+                    background-color: #007bff;
+                    color: #ffffff;
+                    font-weight: bold;
                 }
 
-                tbody td {
-                    font-size: 1.2em;
+                td {
+                    font-size: 1em;
                     /* 設置表格內容文字大小 */
+                    padding: 12px;
+                    text-align: center;
+                    border: 1px solid #dee2e6;
+                }
+
+                tr:nth-child(even) {
+                    background-color: #f2f2f2;
                 }
             </style>
+
 
             <style>
                 /* 頁碼 上一頁 下一頁 */
@@ -448,10 +373,37 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     /* 與分頁按鈕之間留些距離 */
                 }
             </style>
+            <script>
+                /* 修改 */
+                function leaveMessage(patientId) {
+                    document.getElementById('patientId').value = patientId; // 設定隱藏的患者ID
+                    document.getElementById('messageModal').style.display = "block"; // 顯示彈跳視窗
+                }
 
+                function closeModal() {
+                    document.getElementById('messageModal').style.display = "none"; // 隱藏彈跳視窗
+                }
+
+
+                function editRow(id) {
+                    window.location.href = `醫生班表修改000.php?id=${id}`;
+                }
+            </script>
+
+            <!-- 刪除 -->
+            <script>
+                function deleteRow(id) {
+                    // 確認是否刪除
+                    if (confirm('確認要刪除這筆資料嗎？')) {
+                        alert('資料已刪除');
+                    } else {
+                        alert('取消刪除動作');
+                    }
+                }
+            </script>
 
             <!-- 回到頁首(Top 箭頭 -->
-            <a href="#" class="btn btn-lg btn-primary back-to-top"><i class="bi bi-arrow-up"></i></a>
+            <a href="#" class="btn btn-lg btn-primary  back-to-top"><i class="bi bi-arrow-up"></i></a>
 
             <!-- 登出對話框 Start -->
             <div id="logoutBox" class="logout-box">

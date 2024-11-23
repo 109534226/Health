@@ -115,18 +115,18 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="留言頁面d.php?id=<?php echo htmlspecialchars($patient_id); ?>"
+                        <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
                             class="nav-item nav-link">留言</a>
-                        <a href="d_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
-                        <a href="d_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
-                        <a href="d_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
-                        <a href="d_advicesee.php" class="nav-item nav-link active">醫生建議</a>
+                        <a href="n_Basic.php" class="nav-item nav-link">患者資料</a>
+                        <a href="n_records.php" class="nav-item nav-link">看診紀錄</a>
+                        <a href="n_time.php" class="nav-item nav-link">醫生的班表時段</a>
+                        <a href="n_advice.php" class="nav-item nav-link active">醫生建議</a>
                         <div class="nav-item">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="d_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="d_change.php" class="dropdown-item">忘記密碼</a></li>
+                                <li><a href="n_profile.php" class="dropdown-item">關於我</a></li>
+                                <li><a href="n_change.php" class="dropdown-item">忘記密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -178,9 +178,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     ?>
 
 
-    
+
     <div class="container-fluid"></div>
-    <br />
     <section class="resume-section p-0" id="about"> <!-- 將內邊距設為 0 -->
         <div class="my-auto">
             <style>
@@ -208,204 +207,230 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     /* 深藍色背景，懸停時 */
                 }
             </style>
-
-            <?php
-            include "db.php"; // 連接資料庫
-            // 查詢登入使用者的身份（醫生或護士）
-            $查詢角色 = "SELECT grade FROM user WHERE name = '$帳號'";
-            $角色結果 = mysqli_query($link, $查詢角色);
-
-            if ($角色結果 && $row = mysqli_fetch_assoc($角色結果)) {
-                if ($row['grade'] == 1) {
-                    $_SESSION['user_role'] = '醫生';
-                } elseif ($row['grade'] == 2) {
-                    $_SESSION['user_role'] = '護士';
-                }
-                echo "<script>console.log('角色設定為: " . $_SESSION['user_role'] . "');</script>"; // 調試訊息
-            } else {
-                // 加入更多錯誤資訊以協助調試
-                echo "<script>alert('無法確定您的角色，請重新登入。'); console.error('角色查詢失敗或無此使用者');</script>";
-                echo "<script>window.location.href = 'login.php';</script>";
-                exit();
-            }
-
-            // 顯示當前角色
-            echo "<p>當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>";
-            ?>
-
-
             <div class="d-flex align-items-center mb-5" style="text-align: right;">
                 <h1 class="me-3 flex-shrink-0">醫生建議&gt;&gt;&gt;&gt;&gt;</h1>
                 <div class="d-flex justify-content-end mb-5 w-100">
-                    <a href="d_advicesee.php" class="btn btn-primary" style="margin-left: 10px;">返回所有資料</a>
+                    <a href="n_advicesee.php" class="btn btn-primary" style="margin-left: 10px;">返回所有資料</a>
+                    <a href="n_advice.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a>
                 </div>
             </div>
-            <br />
             <?php
             include "db.php"; // 連接資料庫
             
             // 擷取搜尋的資料
-            $搜尋詞 = isset($_POST['search']) ? $_POST['search'] : '';
+            $搜尋詞 = isset($_POST['search']) ? trim($_POST['search']) : (isset($_GET['search']) ? trim($_GET['search']) : '');
 
-            // 如果沒有輸入，顯示請輸入搜尋資料
-            if (empty($搜尋詞)) {
+            // 設定名稱查詢的最小字元長度（例如 1）
+            $最小搜尋長度 = 1;
+
+            if (!empty($搜尋詞) && strlen($搜尋詞) >= $最小搜尋長度) {
+                // 進行精確比對查詢
+                $查詢語句 = "SELECT * FROM patients WHERE patientname = ?";
+                $查詢準備 = mysqli_prepare($link, $查詢語句);
+                mysqli_stmt_bind_param($查詢準備, "s", $搜尋詞);
+                mysqli_stmt_execute($查詢準備);
+                $查詢結果 = mysqli_stmt_get_result($查詢準備);
+
+                // 計算總筆數
+                $總筆數 = mysqli_num_rows($查詢結果);
+
+                if ($總筆數 > 0) {
+                    // 設定分頁
+                    $每頁筆數 = 15;
+                    $總頁數 = ceil($總筆數 / $每頁筆數);
+
+                    // 獲取當前頁碼
+                    $當前頁碼 = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+                    $當前頁碼 = max(1, min($總頁數, $當前頁碼));
+
+                    // 計算起始記錄
+                    $起始位置 = ($當前頁碼 - 1) * $每頁筆數;
+
+                    // 查詢當前頁碼的資料
+                    $查詢語句 = "SELECT * FROM patients WHERE patientname = ? LIMIT ?, ?";
+                    $查詢準備 = mysqli_prepare($link, $查詢語句);
+                    mysqli_stmt_bind_param($查詢準備, "sii", $搜尋詞, $起始位置, $每頁筆數);
+                    mysqli_stmt_execute($查詢準備);
+                    $查詢結果 = mysqli_stmt_get_result($查詢準備);
+                } else {
+                    // 如果查無資料，顯示提示訊息並返回
+                    echo "<script>
+            alert('查無此人');
+            window.location.href = 'n_advicesee.php';
+        </script>";
+                    exit;
+                }
+            } else {
+                // 如果搜尋條件為空或長度不足，顯示提示訊息
                 echo "<script>
         alert('請輸入搜尋資料');
-        window.location.href = 'd_advicesee.php';
-    </script>";
-                exit;
-            }
-
-            // 準備查詢
-            $查詢語句 = "SELECT * FROM patients WHERE patientname = ?";
-            $查詢準備 = $link->prepare($查詢語句);
-            $查詢準備->bind_param("s", $搜尋詞); // 綁定參數
-            $查詢準備->execute();
-            $查詢結果 = $查詢準備->get_result();
-
-            if (!$查詢結果) {
-                die("查詢失敗: " . mysqli_error($link));
-            }
-
-            // 獲取總記錄數
-            $總記錄數 = $查詢結果->num_rows;
-
-            // 設定每頁顯示的記錄數
-            $每頁記錄數 = 15;
-            $總頁數 = ceil($總記錄數 / $每頁記錄數);
-
-            // 獲取當前頁碼
-            $當前頁碼 = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-            $當前頁碼 = max(1, min($總頁數, $當前頁碼)); // 確保當前頁碼在範圍內
-            
-            // 計算起始記錄
-            $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
-
-            // 查詢當前頁碼的資料
-            $查詢語句 = "SELECT * FROM patients WHERE patientname = ? LIMIT ?, ?";
-            $查詢準備 = $link->prepare($查詢語句);
-            $查詢準備->bind_param("sii", $搜尋詞, $起始位置, $每頁記錄數);
-            $查詢準備->execute();
-            $查詢結果 = $查詢準備->get_result();
-
-            if (!$查詢結果) {
-                die("查詢失敗: " . mysqli_error($link));
-            }
-
-            // 如果沒有找到任何記錄，顯示「查無此人資料」
-            if ($總記錄數 == 0) {
-                echo "<script>
-        alert('查無此人');
-        window.location.href = 'd_advicesee.php';
+        window.location.href = 'n_advicesee.php';
     </script>";
                 exit;
             }
             ?>
 
+
             <div class="form-container">
-                <table border="1">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>看診日期</th>
-                            <th>診間號</th>
-                            <th>患者姓名</th>
-                            <th>出生日期</th>
-                            <th>性別</th>
-                            <th>看診醫生</th>
-                            <th>醫生建議</th>
-                            <th>是否回診</th>
-                            <th>紀錄創建時間</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while ($資料列 = mysqli_fetch_assoc($查詢結果)): ?>
+                <!-- 顯示資料表格 -->
+                <?php if ($總筆數 > 0): ?>
+                    <table border="1">
+                        <thead>
                             <tr>
-                                <td><?php echo htmlspecialchars($資料列['id']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['dateday']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['medicalnumber']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['patientname']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['birthdaydate']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['gender']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['doctorname']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['doctoradvice']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['followup']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
+                                <th>ID</th>
+                                <th>看診日期</th>
+                                <th>病例號</th>
+                                <th>患者姓名</th>
+                                <th>出生日期</th>
+                                <th>性別</th>
+                                <th>看診醫生</th>
+                                <th>醫生建議</th>
+                                <th>是否回診</th>
+                                <th>紀錄創建時間</th>
+                                <th>功能選項</th>
                             </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="pagination">
-                <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p> <!-- 顯示總資料筆數 -->
-
-                <?php if ($當前頁碼 > 1): ?>
-                    <a href="?page=<?php echo $當前頁碼 - 1; ?>">上一頁</a>
-                <?php endif; ?>
-
-                <span>第 <?php echo $當前頁碼; ?> 頁 / 共 <?php echo $總頁數; ?> 頁</span>
-
-                <?php if ($當前頁碼 < $總頁數): ?>
-                    <a href="?page=<?php echo $當前頁碼 + 1; ?>">下一頁</a>
-                <?php endif; ?>
-            </div>
-
-
-            <!-- 刪除 -->
-            <!-- <th>功能選項</th> -->
-            <!-- <td>
-                                    <form method="POST" action="醫生建議刪除d.php" style="display:inline;">
-                                            <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
-                                            <input type="hidden" name="source" value="n_advicefind">
+                        </thead>
+                        <tbody>
+                            <?php while ($資料列 = mysqli_fetch_assoc($查詢結果)): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($資料列['id']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['dateday']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['medicalnumber']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['patientname']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['birthdaydate']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['gender']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['doctorname']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['doctoradvice']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['followup']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
+                                    <td>
+                                        <form action="醫生建議修改00.php" method="post" style="display:inline;">
+                                            <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
+                                            <button type="submit">修改</button>
+                                        </form>
+                                        <form method="POST" action="醫生建議刪除nd.php" style="display:inline;">
+                                            <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
+                                            <input type="hidden" name="searchTerm"
+                                                value="<?php echo htmlspecialchars($搜尋詞); ?>">
                                             <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
                                         </form>
-                                    </td> -->
-            <!-- <script>
-        function deleteRow(id) {
-            // 確認是否刪除
-            if (confirm('確認要刪除這筆資料嗎？')) {
-                alert('資料已刪除');
-            } else {
-                alert('取消刪除動作');
-            }
-        }
-    </script> -->
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                <?php else: ?>
+                    <p>無剩餘資料。</p>
+                <?php endif; ?>
+            </div>
+
+            <!-- 顯示分頁 -->
+            <div class="pagination">
+                <?php if ($總筆數 > 0): ?>
+                    <p>(總共 <?php echo $總筆數; ?> 筆資料)</p>
+                    <span>第 <?php echo $當前頁碼; ?> 頁 / 共 <?php echo $總頁數; ?> 頁</span>
+
+                    <?php if ($當前頁碼 > 1): ?>
+                        <a href="?page=<?php echo $當前頁碼 - 1; ?>&search=<?php echo urlencode($搜尋詞); ?>">上一頁</a>
+                    <?php endif; ?>
+
+                    <?php if ($當前頁碼 < $總頁數): ?>
+                        <a href="?page=<?php echo $當前頁碼 + 1; ?>&search=<?php echo urlencode($搜尋詞); ?>">下一頁</a>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <p>沒有資料可以顯示分頁。</p>
+                <?php endif; ?>
+            </div>
+
+
+
 
             <style>
+                /* 設置全域字體和背景 */
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f8f9fa;
+                    margin: 0;
+                    padding: 0;
+                }
+
+                /* 主容器樣式 */
+                .form-container {
+                    max-width: 1200px;
+                    margin: 20px auto;
+                    padding: 20px;
+                    background-color: #ffffff;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                }
+
+                /* 表格樣式 */
                 table {
                     width: 100%;
-                    /* 設定表格寬度為 100% */
                     border-collapse: collapse;
-                    /* 將內框和外框線合併，避免雙線 */
-                    border: 2px solid black;
-                    /* 外框，設定表格外邊框線 */
+                    margin: 20px 0;
                 }
 
-                th,
-                td {
-                    border: 1px solid black;
-                    /* 內框，設定每個表格單元格之間的邊框 */
-                    padding: 10px;
-                    /* 單元格內部的間距 */
+                th {
+                    padding: 12px;
                     text-align: center;
-                    /* 將文字置中 */
-                }
-
-                thead {
-                    background-color: #f2f2f2;
-                    /* 表頭背景顏色 */
+                    border: 1px solid #dee2e6;
+                    background-color: #007bff;
+                    color: #ffffff;
                     font-weight: bold;
-                    /* 設置表頭文字為粗體 */
-                    font-size: 1.5em;
-                    /* 設置表頭文字大小 */
+                    white-space: nowrap;
+                    /* 禁止換行 */
                 }
 
-                tbody td {
-                    font-size: 1.2em;
-                    /* 設置表格內容文字大小 */
+                td {
+                    padding: 12px;
+                    text-align: center;
+                    border: 1px solid #dee2e6;
+                    white-space: nowrap;
+                    /* 禁止換行 */
+                }
+
+                tr:nth-child(even) {
+                    background-color: #f2f2f2;
                 }
             </style>
+
+
+            <!-- <style>
+        table {
+            width: 100%;
+            /* 設定表格寬度為 100% */
+            border-collapse: collapse;
+            /* 將內框和外框線合併，避免雙線 */
+            border: 2px solid black;
+            /* 外框，設定表格外邊框線 */
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            /* 內框，設定每個表格單元格之間的邊框 */
+            padding: 10px;
+            /* 單元格內部的間距 */
+            text-align: center;
+            /* 將文字置中 */
+        }
+
+        thead {
+            background-color: #f2f2f2;
+            /* 表頭背景顏色 */
+            font-weight: bold;
+            /* 設置表頭文字為粗體 */
+            font-size: 1.5em;
+            /* 設置表頭文字大小 */
+        }
+
+        tbody td {
+            font-size: 1.2em;
+            /* 設置表格內容文字大小 */
+        }
+    </style> -->
+
 
             <style>
                 /* 頁碼 上一頁 下一頁 */
@@ -438,57 +463,57 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 }
             </style>
 
+            <!-- 回到頁首(Top 箭頭 -->
+            <a href="#" class="btn btn-lg btn-primary  back-to-top"><i class="bi bi-arrow-up"></i></a>
+            <!-- 登出對話框 Start -->
+            <div id="logoutBox" class="logout-box">
+                <div class="logout-dialog">
+                    <p>你確定要登出嗎？</p>
+                    <button onclick="logout()">確定</button>
+                    <button onclick="hideLogoutBox()">取消</button>
+                </div>
+            </div>
+            <!-- 登出對話框 End -->
 
-<!-- 回到頁首(Top 箭頭 -->
-<a href="#" class="btn btn-lg btn-primary  back-to-top"><i class="bi bi-arrow-up"></i></a>
-    <!-- 登出對話框 Start -->
-    <div id="logoutBox" class="logout-box">
-        <div class="logout-dialog">
-            <p>你確定要登出嗎？</p>
-            <button onclick="logout()">確定</button>
-            <button onclick="hideLogoutBox()">取消</button>
-        </div>
-    </div>
-    <!-- 登出對話框 End -->
+            <!-- 刪除帳號對話框 Start -->
+            <div id="deleteAccountBox" class="logout-box">
+                <div class="logout-dialog">
+                    <p>你確定要刪除帳號嗎？這個操作無法撤銷！</p>
+                    <button onclick="deleteAccount()">確定</button>
+                    <button onclick="hideDeleteAccountBox()">取消</button>
+                </div>
+            </div>
+            <!-- 刪除帳號對話框 End -->
 
-    <!-- 刪除帳號對話框 Start -->
-    <div id="deleteAccountBox" class="logout-box">
-        <div class="logout-dialog">
-            <p>你確定要刪除帳號嗎？這個操作無法撤銷！</p>
-            <button onclick="deleteAccount()">確定</button>
-            <button onclick="hideDeleteAccountBox()">取消</button>
-        </div>
-    </div>
-    <!-- 刪除帳號對話框 End -->
+            <!-- JavaScript -->
+            <script>
+                function showLogoutBox() {
+                    document.getElementById('logoutBox').style.display = 'flex';
+                }
 
-    <!-- JavaScript -->
-    <script>
-        function showLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'flex';
-        }
+                function hideLogoutBox() {
+                    document.getElementById('logoutBox').style.display = 'none';
+                }
 
-        function hideLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'none';
-        }
+                function logout() {
+                    alert('你已經登出！');
+                    hideLogoutBox();
+                    window.location.href = 'login.php'; // 替換為登出後的頁面
+                }
 
-        function logout() {
-            alert('你已經登出！');
-            hideLogoutBox();
-            window.location.href = 'login.php'; // 替換為登出後的頁面
-        }
+                function showDeleteAccountBox() {
+                    document.getElementById('deleteAccountBox').style.display = 'flex';
+                }
 
-        function showDeleteAccountBox() {
-            document.getElementById('deleteAccountBox').style.display = 'flex';
-        }
+                function hideDeleteAccountBox() {
+                    document.getElementById('deleteAccountBox').style.display = 'none';
+                }
 
-        function hideDeleteAccountBox() {
-            document.getElementById('deleteAccountBox').style.display = 'none';
-        }
+                function deleteAccount() {
+                    document.getElementById('deleteAccountForm').submit();
+                }
+            </script>
 
-        function deleteAccount() {
-            document.getElementById('deleteAccountForm').submit();
-        }
-    </script>
             <!-- JavaScript Libraries -->
             <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>

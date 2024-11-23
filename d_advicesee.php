@@ -116,18 +116,18 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="留言頁面d.php?id=<?php echo htmlspecialchars($patient_id); ?>"
+                        <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
                             class="nav-item nav-link">留言</a>
-                        <a href="d_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
-                        <a href="d_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
-                        <a href="d_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
-                        <a href="d_advicesee.php" class="nav-item nav-link active">醫生建議</a>
+                        <a href="n_Basic.php" class="nav-item nav-link">患者資料</a>
+                        <a href="n_records.php" class="nav-item nav-link">看診紀錄</a>
+                        <a href="n_time.php" class="nav-item nav-link">醫生的班表時段</a>
+                        <a href="n_advice.php" class="nav-item nav-link active">醫生建議</a>
                         <div class="nav-item">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="d_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="d_change.php" class="dropdown-item">忘記密碼</a></li>
+                                <li><a href="n_profile.php" class="dropdown-item">關於我</a></li>
+                                <li><a href="n_change.php" class="dropdown-item">忘記密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -182,7 +182,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
     <!--醫生建議-->
     <div class="container-fluid"></div>
-    <br />
     <section class="resume-section p-0" id="about"> <!-- 將內邊距設為 0 -->
         <div class="my-auto">
 
@@ -214,19 +213,18 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             <div class="d-flex align-items-center mb-5">
                 <h1 class="me-3 flex-shrink-0">醫生建議&gt;&gt;&gt;&gt;&gt;</h1>
                 <div class="input-group ms-auto" style="max-width: 550px;">
-                    <form method="POST" action="d_advicefind.php" class="d-flex w-100">
+                    <form method="POST" action="n_advicefind.php" class="d-flex w-100">
                         <input type="text" name="search" class="form-control p-3" placeholder="搜尋">
                         <button class="btn btn-primary px-3" type="submit"><i class="fa fa-search"></i></button>
                     </form>
                 </div>
+                <a href="n_advice.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a>
             </div>
-            <br />
-
             <?php
             include "db.php"; // 連接資料庫
             
             // 擷取資料
-            $查詢語句 = "SELECT * FROM medicaladvice";
+            $查詢語句 = "SELECT * FROM patients";
             $查詢結果 = mysqli_query($link, $查詢語句);
 
             if (!$查詢結果) {
@@ -234,7 +232,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             }
 
             // 獲取總記錄數
-            $總記錄數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM medicaladvice");
+            $總記錄數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM patients");
             if (!$總記錄數查詢) {
                 die("查詢失敗: " . mysqli_error($link));
             }
@@ -253,7 +251,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
 
             // 查詢當前頁碼的資料
-            $查詢結果 = mysqli_query($link, "SELECT * FROM medicaladvice LIMIT $起始位置, $每頁記錄數");
+            $查詢結果 = mysqli_query($link, "SELECT * FROM patients LIMIT $起始位置, $每頁記錄數");
             if (!$查詢結果) {
                 die("查詢失敗: " . mysqli_error($link));
             }
@@ -265,7 +263,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <tr>
                             <th>ID</th>
                             <th>看診日期</th>
-                            <th>診間號</th>
+                            <th>病例號</th>
                             <th>患者姓名</th>
                             <th>出生日期</th>
                             <th>性別</th>
@@ -273,6 +271,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <th>醫生建議</th>
                             <th>是否回診</th>
                             <th>紀錄創建時間</th>
+                            <th>功能選項</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -288,46 +287,69 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 <td><?php echo htmlspecialchars($資料列['doctoradvice']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['followup']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
+                                <td>
+                                    <form action="醫生建議修改000.php" method="post" style="display:inline;">
+                                        <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
+                                        <button type="submit">修改</button>
+                                    </form>
+
+                                    <form method="POST" action="醫生建議刪除ns.php" style="display:inline;">
+                                        <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
+                                        <input type="hidden" name="source" value="n_advicesee">
+                                        <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
+                                    </form>
+                                </td>
                             </tr>
                         <?php endwhile; ?>
                     </tbody>
                 </table>
+            </div>
 
-                <div class="pagination">
-                    <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p> <!-- 顯示總資料筆數 -->
+            <!-- 分頁 -->
+            <div class="pagination">
+                <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p> <!-- 顯示總資料筆數 -->
 
-                    <?php if ($當前頁碼 > 1): ?>
-                        <a href="?page=<?php echo $當前頁碼 - 1; ?>">上一頁</a>
-                    <?php endif; ?>
+                <?php if ($當前頁碼 > 1): ?>
+                    <a href="?page=<?php echo $當前頁碼 - 1; ?>">上一頁</a>
+                <?php endif; ?>
 
-                    <span>第 <?php echo $當前頁碼; ?> 頁 / 共 <?php echo $總頁數; ?> 頁</span>
+                <span>第 <?php echo $當前頁碼; ?> 頁 / 共 <?php echo $總頁數; ?> 頁</span>
 
-                    <?php if ($當前頁碼 < $總頁數): ?>
-                        <a href="?page=<?php echo $當前頁碼 + 1; ?>">下一頁</a>
-                    <?php endif; ?>
-                </div>
+                <?php if ($當前頁碼 < $總頁數): ?>
+                    <a href="?page=<?php echo $當前頁碼 + 1; ?>">下一頁</a>
+                <?php endif; ?>
             </div>
 
 
+            <script>
+                /* 修改 */
+                function leaveMessage(patientId) {
+                    document.getElementById('patientId').value = patientId; // 設定隱藏的患者ID
+                    document.getElementById('messageModal').style.display = "block"; // 顯示彈跳視窗
+                }
+
+                function closeModal() {
+                    document.getElementById('messageModal').style.display = "none"; // 隱藏彈跳視窗
+                }
+
+
+                function editRow(id) {
+                    window.location.href = `醫生建議修改000.php?id=${id}`;
+                }
+            </script>
+
+
             <!-- 刪除 -->
-            <!-- <th>功能選項</th> -->
-            <!-- <td>
-                                    <form method="POST" action="醫生建議刪除d.php" style="display:inline;">
-                                        <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
-                                        <input type="hidden" name="source" value="n_advicefind">
-                                        <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
-                                    </form>
-                                </td> -->
-            <!-- <script>
-                    function deleteRow(id) {
-                        // 確認是否刪除
-                        if (confirm('確認要刪除這筆資料嗎？')) {
-                            alert('資料已刪除');
-                        } else {
-                            alert('取消刪除動作');
-                        }
+            <script>
+                function deleteRow(id) {
+                    // 確認是否刪除
+                    if (confirm('確認要刪除這筆資料嗎？')) {
+                        alert('資料已刪除');
+                    } else {
+                        alert('取消刪除動作');
                     }
-                </script> -->
+                }
+            </script>
 
 
             <style>
@@ -363,8 +385,41 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         </div>
         </div>
     </section>
-
     <style>
+        /* 表格樣式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th {
+            font-weight: bold;
+            /* 設置表頭文字為粗體 */
+            font-size: 1.3em;
+            /* 設置表格內容文字大小 */
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            background-color: #007bff;
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        td {
+            font-size: 1em;
+            /* 設置表格內容文字大小 */
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+
+    <!-- <style>
         table {
             width: 100%;
             /* 設定表格寬度為 100% */
@@ -398,7 +453,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             /* 設置表格內容文字大小 */
         }
     </style>
-
+ -->
 
 
     <!-- 回到頁首(Top 箭頭 -->
