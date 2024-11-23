@@ -30,7 +30,7 @@ if ($密碼 == "") {
 
 // 防止SQL注入
 $帳號 = mysqli_real_escape_string($link, $帳號);
-$密碼 = mysqli_real_escape_string($link, $密碼); 
+$密碼 = mysqli_real_escape_string($link, $密碼);
 
 // 構造SQL查詢語句，根據帳號查找用戶
 $SQL指令 = "SELECT * FROM `user` WHERE `name` = '$帳號' AND `password` = '$密碼';";
@@ -43,17 +43,26 @@ if ($row = mysqli_fetch_assoc($ret)) {
     $_SESSION["姓名"] = $row["username"]; // 假設資料庫的姓名字段是 `username`
     $_SESSION["電子郵件"] = $row["email"]; // 假設資料庫的電子郵件字段是 `email`
     $_SESSION["登入狀態"] = true; // 設定登入狀態
-    $_SESSION['is_logged_in'] = true; // 設置登入狀態
-    echo "<script>sessionStorage.setItem('is_logged_in', 'true');</script>";
+    $_SESSION["user_role"] = $row["grade"] == "0" ? "使用者" :
+        ($row["grade"] == "1" ? "醫生" :
+            ($row["grade"] == "2" ? "護士" :
+                ($row["grade"] == "3" ? "管理者" : "未知角色")));
+
+    // 顯示彈跳視窗並跳轉
+    echo "<script>
+alert('~歡迎回來~" . htmlspecialchars($row["username"]) . "');
+</script>";
+
+
     // 根據使用者等級跳轉到不同頁面
     if ($row["grade"] == "0") {
-        header("Location: u_profile.php?帳號=$帳號"); // 使用者
+        echo "<script>window.location.href = 'u_profile.php?帳號=$帳號';</script>"; // 使用者
     } elseif ($row["grade"] == "1") {
-        header("Location: d_profile.php?帳號=$帳號"); // 醫生
+        echo "<script>window.location.href = 'd_profile.php?帳號=$帳號';</script>"; // 醫生
     } elseif ($row["grade"] == "2") {
-        header("Location: n_profile.php?帳號=$帳號"); // 護士
+        echo "<script>window.location.href = 'n_profile.php?帳號=$帳號';</script>"; // 護士
     } elseif ($row["grade"] == "3") {
-        header("Location: c_profile.php?帳號=$帳號"); // 管理者
+        echo "<script>window.location.href = 'c_profile.php?帳號=$帳號';</script>"; // 管理者
     } else {
         echo "<script>
                 alert('無效的使用者等級。');
