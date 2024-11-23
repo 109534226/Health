@@ -35,7 +35,7 @@ if (!empty($errors)) {
 }
 
 // 準備 SQL 更新語句，將紀錄創建時間更新為當下時間
-$SQL指令 = "UPDATE `medicalrecords` SET 
+$SQL指令 = "UPDATE `patients` SET 
                 `dateday` = '$日期', 
                 `medicalnumber` = '$病例號', 
                 `patientname` = '$患者姓名', 

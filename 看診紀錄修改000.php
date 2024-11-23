@@ -181,7 +181,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 $id = intval($_POST['id']);
 
                 // 從資料庫取得資料
-                $sql = "SELECT * FROM medicalrecords WHERE id = $id";
+                $sql = "SELECT * FROM patients WHERE id = $id";
                 $result = mysqli_query($link, $sql);
 
                 if ($result && mysqli_num_rows($result) > 0) {

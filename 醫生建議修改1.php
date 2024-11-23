@@ -42,9 +42,9 @@ if (!empty($errors)) {
 }
 
 // 更新紀錄，包括當前時間的 `created_at`
-$SQL指令 = "UPDATE medicaladvice SET 
+$SQL指令 = "UPDATE patients SET 
                 dateday = '$日期', 
-                clinicnumber = '$病例號', 
+                medicalnumber = '$病例號', 
                 patientname = '$患者姓名', 
                 birthdaydate = '$出生日期', 
                 gender = '$性別', 

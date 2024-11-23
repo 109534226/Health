@@ -42,9 +42,9 @@ if (!empty($errors)) {
 }
 
 // 準備 SQL 更新語句
-$SQL指令 = "UPDATE medicaladvice SET 
+$SQL指令 = "UPDATE patients SET 
                 dateday = '$日期', 
-                clinicnumber = '$病例號', 
+                medicalnumber = '$病例號', 
                 patientname = '$患者姓名', 
                 birthdaydate = '$出生日期', 
                 gender = '$性別', 

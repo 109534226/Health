@@ -215,11 +215,11 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
             if ($是否刪除成功) {
                 // 刪除成功後顯示所有資料
-                $查詢語句 = "SELECT * FROM medicalrecords";
+                $查詢語句 = "SELECT * FROM patients";
                 $查詢結果 = mysqli_query($link, $查詢語句);
             } else {
                 // 查詢總記錄數
-                $總記錄數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM medicalrecords");
+                $總記錄數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM patients");
                 if (!$總記錄數查詢) {
                     die("查詢失敗: " . mysqli_error($link));
                 }
@@ -238,7 +238,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
 
                 // 查詢當前頁碼的資料
-                $查詢結果 = mysqli_query($link, "SELECT * FROM medicalrecords LIMIT $起始位置, $每頁記錄數");
+                $查詢結果 = mysqli_query($link, "SELECT * FROM patients LIMIT $起始位置, $每頁記錄數");
             }
 
             if (!$查詢結果) {

@@ -284,10 +284,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                     <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
                                     <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
                                 </form>
-                                <!-- <form method="POST" action="留言頁面n.php" style="display:inline;">
-                                    <input type="hidden" name="id" >
-                                    <button type="submit">留言</button>
-                                </form> -->
                             </td>
                         </tr>
                     <?php endwhile; ?>
