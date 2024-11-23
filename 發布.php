@@ -14,7 +14,11 @@ $sql = "INSERT INTO article (title, subtitle, source, url)
 VALUES ('$title', '$subtitle', '$source', '$url')";
 
 if ($link->query($sql) === TRUE) {
-    echo "文章保存成功！";
+    echo "<script>
+            alert('文章保存成功！'); // 顯示彈跳視窗
+            window.location.href = '內容管理.php'; // 跳轉到 內容管理.php 頁面
+          </script>";
 } else {
     echo "错误: " . $sql . "<br>" . $link->error;
 }
+?>
