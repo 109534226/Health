@@ -182,18 +182,18 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="留言介面d.php" class="nav-item nav-link"
+                        <a href="留言介面n.php" class="nav-item nav-link"
                             value="<?php echo htmlspecialchars($patient_id); ?>">留言</a>
-                        <a href="d_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
-                        <a href="d_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
-                        <a href="d_timesee.php" class="nav-item nav-link active">醫生的班表時段</a>
-                        <a href="d_advicesee.php" class="nav-item nav-link">醫生建議</a>
+                        <a href="n_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
+                        <a href="n_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
+                        <a href="n_timesee.php" class="nav-item nav-link active">醫生的班表時段</a>
+                        <a href="n_advicesee.php" class="nav-item nav-link">醫生建議</a>
                         <div class="nav-item">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="u_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="u_change.php" class="dropdown-item">忘記密碼</a></li>
+                                <li><a href="n_profile.php" class="dropdown-item">關於我</a></li>
+                                <li><a href="n_change.php" class="dropdown-item">忘記密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -215,7 +215,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 // 查詢登入使用者的身份和姓名
     $查詢資料 = "SELECT grade, username FROM user WHERE name = '$帳號'";
     $結果 = mysqli_query($link, $查詢資料);
-        
+
     if ($結果 && $row = mysqli_fetch_assoc($結果)) {
         // 設置角色
         if ($row['grade'] == 1) {

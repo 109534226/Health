@@ -115,18 +115,18 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="留言頁面d.php?id=<?php echo htmlspecialchars($patient_id); ?>"
-                            class="nav-item nav-link">留言</a>
-                        <a href="d_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
-                        <a href="d_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
-                        <a href="d_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
-                        <a href="d_advicesee.php" class="nav-item nav-link active">醫生建議</a>
+                        <a href="留言介面n.php" class="nav-item nav-link"
+                            value="<?php echo htmlspecialchars($patient_id); ?>">留言</a>
+                        <a href="n_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
+                        <a href="n_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
+                        <a href="n_timesee.php" class="nav-item nav-link active">醫生的班表時段</a>
+                        <a href="n_advicesee.php" class="nav-item nav-link">醫生建議</a>
                         <div class="nav-item">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="d_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="d_change.php" class="dropdown-item">忘記密碼</a></li>
+                                <li><a href="n_profile.php" class="dropdown-item">關於我</a></li>
+                                <li><a href="n_change.php" class="dropdown-item">忘記密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -178,7 +178,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     ?>
 
 
-    
+
     <div class="container-fluid"></div>
     <br />
     <section class="resume-section p-0" id="about"> <!-- 將內邊距設為 0 -->
@@ -439,56 +439,56 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             </style>
 
 
-<!-- 回到頁首(Top 箭頭 -->
-<a href="#" class="btn btn-lg btn-primary  back-to-top"><i class="bi bi-arrow-up"></i></a>
-    <!-- 登出對話框 Start -->
-    <div id="logoutBox" class="logout-box">
-        <div class="logout-dialog">
-            <p>你確定要登出嗎？</p>
-            <button onclick="logout()">確定</button>
-            <button onclick="hideLogoutBox()">取消</button>
-        </div>
-    </div>
-    <!-- 登出對話框 End -->
+            <!-- 回到頁首(Top 箭頭 -->
+            <a href="#" class="btn btn-lg btn-primary  back-to-top"><i class="bi bi-arrow-up"></i></a>
+            <!-- 登出對話框 Start -->
+            <div id="logoutBox" class="logout-box">
+                <div class="logout-dialog">
+                    <p>你確定要登出嗎？</p>
+                    <button onclick="logout()">確定</button>
+                    <button onclick="hideLogoutBox()">取消</button>
+                </div>
+            </div>
+            <!-- 登出對話框 End -->
 
-    <!-- 刪除帳號對話框 Start -->
-    <div id="deleteAccountBox" class="logout-box">
-        <div class="logout-dialog">
-            <p>你確定要刪除帳號嗎？這個操作無法撤銷！</p>
-            <button onclick="deleteAccount()">確定</button>
-            <button onclick="hideDeleteAccountBox()">取消</button>
-        </div>
-    </div>
-    <!-- 刪除帳號對話框 End -->
+            <!-- 刪除帳號對話框 Start -->
+            <div id="deleteAccountBox" class="logout-box">
+                <div class="logout-dialog">
+                    <p>你確定要刪除帳號嗎？這個操作無法撤銷！</p>
+                    <button onclick="deleteAccount()">確定</button>
+                    <button onclick="hideDeleteAccountBox()">取消</button>
+                </div>
+            </div>
+            <!-- 刪除帳號對話框 End -->
 
-    <!-- JavaScript -->
-    <script>
-        function showLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'flex';
-        }
+            <!-- JavaScript -->
+            <script>
+                function showLogoutBox() {
+                    document.getElementById('logoutBox').style.display = 'flex';
+                }
 
-        function hideLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'none';
-        }
+                function hideLogoutBox() {
+                    document.getElementById('logoutBox').style.display = 'none';
+                }
 
-        function logout() {
-            alert('你已經登出！');
-            hideLogoutBox();
-            window.location.href = 'login.php'; // 替換為登出後的頁面
-        }
+                function logout() {
+                    alert('你已經登出！');
+                    hideLogoutBox();
+                    window.location.href = 'login.php'; // 替換為登出後的頁面
+                }
 
-        function showDeleteAccountBox() {
-            document.getElementById('deleteAccountBox').style.display = 'flex';
-        }
+                function showDeleteAccountBox() {
+                    document.getElementById('deleteAccountBox').style.display = 'flex';
+                }
 
-        function hideDeleteAccountBox() {
-            document.getElementById('deleteAccountBox').style.display = 'none';
-        }
+                function hideDeleteAccountBox() {
+                    document.getElementById('deleteAccountBox').style.display = 'none';
+                }
 
-        function deleteAccount() {
-            document.getElementById('deleteAccountForm').submit();
-        }
-    </script>
+                function deleteAccount() {
+                    document.getElementById('deleteAccountForm').submit();
+                }
+            </script>
             <!-- JavaScript Libraries -->
             <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>

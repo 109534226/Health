@@ -254,16 +254,16 @@ header("Pragma: no-cache");
                     <div class="navbar-nav ms-auto py-0">
                         <a href="留言頁面d.php?id=<?php echo htmlspecialchars($patient_id); ?>"
                             class="nav-item nav-link">留言</a>
-                        <a href="d_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
-                        <a href="d_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
-                        <a href="d_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
-                        <a href="d_advicesee.php" class="nav-item nav-link">醫生建議</a>
+                        <a href="d_Basic.php" class="nav-item nav-link">患者資料</a>
+                        <a href="d_records.php" class="nav-item nav-link">看診紀錄</a>
+                        <a href="d_time.php" class="nav-item nav-link">醫生的班表時段</a>
+                        <a href="d_advice.php" class="nav-item nav-link active">醫生建議</a>
                         <div class="nav-item">
-                            <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown"
+                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="d_profile.php" class="dropdown-item active">關於我</a></li>
-                                <li><a href="d_change.php" class="dropdown-item">變更密碼</a></li>
+                                <li><a href="d_profile.php" class="dropdown-item">關於我</a></li>
+                                <li><a href="d_change.php" class="dropdown-item">忘記密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -275,8 +275,9 @@ header("Pragma: no-cache");
                         </div>
                     </div>
                 </div>
-            </nav>
         </div>
+        </nav>
+    </div>
     </div>
     <!-- 頁首 End -->
 
@@ -383,7 +384,7 @@ header("Pragma: no-cache");
                     $電話 = $row['phone'] ?? "";
                     $隸屬醫院 = $row['hospital'] ?? "";
                     $科別 = $row['department'] ?? "";
-                    
+
                 }
 
                 mysqli_close($link);
