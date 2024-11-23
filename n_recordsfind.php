@@ -209,7 +209,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             <div class="d-flex align-items-center mb-5" style="text-align: right;">
                 <h1 class="me-3 flex-shrink-0">病例歷史紀錄&gt;&gt;&gt;&gt;&gt;</h1>
                 <div class="d-flex justify-content-end mb-5 w-100">
-                    <a href="d_recordssee.php" class="btn btn-primary" style="margin-left: 10px;">返回所有資料</a>
+                    <a href="n_recordssee.php" class="btn btn-primary" style="margin-left: 10px;">返回所有資料</a>
                 </div>
             </div>
             <br />
@@ -224,7 +224,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 header('Content-Type: text/html; charset=UTF-8');  // 設置編碼
                 echo "<script>
         alert('請輸入搜尋資料');
-        window.location.href = 'd_recordssee.php';
+        window.location.href = 'n_recordssee.php';
     </script>";
                 exit;
             }
@@ -269,7 +269,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             if ($總記錄數 == 0) {
                 echo "<script>
         alert('查無此人');
-        window.location.href = 'd_recordssee.php';
+        window.location.href = 'n_recordssee.php';
     </script>";
                 exit;
             }

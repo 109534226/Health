@@ -211,8 +211,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             <div class="d-flex align-items-center mb-5" style="text-align: right;">
                 <h1 class="me-3 flex-shrink-0">醫生班表&gt;&gt;&gt;&gt;&gt;</h1>
                 <div class="d-flex justify-content-end mb-5 w-100">
-                    <a href="n_timesee.php" class="btn btn-primary" style="margin-left: 10px;">返回所有資料</a>
-                    <a href="n_time.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a>
+                    <a href="d_timesee.php" class="btn btn-primary" style="margin-left: 10px;">返回所有資料</a>
+                    <a href="d_time.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a>
                 </div>
             </div>
 
@@ -258,7 +258,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     // 如果查無資料，顯示提示訊息並返回
                     echo "<script>
             alert('查無此人');
-            window.location.href = 'n_timesee.php';
+            window.location.href = 'd_timesee.php';
         </script>";
                     exit;
                 }
@@ -266,7 +266,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 // 如果搜尋條件為空或長度不足，顯示提示訊息
                 echo "<script>
         alert('請輸入搜尋資料');
-        window.location.href = 'n_timesee.php';
+        window.location.href = 'd_timesee.php';
     </script>";
                 exit;
             }

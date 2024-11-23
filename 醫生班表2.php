@@ -21,7 +21,7 @@ $看診時段 = mysqli_real_escape_string($link, $看診時段);
 if (empty($日期) || !preg_match("/^\d{4}-\d{2}-\d{2}$/", $日期)) {
     echo "<script>
             alert('請輸入有效的日期格式。');
-            window.location.href = 'n_time.php';
+            window.location.href = 'd_time.php';
           </script>";
     exit;
 }
@@ -29,7 +29,7 @@ if (empty($日期) || !preg_match("/^\d{4}-\d{2}-\d{2}$/", $日期)) {
 if (empty($看診時段)) {
     echo "<script>
             alert('請選擇看診時段！');
-            window.location.href = 'n_time.php';
+            window.location.href = 'd_time.php';
           </script>";
     exit;
 }
@@ -38,7 +38,7 @@ if (empty($看診時段)) {
 if (empty($診間號) || !preg_match("/^\d{1,10}$/", $診間號)) {
     echo "<script>
             alert('診間號必須是1到10位的數字。');
-            window.location.href = 'n_time.php';
+            window.location.href = 'd_time.php';
           </script>";
     exit;
 }
@@ -46,7 +46,7 @@ if (empty($診間號) || !preg_match("/^\d{1,10}$/", $診間號)) {
 if (empty($醫生姓名)) {
     echo "<script>
             alert('醫生姓名未輸入');
-            window.location.href = 'n_time.php';
+            window.location.href = 'dn_time.php';
           </script>";
     exit;
 }
@@ -63,13 +63,13 @@ VALUES ('$日期', '$診間號', '$醫生姓名', '$看診時段');";
 if (mysqli_query($link, $SQL指令)) {
     echo "<script>
             alert('新增成功！');
-            window.location.href = 'n_time.php';
+            window.location.href = 'd_time.php';
           </script>";
 } else {
     $error_message = mysqli_error($link);
     echo "<script>
             alert('新增失敗，錯誤訊息: $error_message');
-            window.location.href = 'n_time.php';
+            window.location.href = 'd_time.php';
           </script>";
 }
 

@@ -14,13 +14,13 @@ if (mysqli_num_rows($查詢結果) > 0) {
     if (mysqli_query($link, $刪除指令)) {
         echo "<script>
                 alert('刪除成功');
-                window.location.href = 'n_timefind.php?deleted=true&search=" . urlencode($searchTerm) . "';
+                window.location.href = 'd_timefind.php?deleted=true&search=" . urlencode($searchTerm) . "';
               </script>";
     } else {
         $錯誤訊息 = mysqli_error($link);
         echo "<script>
                 alert('刪除失敗: $錯誤訊息');
-                window.location.href = 'n_timefind.php?search=" . urlencode($searchTerm) . "';
+                window.location.href = 'd_timefind.php?search=" . urlencode($searchTerm) . "';
               </script>";
     }
 }

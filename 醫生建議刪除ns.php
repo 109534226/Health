@@ -13,13 +13,13 @@ if (mysqli_num_rows($查詢結果) > 0) {
     if (mysqli_query($link, $刪除指令)) {
         echo "<script>
                 alert('刪除成功');
-                window.location.href = 'n_advicesee.php?search=$id';
+                window.location.href = 'd_advicesee.php?search=$id';
               </script>";
     } else {
         $錯誤訊息 = mysqli_error($link);
         echo "<script>
                 alert('刪除失敗: $錯誤訊息');
-                window.location.href = 'n_advicesee.php';
+                window.location.href = 'd_advicesee.php';
               </script>";
     }
 }

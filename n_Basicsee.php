@@ -211,7 +211,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             <div class="d-flex align-items-center mb-5">
                 <h1 class="me-3 flex-shrink-0">患者資料&gt;&gt;&gt;&gt;&gt;</h1>
                 <div class="input-group ms-auto" style="max-width: 550px;">
-                    <form method="POST" action="d_Basicfind.php" class="d-flex w-100">
+                    <form method="POST" action="n_Basicfind.php" class="d-flex w-100">
                         <input type="text" name="search" class="form-control p-3" placeholder="搜尋完整患者姓名">
                         <button class="btn btn-primary px-3" type="submit"><i class="fa fa-search"></i></button>
                     </form>

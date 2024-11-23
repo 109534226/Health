@@ -214,12 +214,12 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             <div class="d-flex align-items-center mb-5">
                 <h1 class="me-3 flex-shrink-0">醫生建議&gt;&gt;&gt;&gt;&gt;</h1>
                 <div class="input-group ms-auto" style="max-width: 550px;">
-                    <form method="POST" action="n_advicefind.php" class="d-flex w-100">
+                    <form method="POST" action="d_advicefind.php" class="d-flex w-100">
                         <input type="text" name="search" class="form-control p-3" placeholder="搜尋完整病患姓名">
                         <button class="btn btn-primary px-3" type="submit"><i class="fa fa-search"></i></button>
                     </form>
                 </div>
-                <a href="n_advice.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a>
+                <a href="d_advice.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a>
             </div>
             <?php
             include "db.php"; // 連接資料庫
@@ -296,7 +296,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
                                     <form method="POST" action="醫生建議刪除ns.php" style="display:inline;">
                                         <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
-                                        <input type="hidden" name="source" value="n_advicesee">
+                                        <input type="hidden" name="source" value="d_advicesee">
                                         <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
                                     </form>
                                 </td>
