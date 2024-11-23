@@ -149,7 +149,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
     </form>
 </div>
-<!-- 回到頁首(Top 箭頭 -->
 
     <!-- 回到頁首(Top 箭頭 -->
     <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
