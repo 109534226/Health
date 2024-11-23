@@ -352,52 +352,55 @@ echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"]) . "</p>";
             }
         </script>
 
-        <style>
-            /* 設置全域字體和背景 */
-            body {
-                font-family: Arial, sans-serif;
-                background-color: #f8f9fa;
-                margin: 0;
-                padding: 0;
-            }
+<style>
+                /* 設置全域字體和背景 */
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f8f9fa;
+                    margin: 0;
+                    padding: 0;
+                }
 
-            /* 主容器樣式 */
-            .form-container {
-                max-width: 1000px;
-                margin: 20px auto;
-                padding: 20px;
-                background-color: #ffffff;
-                border-radius: 8px;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            }
+                /* 主容器樣式 */
+                .form-container {
+                    max-width: 1200px;
+                    margin: 20px auto;
+                    padding: 20px;
+                    background-color: #ffffff;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                }
 
-            /* 表格樣式 */
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin: 20px 0;
-            }
+                /* 表格樣式 */
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                }
 
-            th {
-                padding: 12px;
-                text-align: center;
-                border: 1px solid #dee2e6;
-                background-color: #007bff;
-                color: #ffffff;
-                font-weight: bold;
-            }
+                th {
+                    padding: 12px;
+                    text-align: center;
+                    border: 1px solid #dee2e6;
+                    background-color: #007bff;
+                    color: #ffffff;
+                    font-weight: bold;
+                    white-space: nowrap;
+                    /* 禁止換行 */
+                }
 
-            td {
-                padding: 12px;
-                text-align: center;
-                border: 1px solid #dee2e6;
-            }
+                td {
+                    padding: 12px;
+                    text-align: center;
+                    border: 1px solid #dee2e6;
+                    white-space: nowrap;
+                    /* 禁止換行 */
+                }
 
-            tr:nth-child(even) {
-                background-color: #f2f2f2;
-            }
-        </style>
-
+                tr:nth-child(even) {
+                    background-color: #f2f2f2;
+                }
+            </style>
 
         <style>
             /* 頁碼 上一頁 下一頁 */
