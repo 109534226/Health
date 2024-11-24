@@ -446,7 +446,7 @@
                         <div class="input-group">
                             <input type="text" class="form-control p-3 border-0" placeholder="輸入您的電子郵件">
                             <input class="btn btn-primary" type="button" value="註冊"
-                                onclick="location.href='register.html'">
+                                onclick="location.href='register.php'">
                         </div>
                     </form>
 
