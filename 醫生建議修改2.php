@@ -36,7 +36,7 @@ if (empty($醫生建議)) $errors[] = '醫生建議未輸入';
 if (!empty($errors)) {
     echo "<script>
             alert('" . implode("\\n", $errors) . "');
-            window.location.href = 'n_advicefind.php';
+            window.location.href = 'd_advicefind.php';
           </script>";
     exit;
 }
@@ -58,12 +58,12 @@ $SQL指令 = "UPDATE patients SET
 if (mysqli_query($link, $SQL指令)) {
     echo "<script>
             alert('資料已成功更新！');
-            window.location.href = 'n_advicefind.php?search=" . urlencode($患者姓名) . "';
+            window.location.href = 'd_advicefind.php?search=" . urlencode($患者姓名) . "';
           </script>";
 } else {
     echo "<script>
             alert('更新失敗: " . mysqli_error($link) . "');
-            window.location.href = 'n_advicefind.php?id=$id';
+            window.location.href = 'd_advicefind.php?id=$id';
           </script>";
 }
 

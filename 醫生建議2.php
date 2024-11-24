@@ -35,7 +35,7 @@ if (empty($是否回診)) $errors[] = '是否回診未選擇';
 if (!empty($errors)) {
     echo "<script>
             alert('" . implode("\\n", $errors) . "');
-            window.location.href = 'n_advice.php';
+            window.location.href = 'd_advice.php';
           </script>";
     exit;
 }
@@ -50,13 +50,13 @@ VALUES
 if (mysqli_query($link, $SQL指令)) {
     echo "<script>
             alert('新增成功！');
-            window.location.href = 'n_advice.php';
+            window.location.href = 'd_advice.php';
           </script>";
 } else {
     $error_message = mysqli_error($link);
     echo "<script>
             alert('新增失敗，錯誤訊息: $error_message');
-            window.location.href = 'n_advice.php';
+            window.location.href = 'd_advice.php';
           </script>";
 }
 

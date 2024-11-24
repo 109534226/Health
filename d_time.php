@@ -183,18 +183,18 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                    <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
-                    class="nav-item nav-link">留言</a>
-                        <a href="n_Basic.php" class="nav-item nav-link">患者資料</a>
-                        <a href="n_records.php" class="nav-item nav-link">看診紀錄</a>
-                        <a href="n_time.php" class="nav-item nav-link active">醫生的班表時段</a>
-                        <a href="n_advice.php" class="nav-item nav-link">醫生建議</a>
+                        <a href="留言頁面d.php?id=<?php echo htmlspecialchars($patient_id); ?>"
+                            class="nav-item nav-link">留言</a>
+                        <a href="d_Basicsee.php" class="nav-item nav-link">患者資料</a>
+                        <a href="d_recordssee.php" class="nav-item nav-link">看診紀錄</a>
+                        <a href="d_timesee.php" class="nav-item nav-link active">醫生的班表時段</a>
+                        <a href="d_advicesee.php" class="nav-item nav-link">醫生建議</a>
                         <div class="nav-item">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="u_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="u_change.php" class="dropdown-item">忘記密碼</a></li>
+                                <li><a href="d_profile.php" class="dropdown-item">關於我</a></li>
+                                <li><a href="d_change.php" class="dropdown-item">忘記密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -206,8 +206,9 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         </div>
                     </div>
                 </div>
-            </nav>
         </div>
+        </nav>
+    </div>
     </div>
     <!-- 頁首 End -->
 
@@ -277,7 +278,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 }
             </style>
             <div class="d-flex justify-content-end mb-5">
-                <a href="n_timesee.php" class="btn btn-primary">查看資料</a>
+                <a href="d_timesee.php" class="btn btn-primary">查看資料</a>
             </div>
             <h1>
                 <<<<<醫生班表>>>>>

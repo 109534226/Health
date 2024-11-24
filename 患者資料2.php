@@ -37,13 +37,13 @@ VALUES ('$病歷號', '$患者姓名', '$性別', '$出生日期', '$當前症�
 if (mysqli_query($link, $SQL指令)) {
     echo "<script>
             alert('新增成功！');
-            window.location.href = 'n_Basic.php';
+            window.location.href = 'd_Basic.php';
           </script>";
 } else {
     $error_message = mysqli_stmt_error($stmt);
     echo "<script>
             alert('新增失敗，錯誤訊息: $error_message');
-            window.location.href = 'n_Basic.php';
+            window.location.href = 'd_Basic.php';
           </script>";
 }
 

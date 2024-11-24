@@ -120,8 +120,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 					<div class="navbar-nav ms-auto py-0">
 						<a href="留言頁面d.php?id=<?php echo htmlspecialchars($patient_id); ?>"
 							class="nav-item nav-link">留言</a>
-						<a href="d_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
-						<a href="d_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
+						<a href="d_Basicsee.php" class="nav-item nav-link">患者資料</a>
+						<a href="d_recordssee.php" class="nav-item nav-link">看診紀錄</a>
 						<a href="d_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
 						<a href="d_advicesee.php" class="nav-item nav-link">醫生建議</a>
 						<div class="nav-item">
@@ -129,7 +129,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 								aria-expanded="false">個人檔案</a>
 							<ul class="dropdown-menu dropdown-menu-end">
 								<li><a href="d_profile.php" class="dropdown-item">關於我</a></li>
-								<li><a href="d_change.php" class="dropdown-item active">變更密碼</a></li>
+								<li><a href="d_change.php" class="dropdown-item active">忘記密碼</a></li>
 								<li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
 								<li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
 								<!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -141,8 +141,9 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 						</div>
 					</div>
 				</div>
-			</nav>
 		</div>
+		</nav>
+	</div>
 	</div>
 	<!-- 頁首 End -->
 

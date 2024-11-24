@@ -254,16 +254,16 @@ header("Pragma: no-cache");
                     <div class="navbar-nav ms-auto py-0">
                         <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
                             class="nav-item nav-link">留言</a>
-                        <a href="n_Basic.php" class="nav-item nav-link">患者資料</a>
-                        <a href="n_time.php" class="nav-item nav-link">醫生的班表時段</a>
-                        <a href="n_records.php" class="nav-item nav-link">看診紀錄</a>
-                        <a href="n_advice.php" class="nav-item nav-link">醫生建議</a>
+                        <a href="n_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
+                        <a href="n_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
+                        <a href="n_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
+                        <a href="n_advicesee.php" class="nav-item nav-link">醫生建議</a>
                         <div class="nav-item">
                             <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="u_profile.php" class="dropdown-item active">關於我</a></li>
-                                <li><a href="u_change.php" class="dropdown-item">變更密碼</a></li>
+                                <li><a href="n_profile.php" class="dropdown-item active">關於我</a></li>
+                                <li><a href="n_change.php" class="dropdown-item">忘記密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -281,12 +281,12 @@ header("Pragma: no-cache");
     <!-- 頁首 End -->
 
     <!-- <?php
-//     include "db.php"; // 連接資料庫
+    //     include "db.php"; // 連接資料庫
 // // 查詢登入使用者的身份和姓名
 //     $查詢資料 = "SELECT grade, username FROM user WHERE name = '$帳號'";
 //     $結果 = mysqli_query($link, $查詢資料);
-
-//     if ($結果 && $row = mysqli_fetch_assoc($結果)) {
+    
+    //     if ($結果 && $row = mysqli_fetch_assoc($結果)) {
 //         // 設置角色
 //         if ($row['grade'] == 1) {
 //             $_SESSION['user_role'] = '醫生';
@@ -295,20 +295,20 @@ header("Pragma: no-cache");
 //         } else {
 //             $_SESSION['user_role'] = '未知角色';
 //         }
-
-//         // 設置使用者姓名
+    
+    //         // 設置使用者姓名
 //         $_SESSION['name'] = $row['username'];
 //     } else {
 //         echo "<script>alert('無法確定您的角色或名稱，請重新登入。'); window.location.href = 'login.php';</script>";
 //         exit();
 //     }
-
-//     // 確保角色和姓名已設定
+    
+    //     // 確保角色和姓名已設定
 //     $user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '未知角色';
 //     $name = isset($_SESSION['name']) ? $_SESSION['name'] : '未知姓名';
+    
 
-
-//     // 顯示當前角色
+    //     // 顯示當前角色
 //     echo "~歡迎回來~ " . htmlspecialchars($name) . "<br/>";
 //     echo "當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>"; // 顯示當前角色
 //     echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"]) . "</p>";
@@ -366,7 +366,7 @@ header("Pragma: no-cache");
                     $電話 = $row['phone'] ?? "";
                     $隸屬醫院 = $row['hospital'] ?? "";
                     $科別 = $row['department'] ?? "";
-                    
+
                 }
 
                 mysqli_close($link);

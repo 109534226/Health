@@ -27,6 +27,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
           </script>";
     exit();
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -168,7 +169,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
 </head>
 
-
 <body>
 
     <!-- 頁首 Start -->
@@ -183,18 +183,18 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
+                        <a href="留言頁面d.php?id=<?php echo htmlspecialchars($patient_id); ?>"
                             class="nav-item nav-link">留言</a>
-                        <a href="n_Basic.php" class="nav-item nav-link active">患者資料</a>
-                        <a href="n_records.php" class="nav-item nav-link">看診紀錄</a>
-                        <a href="n_time.php" class="nav-item nav-link">醫生的班表時段</a>
-                        <a href="n_advice.php" class="nav-item nav-link">醫生建議</a>
+                        <a href="d_Basicsee.php" class="nav-item nav-link">患者資料</a>
+                        <a href="d_recordssee.php" class="nav-item nav-link active">看診紀錄</a>
+                        <a href="d_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
+                        <a href="d_advicesee.php" class="nav-item nav-link">醫生建議</a>
                         <div class="nav-item">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="n_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="n_change.php" class="dropdown-item">忘記密碼</a></li>
+                                <li><a href="d_profile.php" class="dropdown-item">關於我</a></li>
+                                <li><a href="d_change.php" class="dropdown-item">忘記密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -206,10 +206,12 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         </div>
                     </div>
                 </div>
-            </nav>
         </div>
+        </nav>
+    </div>
     </div>
     <!-- 頁首 End -->
+
 
     <?php
     include "db.php"; // 連接資料庫
@@ -246,7 +248,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     ?>
 
 
-    <!--患者資料-->
     <div class="container-fluid"></div>
     <br />
     <section class="resume-section p-0" id="about"> <!-- 將內邊距設為 0 -->
@@ -277,15 +278,20 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 }
             </style>
             <div class="d-flex justify-content-end mb-5">
-                <a href="n_Basicsee.php" class="btn btn-primary">查看資料</a>
+                <a href="d_recordssee.php" class="btn btn-primary">查看資料</a>
             </div>
-
             <h1>
-                <<<<<患者資料>>>>>
+                <<<<<看診紀錄>>>>>
             </h1>
             <br />
             <div class="form-container">
-                <form action="患者資料2.php" method="post" name="f1" onsubmit="return validateForm()">
+                <form action="看診紀錄2.php" method="post" name="f1" onsubmit="return validateForm()">
+                    <div class="form-row">
+                        <label for="appointment_date">日期(星期)</label>
+                        <input id="appointment_date" type="date" name="appointment_date"
+                            min="<?php echo date('Y-m-d'); ?>" required />
+                        <small>請選擇今天或未來的日期。</small>
+                    </div>
                     <div class="form-row">
                         <label for="medical_record_number">病例號</label>
                         <input id="medical_record_number" type="text" name="medical_record_number" required
@@ -306,7 +312,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <option value="女">女</option>
                         </select>
                     </div>
-
                     <div class="form-row">
                         <label for="birth_date">出生年月日</label>
                         <input id="birth_date" type="date" name="birth_date" max="<?php echo date('Y-m-d'); ?>"
@@ -314,18 +319,13 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     </div>
 
                     <div class="form-row">
-                        <label for="current_symptoms">當前症狀</label>
-                        <textarea id="current_symptoms" name="current_symptoms" required></textarea>
+                        <label for="department">看診科別</label>
+                        <input id="department" type="text" name="department" required />
                     </div>
 
                     <div class="form-row">
-                        <label for="allergies">過敏藥物</label>
-                        <textarea id="allergies" name="allergies"></textarea>
-                    </div>
-
-                    <div class="form-row">
-                        <label for="medical_history">歷史重大疾病</label>
-                        <textarea id="medical_history" name="medical_history"></textarea>
+                        <label for="doctor_name">看診醫生</label>
+                        <input id="doctor_name" type="text" name="doctor_name" required />
                     </div>
 
                     <button type="submit" class="aa">提交</button>
@@ -343,13 +343,15 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         return true; // 表單可以提交
                     }
                 </script>
-            </div>
 
+
+            </div>
         </div>
     </section>
 
     <!-- 回到頁首(Top 箭頭 -->
     <a href="#" class="btn btn-lg btn-primary  back-to-top"><i class="bi bi-arrow-up"></i></a>
+
     <!-- 登出對話框 Start -->
     <div id="logoutBox" class="logout-box">
         <div class="logout-dialog">
