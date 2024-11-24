@@ -1,6 +1,16 @@
 <?php
 session_start();
+// 引入資料庫連接設定
+include "db.php";
 
+// 查詢資料表
+$sql = "SELECT id, title, subtitle, source, url, image FROM article";
+$result = $link->query($sql);
+
+// 如果查詢失敗
+if (!$result) {
+    die("SQL 查詢錯誤: " . $link->error);
+}
 // 禁止瀏覽器緩存頁面
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
@@ -144,116 +154,57 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         </div>
     </div>
     <!-- 頁首 End -->
-    <?php
-    // 連接資料庫
-    include "db.php";
-    // 列出所有待審核文章
-    $sql = "SELECT * FROM article WHERE title = 'draft'";
-    $result = $link->query($sql);
-    // 更新文章狀態以發布
-    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['publish'])) {
-        $article_id = $_POST['article_id'];
-
-        // 這裡可以添加更新狀態的 SQL 查詢
-        $sql = "UPDATE article SET status='draft' WHERE id=?";
-        $stmt = $link->prepare($sql);
-        $stmt->bind_param("i", $article_id);
-        $stmt->execute();
-
-        echo "文章已成功發布！";
-    }
-
-    ?>
-
     <!DOCTYPE html>
-    <html>
-
-    <head>
-        <title>文章管理</title>
-    </head>
-
-    <body>
-        <h1>文章審核與發布</h1>
-        <ul>
-        <input type="submit"  onclick="location.href='新增.php'" name="publish" value="新增">
-            <?php while ($row = $result->fetch_assoc()): ?>
-                <li>
-                    <h2><?= htmlspecialchars($row['title']) ?></h2>
-                    <p><?= htmlspecialchars($row['subtitle']) ?></p>
-                    <form method="POST" >
-                        <input type="hidden" name="article_id" value="<?= $row['id'] ?>">
-                        <input type="button" onclick="location.href='編輯.php'" name="publish" value="編輯">
-                        
-                    </form>
-                </li>
-            <?php endwhile; ?>
-        </ul>
-    </body>
-    <body>
-        <h1>刪除文章</h1>
-        <ul>
-        <input type="submit"  onclick="location.href='刪除文章.php'" name="publish" value="刪除">
-            <?php while ($row = $result->fetch_assoc()): ?>
-                <li>
-                    <h2><?= htmlspecialchars($row['title']) ?></h2>
-                    <p><?= htmlspecialchars($row['subtitle']) ?></p>
-                    <form method="POST" >
-                        <input type="hidden" name="article_id" value="<?= $row['id'] ?>">
-                        <input type="button" onclick="location.href='刪除.php'" name="publish" value="刪除">
-                        
-                    </form>
-                </li>
-            <?php endwhile; ?>
-        </ul>
-    </body>
-
-
-
-    </html>
-    <?php $link->close(); ?>
-
-
-
-    <!-- JavaScript -->
-    <script>
-        function showLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'flex';
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章資料顯示</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
-
-        function hideLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'none';
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
         }
-
-        function logout() {
-            alert('你已經登出！');
-            hideLogoutBox();
-            window.location.href = 'login.php'; // 替換為登出後的頁面
+        th {
+            background-color: #f2f2f2;
+            text-align: left;
         }
-
-        function showDeleteAccountBox() {
-            document.getElementById('deleteAccountBox').style.display = 'flex';
+    </style>
+</head>
+<body>
+    <h1>文章資料列表</h1>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>標題</th>
+            <th>副標題</th>
+            <th>來源</th>
+            <th>連結</th>
+            <th>圖片</th>
+        </tr>
+        <?php
+        if ($result->num_rows > 0) {
+            // 輸出每一行資料
+            while ($row = $result->fetch_assoc()) {
+                echo "<tr>";
+                echo "<td>" . $row["id"] . "</td>";
+                echo "<td>" . $row["title"] . "</td>";
+                echo "<td>" . $row["subtitle"] . "</td>";
+                echo "<td>" . $row["source"] . "</td>";
+                echo "<td><a href='" . $row["url"] . "' target='_blank'>連結</a></td>";
+                echo "<td><img src='" . $row["image"] . "' alt='圖片' style='width:100px;'></td>";
+                echo "</tr>";
+            }
+        } else {
+            echo "<tr><td colspan='6'>無資料</td></tr>";
         }
-
-        function hideDeleteAccountBox() {
-            document.getElementById('deleteAccountBox').style.display = 'none';
-        }
-
-        function deleteAccount() {
-            document.getElementById('deleteAccountForm').submit();
-        }
-    </script>
-    <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="lib/easing/easing.min.js"></script>
-    <script src="lib/waypoints/waypoints.min.js"></script>
-    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
-    <script src="lib/tempusdominus/js/moment.min.js"></script>
-    <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
-    <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
-
-    <!-- Template Javascript -->
-    <script src="js/main.js"></script>
+        $link->close();
+        ?>
+    </table>
 </body>
-
 </html>
+    <?php

@@ -15,7 +15,7 @@ $type = 1;  // 如果 type 字段需要根据需求来设置，可以从表单�
 // 使用预处理语句插入数据
 $stmt = $link->prepare("INSERT INTO article (title, subtitle, source, url, image, type) VALUES (?, ?, ?, ?, ?, ?)");
 $stmt->bind_param("sssssi", $title, $subtitle, $source, $url, $image, $type);
-
+    
 // 执行插入操作
 if ($stmt->execute()) {
     echo "<script>
