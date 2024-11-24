@@ -343,93 +343,87 @@ header("Pragma: no-cache");
                     die("用戶未登入，請重新登入！");
                 }
 
-                // 查詢 user 表和 profession 表數據
-                $SQL查詢 = "
-    SELECT 
-        u.username AS user_name, 
-        u.email AS user_email, 
-        p.birthday, 
-        p.idcard, 
-        p.phone, 
-        p.hospital, 
-        p.department
-    FROM 
-        user u
-    LEFT JOIN 
-        profession p 
-    ON 
-        u.name = p.name
-    WHERE 
-        u.name = '" . mysqli_real_escape_string($link, $帳號) . "'";
+                // 預設值
+                $隸屬醫院 = $科別 = "無";
 
-                $result = mysqli_query($link, $SQL查詢);
+
+                // 從 user 表抓取姓名和電子郵件
+                $SQL查詢使用者 = sprintf("SELECT name, email FROM user WHERE username = '%s'", mysqli_real_escape_string($link, $帳號));
+                $result = mysqli_query($link, $SQL查詢使用者);
 
                 if ($row = mysqli_fetch_assoc($result)) {
-                    // 分別取出欄位
-                    $姓名 = $row['user_name'] ?? "無名氏";
-                    $電子郵件 = $row['user_email'] ?? "無";
+                    $姓名 = $row['name'] ?? "無名氏"; // 如果資料不存在，設為預設值 "無名氏"
+                    $電子郵件 = $row['email'] ?? "無";
+                }
+
+                // 從 profession 表抓取其他資料
+                $SQL查詢資料 = sprintf("SELECT * FROM profession WHERE name = '%s'", mysqli_real_escape_string($link, $帳號));
+                $result = mysqli_query($link, $SQL查詢資料);
+
+                if ($row = mysqli_fetch_assoc($result)) {
+                    $姓名=$row['username'] ?? "";
                     $出生年月日 = $row['birthday'] ?? "";
                     $身分證字號 = $row['idcard'] ?? "";
                     $電話 = $row['phone'] ?? "";
-                    $隸屬醫院 = $row['hospital'] ?? "無";
-                    $科別 = $row['department'] ?? "無";
-                } else {
-                    die("無法找到使用者的相關資料！");
+                    $電子郵件= $row['email'] ?? "";
+                    $隸屬醫院 = $row['hospital'] ?? "";
+                    $科別 = $row['department'] ?? "";
+
                 }
 
                 mysqli_close($link);
                 ?>
-                <form id="userForm" method="post">
-                    <div class="form-row">
-                        <label for="username">姓名 :</label>
-                        <input id="username" type="text" name="username" value="<?php echo htmlspecialchars($姓名); ?>"
-                            disabled>
-                    </div>
 
-                    <div class="form-row">
-                        <label for="userdate">出生年月日 :</label>
-                        <input id="userdate" type="date" name="userdate" value="<?php echo htmlspecialchars($出生年月日); ?>"
-                            disabled>
-                    </div>
 
-                    <div class="form-row">
-                        <label for="useridcard">身分證字號 :</label>
-                        <input id="useridcard" type="text" name="useridcard"
-                            value="<?php echo htmlspecialchars($身分證字號); ?>" disabled>
-                    </div>
+                <div class="form-row">
+                    <label for="username">姓名 :</label>
+                    <input id="username" type="text" name="username" value="<?php echo htmlspecialchars($姓名); ?>"
+                        disabled>
+                </div>
 
-                    <div class="form-row">
-                        <label for="userphone">聯絡電話 :</label>
-                        <input id="userphone" type="text" name="userphone" value="<?php echo htmlspecialchars($電話); ?>"
-                            disabled>
-                    </div>
+                <div class="form-row">
+                    <label for="userdate">出生年月日 :</label>
+                    <input id="userdate" type="date" name="userdate" value="<?php echo htmlspecialchars($出生年月日); ?>"
+                        disabled>
+                </div>
 
-                    <div class="form-row">
-                        <label for="useremail">電子郵件 :</label>
-                        <input id="useremail" type="email" name="useremail"
-                            value="<?php echo htmlspecialchars($電子郵件); ?>" disabled>
-                    </div>
+                <div class="form-row">
+                    <label for="useridcard">身分證字號 :</label>
+                    <input id="useridcard" type="text" name="useridcard" value="<?php echo htmlspecialchars($身分證字號); ?>"
+                        disabled>
+                </div>
 
-                    <div class="form-row">
-                        <label for="hospital">隸屬醫院 :</label>
-                        <input id="hospital" type="text" name="hospital" value="<?php echo htmlspecialchars($隸屬醫院); ?>"
-                            disabled>
-                    </div>
+                <div class="form-row">
+                    <label for="userphone">聯絡電話 :</label>
+                    <input id="userphone" type="text" name="userphone" value="<?php echo htmlspecialchars($電話); ?>"
+                        disabled>
+                </div>
 
-                    <div class="form-row">
-                        <label for="department">科別 :</label>
-                        <input id="department" type="text" name="department"
-                            value="<?php echo htmlspecialchars($科別); ?>" disabled>
-                    </div>
+                <div class="form-row">
+                    <label for="useremail">電子郵件 :</label>
+                    <input id="useremail" type="email" name="useremail" value="<?php echo htmlspecialchars($電子郵件); ?>"
+                        disabled>
+                </div>
 
-                    <!-- 操作按鈕 -->
-                    <div class="form-buttons">
-                        <button type="button" id="editButton">修改資料</button>
-                        <button type="button" id="confirmButton" style="display:none;"
-                            onclick="confirmData()">確認資料</button>
-                    </div>
+                <div class="form-row">
+                    <label for="hospital">隸屬醫院 :</label>
+                    <input id="hospital" type="text" name="hospital" value="<?php echo htmlspecialchars($隸屬醫院); ?>"
+                        disabled>
+                </div>
 
-                </form>
+                <div class="form-row">
+                    <label for="department">科別 :</label>
+                    <input id="department" type="text" name="department" value="<?php echo htmlspecialchars($科別); ?>"
+                        disabled>
+                </div>
+
+                <!-- 操作按鈕 -->
+                <div class="form-buttons">
+                    <button type="button" id="editButton">修改資料</button>
+                    <button type="button" id="confirmButton" style="display:none;" onclick="confirmData()">確認資料</button>
+                </div>
+
+            </form>
         </div>
     </div>
 
