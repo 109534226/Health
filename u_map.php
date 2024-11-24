@@ -330,18 +330,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                                 <script>
                                     // 診所選擇事件：修改 placeholder 並同步值
-                                    document.getElementById("clinic").addEventListener("change", function () {
-                                        const selectedClinic = this.value; // 獲取選中的診所名稱
-                                        const locationInput = document.getElementById("location");
+                                    $('#clinic').on('change', function () {
+                                        const selectedClinic = $(this).val();
+                                        const locationInput = $('#location');
 
                                         if (selectedClinic) {
-                                            locationInput.value = selectedClinic; // 同步診所名稱到輸入框
-                                            locationInput.placeholder = `目前選擇：${selectedClinic}`; // 修改 placeholder
+                                            locationInput.val(selectedClinic);
+                                            locationInput.attr('placeholder', `目前選擇：${selectedClinic}`);
                                         } else {
-                                            locationInput.value = ""; // 清空輸入框值
-                                            locationInput.placeholder = "搜尋醫院或診所"; // 還原預設 placeholder
+                                            locationInput.val('');
+                                            locationInput.attr('placeholder', '搜尋醫院或診所');
                                         }
                                     });
+
+
+
                                     // 請求診所列表
                                     $('#district_box').on('change', function () {
                                         const county = $('#county_box').val();
@@ -405,7 +408,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             onclick="sLocation()">搜尋路線/交通方式</button>
                                     </div>
                                 </div>
-                                
+
                                 <script>
                                     function sLocation() {
                                         var location = document.getElementById("location").value;

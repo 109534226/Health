@@ -175,6 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         }
                                     }                                    
                                 </script>
+
                                 <div class="col-12 col-sm-6">
                                     <select class="form-select bg-light border-0" style="height: 55px;" name="county"
                                         id="county_box">
@@ -189,13 +190,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
 
                                 <div class="col-12 col-sm-6" style="width: 100%; max-width: 600px;">
+                                    <!-- 診所下拉選單 -->
                                     <select class="form-select bg-light border-0" style="height: 55px;" id="clinic"
                                         name="clinic">
                                         <option selected value="" disabled>選擇診所或醫院</option>
                                         <?php
                                         if ($result->num_rows > 0) {
                                             while ($row = $result->fetch_assoc()) {
-                                                echo "<option value='" . $row['醫事機構'] . "'>" . $row['醫事機構'] . "</option>";
+                                                echo "<option value='" . htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8') . "</option>";
                                             }
                                         } else {
                                             echo "<option value='' disabled>無可用醫事機構</option>";
@@ -203,20 +205,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         ?>
                                     </select>
                                 </div>
+
                                 <script>
                                     // 診所選擇事件：修改 placeholder 並同步值
-                                    document.getElementById("clinic").addEventListener("change", function () {
-                                        const selectedClinic = this.value; // 獲取選中的診所名稱
-                                        const locationInput = document.getElementById("location");
+                                    $('#clinic').on('change', function () {
+                                        const selectedClinic = $(this).val();
+                                        const locationInput = $('#location');
 
                                         if (selectedClinic) {
-                                            locationInput.value = selectedClinic; // 同步診所名稱到輸入框
-                                            locationInput.placeholder = `目前選擇：${selectedClinic}`; // 修改 placeholder
+                                            locationInput.val(selectedClinic);
+                                            locationInput.attr('placeholder', `目前選擇：${selectedClinic}`);
                                         } else {
-                                            locationInput.value = ""; // 清空輸入框值
-                                            locationInput.placeholder = "搜尋醫院或診所"; // 還原預設 placeholder
+                                            locationInput.val('');
+                                            locationInput.attr('placeholder', '搜尋醫院或診所');
                                         }
                                     });
+
+
+
                                     // 請求診所列表
                                     $('#district_box').on('change', function () {
                                         const county = $('#county_box').val();
@@ -280,6 +286,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             onclick="sLocation()">搜尋路線/交通方式</button>
                                     </div>
                                 </div>
+
                                 <script>
                                     function sLocation() {
                                         var location = document.getElementById("location").value;
