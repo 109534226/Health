@@ -1,6 +1,16 @@
 <?php
 session_start();
+// 引入資料庫連接設定
+include "db.php";
 
+// 查詢資料表
+$sql = "SELECT id, title, subtitle, source, url, image FROM article";
+$result = $link->query($sql);
+
+// 如果查詢失敗
+if (!$result) {
+    die("SQL 查詢錯誤: " . $link->error);
+}
 // 禁止瀏覽器緩存頁面
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
@@ -118,15 +128,15 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="c_user.php" class="nav-item nav-link active">用戶管理</a>
-                        <a href="c_content.php" class="nav-item nav-link ">內容管理</a>
+                        <a href="c_user.php" class="nav-item nav-link">用戶管理</a>
+                        <a href="c_content.php" class="nav-item nav-link active">內容管理</a>
                         <a href="c_security.php" class="nav-item nav-link">安全管理</a>
 
                         <div class="nav-item">
-                            <a href="c_profile.php" class="nav-link dropdown-toggle " data-bs-toggle="dropdown"
+                            <a href="#" class="nav-link dropdown-toggle " data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="c_profile.php" class="dropdown-item ">關於我</a></li>
+                                <li><a href="c_profile.php" class="dropdown-item">關於我</a></li>
                                 <li><a href="c_change.php" class="dropdown-item">忘記密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
@@ -144,75 +154,57 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         </div>
     </div>
     <!-- 頁首 End -->
-    <!-- 回到頁首(Top 箭頭 -->
-    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
-
-    <!-- 登出對話框 Start -->
-    <div id="logoutBox" class="logout-box">
-        <div class="logout-dialog">
-            <p>你確定要登出嗎？</p>
-            <button onclick="logout()">確定</button>
-            <button onclick="hideLogoutBox()">取消</button>
-        </div>
-    </div>
-    <!-- 登出對話框 End -->
-
-    <!-- 刪除帳號對話框 Start -->
-    <div id="deleteAccountBox" class="logout-box">
-        <div class="logout-dialog">
-            <p>你確定要刪除帳號嗎？這個操作無法撤銷！</p>
-            <button onclick="deleteAccount()">確定</button>
-            <button onclick="hideDeleteAccountBox()">取消</button>
-        </div>
-    </div>
-    <!-- 刪除帳號對話框 End -->
-    <?php
-    session_start(); // 啟動 PHP Session，確保可以使用 $_SESSION 變數。
-    include 'db.php'; // 引入資料庫連線檔案。
-    
-    // 從 URL 或 Session 中獲取用戶帳號 `name`，優先使用 URL 傳入的值。
-    $name = $_GET['name'] ?? $_SESSION['編輯用戶'] ?? null;
-
-    if (!$name) { // 如果沒有從 URL 或 Session 中獲得 `name`，則提示錯誤並終止程式。
-        echo "未指定用戶帳號。"; // 顯示錯誤訊息。
-        exit; // 終止程式執行。
-    }
-
-    // 從資料庫中查詢該用戶的所有資料。
-    $sql = "SELECT * FROM user WHERE name = ?"; // 使用 `name` 作為條件查詢。
-    $stmt = mysqli_prepare($link, $sql); // 準備 SQL 查詢。
-    mysqli_stmt_bind_param($stmt, "s", $name); // 綁定 `name` 參數到查詢語句，避免 SQL 注入。
-    mysqli_stmt_execute($stmt); // 執行查詢。
-    $result = mysqli_stmt_get_result($stmt); // 獲取查詢結果。
-    $user = mysqli_fetch_assoc($result); // 將查詢結果轉換為關聯陣列形式。
-    mysqli_stmt_close($stmt); // 關閉查詢語句。
-    
-    if (!$user) { // 如果查詢結果為空，表示找不到該用戶資料。
-        echo "找不到該用戶資料！"; // 顯示錯誤訊息。
-        exit; // 終止程式執行。
-    }
-    ?>
-
-    <h1>編輯使用者</h1>
-    <form method="POST" action="編輯用戶的後端.php"> <!-- 表單，提交到後端進行資料更新 -->
-        <!-- 隱藏欄位，帶入用戶帳號 `name` 作為唯一標識 -->
-        <input type="hidden" name="name" value="<?php echo htmlspecialchars($user['name']); ?>">
-
-        <label for="username">姓名:</label> <!-- 顯示用戶姓名的輸入欄位 -->
-        <input type="text" name="username" value="<?php echo htmlspecialchars($user['username']); ?>"><br>
-        
-        <label for="password">密碼:</label> <!-- 顯示用戶密碼的輸入欄位 -->
-        <input type="password" name="password" value=""><br> <!-- 密碼欄位留空，要求用戶輸入新密碼 -->
-
-        <label for="email">電子郵件:</label> <!-- 顯示用戶電子郵件的輸入欄位 -->
-        <input type="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>"><br>
-
-        <label for="grade">使用者等級:</label> <!-- 顯示用戶等級的輸入欄位 -->
-        <input type="number" name="grade" value="<?php echo htmlspecialchars($user['grade']); ?>"><br>
-
-        <button type="submit">更新</button> <!-- 表單提交按鈕 -->
-    </form>
-
+    <!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章資料顯示</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>文章資料列表</h1>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>標題</th>
+            <th>副標題</th>
+            <th>來源</th>
+            <th>連結</th>
+            <th>圖片</th>
+        </tr>
+        <?php
+        if ($result->num_rows > 0) {
+            // 輸出每一行資料
+            while ($row = $result->fetch_assoc()) {
+                echo "<tr>";
+                echo "<td>" . $row["id"] . "</td>";
+                echo "<td>" . $row["title"] . "</td>";
+                echo "<td>" . $row["subtitle"] . "</td>";
+                echo "<td>" . $row["source"] . "</td>";
+                echo "<td><a href='" . $row["url"] . "' target='_blank'>連結</a></td>";
+                echo "<td><img src='" . $row["image"] . "' alt='圖片' style='width:100px;'></td>";
+                echo "</tr>";
+            }
+        } else {
+            echo "<tr><td colspan='6'>無資料</td></tr>";
+        }
+        $link->close();
+        ?>
+    </table>
 </body>
-
 </html>
+    <?php

@@ -28,7 +28,7 @@ if (empty($看診時段))
 if (!empty($errors)) {
   echo "<script>
             alert('" . implode("\\n", $errors) . "');
-            window.location.href = 'n_timefind.php';
+            window.location.href = 'd_timefind.php';
           </script>";
   exit;
 }
@@ -46,13 +46,13 @@ $SQL指令 = "UPDATE `doctorshift` SET
 if (mysqli_query($link, $SQL指令)) {
   echo "<script>
             alert('資料已成功更新！');
-            window.location.href = 'n_timefind.php?search=" . urlencode($醫生姓名) . "';
+            window.location.href = 'd_timefind.php?search=" . urlencode($醫生姓名) . "';
           </script>";
 } else {
   $error_message = mysqli_error($link);
   echo "<script>
             alert('更新失敗，錯誤訊息: $error_message');
-            window.location.href = 'n_timefind.php?id=$id';
+            window.location.href = 'd_timefind.php?id=$id';
           </script>";
 }
 

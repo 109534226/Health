@@ -33,7 +33,7 @@ if (empty($歷史重大疾病)) $errors[] = '歷史重大疾病未輸入';
 if (!empty($errors)) {
     echo "<script>
             alert('" . implode("\\n", $errors) . "');
-            window.location.href = 'n_Basicfind.php';
+            window.location.href = 'd_Basicfind.php';
           </script>";
     exit;
 }
@@ -55,13 +55,13 @@ if (mysqli_query($link, $SQL指令)) {
     $searchTerm = urlencode($患者姓名); // 使用患者姓名作為搜尋條件
     echo "<script>
         alert('資料已成功更新！');
-        window.location.href = 'n_Basicfind.php?modified=success&search=" . $searchTerm . "';
+        window.location.href = 'd_Basicfind.php?modified=success&search=" . $searchTerm . "';
     </script>";
 } else {
     $error_message = mysqli_error($link);
     echo "<script>
         alert('更新失敗，錯誤訊息: $error_message');
-        window.location.href = 'n_Basicfind.php?id=$id';
+        window.location.href = 'd_Basicfind.php?id=$id';
     </script>";
 }
 

@@ -19,19 +19,19 @@ if (mysqli_num_rows($查詢結果) > 0) {
     if (mysqli_stmt_execute($刪除準備)) {
         echo "<script>
                 alert('刪除成功');
-                window.location.href = 'n_advicefind.php?deleted=true&search=" . urlencode($searchTerm) . "';
+                window.location.href = 'd_advicefind.php?deleted=true&search=" . urlencode($searchTerm) . "';
               </script>";
     } else {
         $錯誤訊息 = mysqli_error($link);
         echo "<script>
                 alert('刪除失敗: $錯誤訊息');
-                window.location.href = 'n_advicefind.php?search=" . urlencode($searchTerm) . "';
+                window.location.href = 'd_advicefind.php?search=" . urlencode($searchTerm) . "';
               </script>";
     }
 } else {
     echo "<script>
             alert('查無此筆資料');
-            window.location.href = 'n_advicefind.php?search=" . urlencode($searchTerm) . "';
+            window.location.href = 'd_advicefind.php?search=" . urlencode($searchTerm) . "';
           </script>";
 }
 

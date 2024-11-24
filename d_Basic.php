@@ -62,235 +62,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     <link href="css/style.css" rel="stylesheet">
 
     <style>
-        /* 彈出對話框的樣式 */
-        .logout-box {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            justify-content: center;
-            align-items: center;
-            display: none;
-            z-index: 9999;
-        }
-
-        .logout-dialog {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .logout-dialog button {
-            margin: 10px;
-        }
-
-        .navbar {
-            margin-bottom: 0;
-        }
-
-        .navbar-collapse {
-            margin: 0;
-            padding: 0;
-        }
-    </style>
-
-</head>
-
-
-<body>
-
-    <!-- 頁首 Start -->
-    <div class="container-fluid sticky-top bg-white shadow-sm mb-5">
-        <div class="container">
-            <nav class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
-                <a href="n_profile.php" class="navbar-brand">
-                    <h1 class="m-0 text-uppercase text-primary"><i class="fa fa-clinic-medical me-2"></i>健康醫療網站</h1>
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarCollapse">
-                    <div class="navbar-nav ms-auto py-0">
-                        <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
-                            class="nav-item nav-link">留言</a>
-                        <a href="n_Basic.php" class="nav-item nav-link">患者資料</a>
-                        <a href="n_records.php" class="nav-item nav-link">看診紀錄</a>
-                        <a href="n_time.php" class="nav-item nav-link">醫生的班表時段</a>
-                        <a href="n_advice.php" class="nav-item nav-link active">醫生建議</a>
-                        <div class="nav-item">
-                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
-                                aria-expanded="false">個人檔案</a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="n_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="n_change.php" class="dropdown-item">忘記密碼</a></li>
-                                <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
-                                <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
-                                <!-- 隱藏表單，用於提交刪除帳號請求 -->
-                                <form id="deleteAccountForm" action="刪除.php" method="POST" style="display:none;">
-                                    <input type="hidden" name="帳號" value="<?php echo $帳號; ?>">
-                                    <input type="hidden" name="姓名" value="<?php echo $姓名; ?>">
-                                </form>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-        </div>
-    </div>
-    <!-- 頁首 End -->
-
-    <?php
-    include "db.php"; // 連接資料庫
-// 查詢登入使用者的身份和姓名
-    $查詢資料 = "SELECT grade, username FROM user WHERE name = '$帳號'";
-    $結果 = mysqli_query($link, $查詢資料);
-
-    if ($結果 && $row = mysqli_fetch_assoc($結果)) {
-        // 設置角色
-        if ($row['grade'] == 1) {
-            $_SESSION['user_role'] = '醫生';
-        } elseif ($row['grade'] == 2) {
-            $_SESSION['user_role'] = '護士';
-        } else {
-            $_SESSION['user_role'] = '未知角色';
-        }
-
-        // 設置使用者姓名
-        $_SESSION['name'] = $row['username'];
-    } else {
-        echo "<script>alert('無法確定您的角色或名稱，請重新登入。'); window.location.href = 'login.php';</script>";
-        exit();
-    }
-
-    // 確保角色和姓名已設定
-    $user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '未知角色';
-    $name = isset($_SESSION['name']) ? $_SESSION['name'] : '未知姓名';
-
-
-    // 顯示當前角色
-    echo "~歡迎回來~ " . htmlspecialchars($name) . "<br/>";
-    echo "當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>"; // 顯示當前角色
-    echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"]) . "</p>";
-    ?>
-
-    <!--醫生建議-->
-    <div class="container-fluid"></div>
-    <br />
-    <section class="resume-section p-0" id="about"> <!-- 將內邊距設為 0 -->
-        <div class="my-auto">
-            <style>
-                /* 搜尋 查看/填寫資料 */
-                .btn {
-                    display: inline-block;
-                    padding: 10px 20px;
-                    font-size: 16px;
-                    text-align: center;
-                    text-decoration: none;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                }
-
-                .btn-primary {
-                    background-color: #007bff;
-                    /* 藍色背景 */
-                    color: white;
-                    /* 白色文字 */
-                }
-
-                .btn-primary:hover {
-                    background-color: #0056b3;
-                    /* 深藍色背景，懸停時 */
-                }
-            </style>
-            <div class="d-flex justify-content-end mb-5">
-                <a href="n_advicesee.php" class="btn btn-primary">查看資料</a>
-            </div>
-            <h1>
-                <<<<<醫生建議>>>>>
-            </h1>
-            <br />
-            <div class="form-container">
-                <form action="醫生建議2.php" method="post" name="f1" onsubmit="return validateForm()">
-                    <div class="form-row">
-                        <label for="appointment_date">看診日期</label>
-                        <input id="appointment_date" type="date" name="appointment_date"
-                            min="<?php echo date('Y-m-d'); ?>" required />
-                        <small>請選擇今天或未來的日期。</small>
-                    </div>
-
-                    <div class="form-row">
-                        <label for="clinic_number">病例號</label>
-                        <input id="clinic_number" type="text" name="clinic_number" required pattern="\d{1,10}"
-                            title="請輸入1到10位數的病例號" />
-                        <small>例：001 或 1234</small>
-                    </div>
-
-                    <div class="form-row">
-                        <label for="patient_name">患者姓名</label>
-                        <input id="patient_name" type="text" name="patient_name" required pattern=".{1,100}"
-                            title="請輸入1到100字的姓名" />
-                    </div>
-
-                    <div class="form-row">
-                        <label for="birth_date">出生年月日</label>
-                        <input id="birth_date" type="date" name="birth_date" max="<?php echo date('Y-m-d'); ?>"
-                            required />
-                    </div>
-
-                    <div class="form-row">
-                        <label for="gender">性別</label>
-                        <select id="gender" name="gender" required>
-                            <option value="">選擇性別</option>
-                            <option value="男">男</option>
-                            <option value="女">女</option>
-                        </select>
-                    </div>
-
-                    <div class="form-row">
-                        <label for="doctor_name">看診醫生</label>
-                        <input id="doctor_name" type="text" name="doctor_name" required pattern=".{1,100}"
-                            title="請輸入1到100字的醫生姓名" />
-                    </div>
-
-                    <div class="form-row">
-                        <label for="doctor_advice">醫生建議</label>
-                        <input id="doctor_advice" type="text" name="doctor_advice" required pattern=".{1,255}"
-                            title="請輸入1到255字的建議" />
-                    </div>
-
-                    <div class="form-row">
-                        <label for="follow_up">是否回診</label>
-                        <select id="follow_up" name="follow_up" required>
-                            <option value="">選擇</option>
-                            <option value="是">是</option>
-                            <option value="否">否</option>
-                        </select>
-                    </div>
-
-                    <button type="submit" class="aa">提交</button>
-                </form>
-
-                <script>
-                    function validateForm() {
-                        const birthDate = new Date(document.getElementById('birth_date').value);
-                        const today = new Date();
-                        // 檢查出生日期是否有效
-                        if (birthDate >= today) {
-                            alert('出生日期無效，請選擇過去的日期。');
-                            return false;
-                        }
-                        return true; // 表單可以提交
-                    }
-                </script>
-            </div>
-        </div>
-    </section>
-    <style>
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f8f9fa;
@@ -356,11 +127,230 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         button:hover {
             background-color: #0056b3;
         }
+
+
+
+        /* 彈出對話框的樣式 */
+        .logout-box {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            display: none;
+            z-index: 9999;
+        }
+
+        .logout-dialog {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .logout-dialog button {
+            margin: 10px;
+        }
+
+        .navbar {
+            margin-bottom: 0;
+        }
+
+        .navbar-collapse {
+            margin: 0;
+            padding: 0;
+        }
     </style>
 
-    <!-- 回到頁首(Top 箭頭 -->
-    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+</head>
 
+
+<body>
+
+    <!-- 頁首 Start -->
+    <div class="container-fluid sticky-top bg-white shadow-sm mb-5">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
+                <a href="n_profile.php" class="navbar-brand">
+                    <h1 class="m-0 text-uppercase text-primary"><i class="fa fa-clinic-medical me-2"></i>健康醫療網站</h1>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarCollapse">
+                    <div class="navbar-nav ms-auto py-0">
+                        <a href="留言頁面d.php?id=<?php echo htmlspecialchars($patient_id); ?>"
+                            class="nav-item nav-link">留言</a>
+                        <a href="d_Basicsee.php" class="nav-item nav-link active">患者資料</a>
+                        <a href="d_recordssee.php" class="nav-item nav-link">看診紀錄</a>
+                        <a href="d_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
+                        <a href="d_advicesee.php" class="nav-item nav-link">醫生建議</a>
+                        <div class="nav-item">
+                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
+                                aria-expanded="false">個人檔案</a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a href="d_profile.php" class="dropdown-item">關於我</a></li>
+                                <li><a href="d_change.php" class="dropdown-item">忘記密碼</a></li>
+                                <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
+                                <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
+                                <!-- 隱藏表單，用於提交刪除帳號請求 -->
+                                <form id="deleteAccountForm" action="刪除.php" method="POST" style="display:none;">
+                                    <input type="hidden" name="帳號" value="<?php echo $帳號; ?>">
+                                    <input type="hidden" name="姓名" value="<?php echo $姓名; ?>">
+                                </form>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+        </div>
+        </nav>
+    </div>
+    </div>
+    <!-- 頁首 End -->
+
+    <?php
+    include "db.php"; // 連接資料庫
+// 查詢登入使用者的身份和姓名
+    $查詢資料 = "SELECT grade, username FROM user WHERE name = '$帳號'";
+    $結果 = mysqli_query($link, $查詢資料);
+
+    if ($結果 && $row = mysqli_fetch_assoc($結果)) {
+        // 設置角色
+        if ($row['grade'] == 1) {
+            $_SESSION['user_role'] = '醫生';
+        } elseif ($row['grade'] == 2) {
+            $_SESSION['user_role'] = '護士';
+        } else {
+            $_SESSION['user_role'] = '未知角色';
+        }
+
+        // 設置使用者姓名
+        $_SESSION['name'] = $row['username'];
+    } else {
+        echo "<script>alert('無法確定您的角色或名稱，請重新登入。'); window.location.href = 'login.php';</script>";
+        exit();
+    }
+
+    // 確保角色和姓名已設定
+    $user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '未知角色';
+    $name = isset($_SESSION['name']) ? $_SESSION['name'] : '未知姓名';
+
+
+    // 顯示當前角色
+    echo "~歡迎回來~ " . htmlspecialchars($name) . "<br/>";
+    echo "當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>"; // 顯示當前角色
+    echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"]) . "</p>";
+    ?>
+
+
+    <!--患者資料-->
+    <div class="container-fluid"></div>
+    <br />
+    <section class="resume-section p-0" id="about"> <!-- 將內邊距設為 0 -->
+        <div class="my-auto">
+            <style>
+                /* 搜尋 查看/填寫資料 */
+                .btn {
+                    display: inline-block;
+                    padding: 10px 20px;
+                    font-size: 16px;
+                    text-align: center;
+                    text-decoration: none;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                }
+
+                .btn-primary {
+                    background-color: #007bff;
+                    /* 藍色背景 */
+                    color: white;
+                    /* 白色文字 */
+                }
+
+                .btn-primary:hover {
+                    background-color: #0056b3;
+                    /* 深藍色背景，懸停時 */
+                }
+            </style>
+            <div class="d-flex justify-content-end mb-5">
+                <a href="d_Basicsee.php" class="btn btn-primary">查看資料</a>
+            </div>
+
+            <h1>
+                <<<<<患者資料>>>>>
+            </h1>
+            <br />
+            <div class="form-container">
+                <form action="患者資料2.php" method="post" name="f1" onsubmit="return validateForm()">
+                    <div class="form-row">
+                        <label for="medical_record_number">病例號</label>
+                        <input id="medical_record_number" type="text" name="medical_record_number" required
+                            pattern="\d{1,10}" title="請輸入1到10位數的病例號" />
+                        <small>例：001 或 1234</small>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="patient_name">患者姓名</label>
+                        <input id="patient_name" type="text" name="patient_name" required />
+                    </div>
+
+                    <div class="form-row">
+                        <label for="gender">性別</label>
+                        <select id="gender" name="gender" required>
+                            <option value="">選擇性別</option>
+                            <option value="男">男</option>
+                            <option value="女">女</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="birth_date">出生年月日</label>
+                        <input id="birth_date" type="date" name="birth_date" max="<?php echo date('Y-m-d'); ?>"
+                            required />
+                    </div>
+
+                    <div class="form-row">
+                        <label for="current_symptoms">當前症狀</label>
+                        <textarea id="current_symptoms" name="current_symptoms" required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="allergies">過敏藥物</label>
+                        <textarea id="allergies" name="allergies"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="medical_history">歷史重大疾病</label>
+                        <textarea id="medical_history" name="medical_history"></textarea>
+                    </div>
+
+                    <button type="submit" class="aa">提交</button>
+                </form>
+
+                <script>
+                    function validateForm() {
+                        const birthDate = new Date(document.getElementById('birth_date').value);
+                        const today = new Date();
+                        // 檢查出生日期是否有效
+                        if (birthDate >= today) {
+                            alert('出生日期無效，請選擇過去的日期。');
+                            return false;
+                        }
+                        return true; // 表單可以提交
+                    }
+                </script>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- 回到頁首(Top 箭頭 -->
+    <a href="#" class="btn btn-lg btn-primary  back-to-top"><i class="bi bi-arrow-up"></i></a>
     <!-- 登出對話框 Start -->
     <div id="logoutBox" class="logout-box">
         <div class="logout-dialog">
@@ -409,7 +399,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             document.getElementById('deleteAccountForm').submit();
         }
     </script>
-
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>

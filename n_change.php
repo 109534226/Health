@@ -29,41 +29,41 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 <html lang="zxx">
 
 <head>
-	<title>健康醫療網站-變更密碼</title>
+    <title>健康醫療網站-變更密碼</title>
 
-	<!-- Meta tags -->
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="X-UA-Compatible" content="ie=edge">
-	<meta content="Free HTML Templates" name="keywords">
-	<meta content="Free HTML Templates" name="description">
+    <!-- Meta tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta content="Free HTML Templates" name="keywords">
+    <meta content="Free HTML Templates" name="description">
 
-	<!-- Favicon -->
-	<link href="img/favicon.ico" rel="icon">
+    <!-- Favicon -->
+    <link href="img/favicon.ico" rel="icon">
 
-	<!-- Google Web Fonts -->
-	<link rel="preconnect" href="https://fonts.gstatic.com">
-	<link
-		href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Roboto:wght@400;700&display=swap"
-		rel="stylesheet">
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Roboto:wght@400;700&display=swap"
+        rel="stylesheet">
 
-	<!-- Icon Font Stylesheet -->
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/all.min.css" rel="stylesheet">
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
-	<!-- Libraries Stylesheet -->
-	<link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
-	<link href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+    <!-- Libraries Stylesheet -->
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
 
-	<!-- Customized Bootstrap Stylesheet -->
-	<link href="css/bootstrap.min.css" rel="stylesheet">
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
 
-	<!-- Template Stylesheet -->
-	<link href="css/style.css" rel="stylesheet">
+    <!-- Template Stylesheet -->
+    <link href="css/style.css" rel="stylesheet">
 
-	<!-- Style -->
-	<link rel="stylesheet" href="css/style.css" type="text/css" media="all" />
-	<style>
+    <!-- Style -->
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="all" />
+    <style>
         /* 彈出對話框的樣式 */
         .logout-box {
             position: fixed;
@@ -99,37 +99,37 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             padding: 0;
         }
     </style>
-   	<script>
-    	// 用戶成功登入後，設置登錄狀態
-    	sessionStorage.setItem('isLoggedIn', 'true');
-	</script>
+    <script>
+        // 用戶成功登入後，設置登錄狀態
+        sessionStorage.setItem('isLoggedIn', 'true');
+    </script>
 </head>
 
 <body>
-	<!-- 頁首 Start -->
-	<div class="container-fluid sticky-top bg-white shadow-sm">
-		<div class="container">
-			<nav class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
-				<a href="u_index.php" class="navbar-brand">
-					<h1 class="m-0 text-uppercase text-primary"><i class="fa fa-clinic-medical me-2"></i>健康醫療網站</h1>
-				</a>
-				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
-					<span class="navbar-toggler-icon"></span>
-				</button>
-				<div class="collapse navbar-collapse" id="navbarCollapse">
-					<div class="navbar-nav ms-auto py-0">
-                    <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
-                    class="nav-item nav-link">留言</a>
-					<a href="n_Basic.php" class="nav-item nav-link">患者資料</a>
-					<a href="n_time.php" class="nav-item nav-link">醫生的班表時段</a>
-                        <a href="n_records.php" class="nav-item nav-link">看診紀錄</a>
-                        <a href="n_advice.php" class="nav-item nav-link">醫生建議</a>
-						<div class="nav-item">
-                            <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown"
+    <!-- 頁首 Start -->
+    <div class="container-fluid sticky-top bg-white shadow-sm">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
+                <a href="u_index.php" class="navbar-brand">
+                    <h1 class="m-0 text-uppercase text-primary"><i class="fa fa-clinic-medical me-2"></i>健康醫療網站</h1>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarCollapse">
+                    <div class="navbar-nav ms-auto py-0">
+                        <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
+                            class="nav-item nav-link">留言</a>
+                        <a href="n_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
+                        <a href="n_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
+                        <a href="n_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
+                        <a href="n_advicesee.php" class="nav-item nav-link">醫生建議</a>
+                        <div class="nav-item">
+                            <a href="#" class="nav-link dropdown-toggle  active" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="u_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="u_change.php" class="dropdown-item active">變更密碼</a></li>
+                                <li><a href="n_profile.php" class="dropdown-item">關於我</a></li>
+                                <li><a href="n_change.php" class="dropdown-item active">忘記密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -139,13 +139,13 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 </form>
                             </ul>
                         </div>
-					</div>
-				</div>
-			</nav>
-		</div>
-	</div>
-	<!-- 頁首 End -->
-	 
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+    <!-- 頁首 End -->
+
     <?php
     include "db.php"; // 連接資料庫
 // 查詢登入使用者的身份和姓名
@@ -180,58 +180,58 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"]) . "</p>";
     ?>
 
-	
-	<!-- 登入 start -->
-	<section class="w3l-login">
-		<div class="overlay">
-			<div class="wrapper">
-				<div class="logo">
-					<a class="brand-logo" href="index.php">健康醫療網站</a>
-				</div>
-				<div class="form-section">
-					<h3>變更密碼</h3>
-					<h6> </h6>
-					<form action="修改密碼.php" method="post" class="signin-form">
-						<div class="form-input">
-							<input type="text" name="name" placeholder="帳號" required="">
-						</div>
-						<div class="form-input">
-							<input type="text" name="oldpsd" placeholder="舊密碼" required="">
-						</div>
-						<div class="form-input">
-							<input type="text" name="newpsd" placeholder="新密碼" required="">
-						</div>
-						<div class="form-input">
-							<input type="text" name="newpsd2" placeholder="確認新密碼" required="">
-						</div>
-						<button type="submit" class="btn btn-primary theme-button mt-4">確定</button>
-					</form>
-				</div>
-			</div>
-		</div>
-		<!-- 添加驗證新密碼與確認新密碼 -->
-		<script>
-			function validatePasswords(event) {
-				const newPassword = document.querySelector('input[name="newpsd"]').value;
-				const confirmPassword = document.querySelector('input[name="newpsd2"]').value;
 
-				if (newPassword !== confirmPassword) {
-					event.preventDefault(); // 阻止表單提交
-					alert('新密碼與確認新密碼不一致，請重新輸入。');
-				}
-			}
+    <!-- 登入 start -->
+    <section class="w3l-login">
+        <div class="overlay">
+            <div class="wrapper">
+                <div class="logo">
+                    <a class="brand-logo" href="index.php">健康醫療網站</a>
+                </div>
+                <div class="form-section">
+                    <h3>變更密碼</h3>
+                    <h6> </h6>
+                    <form action="修改密碼.php" method="post" class="signin-form">
+                        <div class="form-input">
+                            <input type="text" name="name" placeholder="帳號" required="">
+                        </div>
+                        <div class="form-input">
+                            <input type="text" name="oldpsd" placeholder="舊密碼" required="">
+                        </div>
+                        <div class="form-input">
+                            <input type="text" name="newpsd" placeholder="新密碼" required="">
+                        </div>
+                        <div class="form-input">
+                            <input type="text" name="newpsd2" placeholder="確認新密碼" required="">
+                        </div>
+                        <button type="submit" class="btn btn-primary theme-button mt-4">確定</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- 添加驗證新密碼與確認新密碼 -->
+        <script>
+            function validatePasswords(event) {
+                const newPassword = document.querySelector('input[name="newpsd"]').value;
+                const confirmPassword = document.querySelector('input[name="newpsd2"]').value;
 
-			// 將validatePasswords函式綁定到表單的submit事件
-			document.querySelector('.signin-form').addEventListener('submit', validatePasswords);
-		</script>
+                if (newPassword !== confirmPassword) {
+                    event.preventDefault(); // 阻止表單提交
+                    alert('新密碼與確認新密碼不一致，請重新輸入。');
+                }
+            }
 
-		<div id='stars'></div>
-		<div id='stars2'></div>
-		<div id='stars3'></div>
-	</section>
-	<!-- 登入 end -->
+            // 將validatePasswords函式綁定到表單的submit事件
+            document.querySelector('.signin-form').addEventListener('submit', validatePasswords);
+        </script>
 
-	<!-- 回到頁首(Top 箭頭 -->
+        <div id='stars'></div>
+        <div id='stars2'></div>
+        <div id='stars3'></div>
+    </section>
+    <!-- 登入 end -->
+
+    <!-- 回到頁首(Top 箭頭 -->
     <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
 
     <!-- 登出對話框 Start -->
@@ -287,18 +287,18 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
 
 
-	<!-- JavaScript Libraries -->
-	<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-	<script src="lib/easing/easing.min.js"></script>
-	<script src="lib/waypoints/waypoints.min.js"></script>
-	<script src="lib/owlcarousel/owl.carousel.min.js"></script>
-	<script src="lib/tempusdominus/js/moment.min.js"></script>
-	<script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
-	<script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/waypoints/waypoints.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="lib/tempusdominus/js/moment.min.js"></script>
+    <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
+    <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
 
-	<!-- Template Javascript -->
-	<script src="js/main.js"></script>
+    <!-- Template Javascript -->
+    <script src="js/main.js"></script>
 </body>
 
 </html>

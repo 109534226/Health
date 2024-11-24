@@ -189,6 +189,25 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             <?php endwhile; ?>
         </ul>
     </body>
+    <body>
+        <h1>刪除文章</h1>
+        <ul>
+        <input type="submit"  onclick="location.href='刪除文章.php'" name="publish" value="刪除">
+            <?php while ($row = $result->fetch_assoc()): ?>
+                <li>
+                    <h2><?= htmlspecialchars($row['title']) ?></h2>
+                    <p><?= htmlspecialchars($row['subtitle']) ?></p>
+                    <form method="POST" >
+                        <input type="hidden" name="article_id" value="<?= $row['id'] ?>">
+                        <input type="button" onclick="location.href='刪除.php'" name="publish" value="刪除">
+                        
+                    </form>
+                </li>
+            <?php endwhile; ?>
+        </ul>
+    </body>
+
+
 
     </html>
     <?php $link->close(); ?>

@@ -29,7 +29,7 @@ if (empty($看診醫生)) $errors[] = '看診醫生未輸入';
 if (!empty($errors)) {
     echo "<script>
             alert('" . implode("\\n", $errors) . "');
-            window.location.href = 'n_recordsfind.php';
+            window.location.href = 'd_recordsfind.php';
           </script>";
     exit;
 }
@@ -49,7 +49,7 @@ $SQL指令 = "UPDATE `patients` SET
 if (mysqli_query($link, $SQL指令)) {
     echo "<script>
             alert('修改成功');
-            window.location.href = 'n_recordsfind.php?search=" . urlencode($患者姓名) . "';
+            window.location.href = 'd_recordsfind.php?search=" . urlencode($患者姓名) . "';
           </script>";
 } else {
     $error_message = mysqli_error($link);

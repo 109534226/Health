@@ -1,24 +1,34 @@
 <?php
-// 数据库连接设置
 session_start();
 include 'db.php';
-// 获取表单数据，并检查是否定义了键
-$title = isset($_POST['title']) ? $_POST['title'] : '';
-$subtitle = isset($_POST['subtitle']) ? $_POST['subtitle'] : '';
-$content = isset($_POST['content']) ? $_POST['content'] : '';
-$source = isset($_POST['source']) ? $_POST['source'] : '';
-$url = isset($_POST['url']) ? $_POST['url'] : '';
 
-// 插入数据到 `article` 表（去掉了 image 字段）
-$sql = "INSERT INTO article (title, subtitle, source, url)
-VALUES ('$title', '$subtitle', '$source', '$url')";
+// 获取表单数据
+$title = isset($_POST['title']) ? trim($_POST['title']) : '';
+$subtitle = isset($_POST['subtitle']) ? trim($_POST['subtitle']) : '';
+$source = isset($_POST['source']) ? trim($_POST['source']) : '';
+$url = isset($_POST['url']) ? trim($_POST['url']) : '';
+$image = isset($_POST['image']) ? trim($_POST['image']) : '';
 
-if ($link->query($sql) === TRUE) {
+// 添加一个默认的 type 值 (假设 type 为 1)
+$type = 1;  // 如果 type 字段需要根据需求来设置，可以从表单或其他来源获取
+
+// 使用预处理语句插入数据
+$stmt = $link->prepare("INSERT INTO article (title, subtitle, source, url, image, type) VALUES (?, ?, ?, ?, ?, ?)");
+$stmt->bind_param("sssssi", $title, $subtitle, $source, $url, $image, $type);
+    
+// 执行插入操作
+if ($stmt->execute()) {
     echo "<script>
-            alert('文章保存成功！'); // 顯示彈跳視窗
-            window.location.href = '內容管理.php'; // 跳轉到 內容管理.php 頁面
+            alert('文章保存成功！');
+            window.location.href = 'c_content.php';  // 重定向到 c_content.php
           </script>";
 } else {
-    echo "错误: " . $sql . "<br>" . $link->error;
+    // 插入失败，输出错误信息
+    echo "<script>alert('保存失败，请稍后再试。'); window.history.back();</script>";
+    error_log("数据库错误: " . $stmt->error);  // 输出详细错误到 PHP 错误日志
 }
+
+// 关闭语句和连接
+$stmt->close();
+$link->close();
 ?>
