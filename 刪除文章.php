@@ -117,94 +117,109 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
 <body>
     <!-- 頁首 Start -->
-    <div class="container-fluid sticky-top bg-white shadow-sm">
-        <div class="container">
-            <nav class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
-                <a href="n_profile.php" class="navbar-brand">
-                    <h1 class="m-0 text-uppercase text-primary"><i class="fa fa-clinic-medical me-2"></i>健康醫療網站</h1>
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarCollapse">
-                    <div class="navbar-nav ms-auto py-0">
-                        <a href="c_user.php" class="nav-item nav-link">用戶管理</a>
-                        <a href="c_content.php" class="nav-item nav-link active">內容管理</a>
-                        <a href="c_security.php" class="nav-item nav-link">安全管理</a>
-
-                        <div class="nav-item">
-                            <a href="#" class="nav-link dropdown-toggle " data-bs-toggle="dropdown"
-                                aria-expanded="false">個人檔案</a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="c_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="c_change.php" class="dropdown-item">忘記密碼</a></li>
-                                <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
-                                <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
-                                <!-- 隱藏表單，用於提交刪除帳號請求 -->
-                                <form id="deleteAccountForm" action="刪除.php" method="POST" style="display:none;">
-                                    <input type="hidden" name="帳號" value="<?php echo $帳號; ?>">
-                                    <input type="hidden" name="姓名" value="<?php echo $姓名; ?>">
-                                </form>
-                            </ul>
-                        </div>
-
-                    </div>
-                </div>
-            </nav>
-        </div>
-    </div>
-    <!-- 頁首 End -->
     <!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>文章資料顯示</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-        th {
-            background-color: #f2f2f2;
-            text-align: left;
-        }
-    </style>
-</head>
-<body>
-    <h1>文章資料列表</h1>
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>標題</th>
-            <th>副標題</th>
-            <th>來源</th>
-            <th>連結</th>
-            <th>圖片</th>
-        </tr>
-        <?php
-        if ($result->num_rows > 0) {
-            // 輸出每一行資料
-            while ($row = $result->fetch_assoc()) {
-                echo "<tr>";
-                echo "<td>" . $row["id"] . "</td>";
-                echo "<td>" . $row["title"] . "</td>";
-                echo "<td>" . $row["subtitle"] . "</td>";
-                echo "<td>" . $row["source"] . "</td>";
-                echo "<td><a href='" . $row["url"] . "' target='_blank'>連結</a></td>";
-                echo "<td><img src='" . $row["image"] . "' alt='圖片' style='width:100px;'></td>";
-                echo "</tr>";
+    <html lang="zh-Hant">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>文章管理</title>
+        <style>
+            table {
+                width: 100%;
+                border-collapse: collapse;
             }
-        } else {
-            echo "<tr><td colspan='6'>無資料</td></tr>";
-        }
-        $link->close();
-        ?>
-    </table>
-</body>
-</html>
-    <?php
+
+            th,
+            td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+
+            th {
+                background-color: #f2f2f2;
+            }
+
+            img {
+                max-width: 100px;
+                height: auto;
+            }
+
+            button {
+                padding: 5px 10px;
+                background-color: red;
+                color: white;
+                border: none;
+                cursor: pointer;
+                border-radius: 5px;
+            }
+
+            button:hover {
+                background-color: darkred;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1>文章管理</h1>
+        <form method="POST" action="刪除文章的後端.php" onsubmit="return confirm('確定要刪除選中的文章嗎？');">
+            <table>
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll" onclick="toggleSelectAll()"> 全選</th>
+                        <th>ID</th>
+                        <th>標題</th>
+                        <th>副標題</th>
+                        <th>來源</th>
+                        <th>連結</th>
+                        <th>圖片</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($result->num_rows > 0): ?>
+                        <?php while ($row = $result->fetch_assoc()): ?>
+                            <tr>
+                                <td><input type="checkbox" name="ids[]" value="<?= $row['id']; ?>" class="itemCheckbox"></td>
+                                <td><?= $row['id']; ?></td>
+                                <td><?= htmlspecialchars($row['title']); ?></td>
+                                <td><?= htmlspecialchars($row['subtitle']); ?></td>
+                                <td><?= htmlspecialchars($row['source']); ?></td>
+                                <td><a href="<?= htmlspecialchars($row['url']); ?>" target="_blank">連結</a></td>
+                                <td><img src="<?= htmlspecialchars($row['image']); ?>" alt="圖片"></td>
+                            </tr>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="7">目前無資料</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+
+            <script>
+                // 全選/取消全選功能
+                function toggleSelectAll() {
+                    var selectAllCheckbox = document.getElementById('selectAll');
+                    var checkboxes = document.querySelectorAll('.itemCheckbox');
+                    checkboxes.forEach(function (checkbox) {
+                        checkbox.checked = selectAllCheckbox.checked;
+                    });
+                }
+            </script>
+
+
+            <br>
+            <button type="submit">刪除選中文章</button>
+        </form>
+
+        <script>
+            function toggleSelectAll() {
+                const selectAllCheckbox = document.getElementById('selectAll');
+                const checkboxes = document.querySelectorAll('input[name="ids[]"]');
+                checkboxes.forEach(checkbox => checkbox.checked = selectAllCheckbox.checked);
+            }
+        </script>
+    </body>
+
+    </html>
