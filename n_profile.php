@@ -348,13 +348,13 @@ header("Pragma: no-cache");
 
 
                 // 從 user 表抓取姓名和電子郵件
-                $SQL查詢使用者 = sprintf("SELECT name, email FROM user WHERE username = '%s'", mysqli_real_escape_string($link, $帳號));
+                $SQL查詢使用者 = sprintf("SELECT username, email FROM user WHERE name = '%s'", mysqli_real_escape_string($link, $帳號));
                 $result = mysqli_query($link, $SQL查詢使用者);
 
-                if ($row = mysqli_fetch_assoc($result)) {
-                    $姓名 = $row['name'] ?? "無名氏"; // 如果資料不存在，設為預設值 "無名氏"
-                    $電子郵件 = $row['email'] ?? "無";
-                }
+                // if ($row = mysqli_fetch_assoc($result)) {
+                //     $姓名 = $row['name'] ?? "無名氏"; // 如果資料不存在，設為預設值 "無名氏"
+                //     $電子郵件 = $row['email'] ?? "無";
+                // }
 
                 // 從 profession 表抓取其他資料
                 $SQL查詢資料 = sprintf("SELECT * FROM profession WHERE name = '%s'", mysqli_real_escape_string($link, $帳號));
