@@ -237,6 +237,15 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     <input id="doctor_name" type="text" name="doctor_name"
                         value="<?php echo htmlspecialchars($row['doctorname']); ?>" required />
 
+                    <label for="consultation_period">看診時段</label>
+                    <select id="consultation_period" name="consultation_period" required>
+                        <option value="">選擇一個時段</option>
+                        <option value="早" <?php echo $row['consultationperiod'] == '早' ? 'selected' : ''; ?>>早</option>
+                        <option value="午" <?php echo $row['consultationperiod'] == '午' ? 'selected' : ''; ?>>午</option>
+                        <option value="晚" <?php echo $row['consultationperiod'] == '晚' ? 'selected' : ''; ?>>晚</option>
+                        <option value="夜間" <?php echo $row['consultationperiod'] == '夜間' ? 'selected' : ''; ?>>夜間</option>
+                    </select>
+
                     <br>
                     <button type="button" class="aa" onclick="confirmUpdate()">更新</button>
                 </form>

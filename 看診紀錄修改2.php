@@ -9,6 +9,7 @@ $患者姓名 = trim($_POST['patient_name']);
 $性別 = trim($_POST['gender']);
 $科別 = trim($_POST['department']);
 $看診醫生 = trim($_POST['doctor_name']);
+$看診時間= trim($_POST['consultation_period']);
 
 // 防止 SQL 注入攻擊
 $日期 = mysqli_real_escape_string($link, $日期);
@@ -17,6 +18,7 @@ $患者姓名 = mysqli_real_escape_string($link, $患者姓名);
 $性別 = mysqli_real_escape_string($link, $性別);
 $科別 = mysqli_real_escape_string($link, $科別);
 $看診醫生 = mysqli_real_escape_string($link, $看診醫生);
+$看診時間 = mysqli_real_escape_string($link, $看診時間);
 
 $errors = [];
 if (empty($日期)) $errors[] = '日期未輸入';
@@ -25,6 +27,7 @@ if (empty($患者姓名)) $errors[] = '患者姓名未輸入';
 if (empty($性別)) $errors[] = '性別未輸入';
 if (empty($科別)) $errors[] = '科別未輸入';
 if (empty($看診醫生)) $errors[] = '看診醫生未輸入';
+if (empty($看診時間)) $errors[] = '看診時間未輸入';
 
 if (!empty($errors)) {
     echo "<script>
@@ -42,6 +45,7 @@ $SQL指令 = "UPDATE `patients` SET
                 `gender` = '$性別', 
                 `department` = '$科別', 
                 `doctorname` = '$看診醫生',
+                 `consultationperiod` = '$看診時間',
                 `created_at` = NOW() -- 更新為當下的時間
             WHERE `id` = $id";
 
