@@ -224,6 +224,10 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <option value="夜間" <?php echo $row['consultationperiod'] == '夜間' ? 'selected' : ''; ?>>夜間</option>
                     </select>
 
+                    <label for="department">看診科別</label>
+                    <input id="department" type="text" name="department"
+                        value="<?php echo htmlspecialchars($row['department']); ?>" required />
+
                     <input type="hidden" name="id" value="<?php echo htmlspecialchars($row['id']); ?>" />
                     <br>
                     <button type="submit" class="aa">更新</button>
@@ -235,12 +239,21 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         const date = document.getElementById("appointment_date").value;
                         const clinic = document.getElementById("clinic_number").value;
                         const doctor = document.getElementById("doctor_name").value;
-                        const period = document.getElementById("consultation_period").value;
+                        const period = document.getElementById("consultation_period").value; // 看診時段
+                        const department = document.getElementById("department").value; // 科別
 
                         // 顯示確認對話框
-                        return confirm(`以下為更新的資料，是否確認提交？\n日期: ${date}\n診間號: ${clinic}\n醫生姓名: ${doctor}\n看診時段: ${period}`);
+                        return confirm(
+                            `以下為更新的資料，是否確認提交？\n` +
+                            `日期: ${date}\n` +
+                            `診間號: ${clinic}\n` +
+                            `醫生姓名: ${doctor}\n` +
+                            `看診時段: ${period}\n` +
+                            `科別: ${department}`
+                        );
                     }
                 </script>
+
 
                 <style>
                     body {

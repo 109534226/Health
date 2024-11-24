@@ -261,10 +261,12 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     const gender = form.gender.value;
                     const department = form.department.value;
                     const doctorName = form.doctor_name.value;
+                    const consultationPeriod = form.consultation_period.value;
 
+                    // 確認提示訊息
                     const confirmation = confirm(
                         `確認修改以下資料嗎？\n\n日期: ${date}\n病例號: ${recordNumber}\n患者姓名: ${patientName}\n性別: ${gender}\n` +
-                        `看診科別: ${department}\n看診醫生: ${doctorName}`
+                        `看診科別: ${department}\n看診醫生: ${doctorName}\n看診時間: ${consultationPeriod}`
                     );
 
                     if (confirmation) {
