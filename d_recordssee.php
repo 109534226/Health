@@ -1,20 +1,23 @@
 <?php
-session_start(); // 啟動 Session，讓伺服器能夠追蹤使用者的登入狀態
-include "db.php"; // 引入資料庫連線檔案
 
-// 確認使用者是否已登入
-if (!isset($_SESSION["登入狀態"]) || $_SESSION["登入狀態"] !== true) {
-    // 如果 Session 中沒有設定登入狀態，或狀態不為 true，則跳轉到登入頁面
-    header("Location: login.php"); // 跳轉到登入頁面
-    exit(); // 停止後續程式執行
+include("db.php");
+
+session_start();
+
+// 確保用戶已經登入，否則重定向到登入頁面
+if (!isset($_SESSION["帳號"]) || empty($_SESSION["帳號"])) {
+    echo "<script>alert('無效的帳號，請重新登入。'); window.location.href = 'login.php';</script>";
+    exit();
 }
 
-// 從 Session 中獲取使用者的帳號
-$帳號 = $_SESSION["帳號"]; // 取得使用者的帳號，通常在登入時已設置到 Session 中
+// 檢查資料庫連接是否成功
+if (!$link) {
+    die("資料庫連接失敗：" . mysqli_connect_error());
+}
 
 // 查詢登入使用者的身份和姓名
 $帳號 = $_SESSION['帳號'];
-$sql = "SELECT grade_id, name FROM user WHERE account = ?";
+$sql = "SELECT user_id, grade_id, name FROM user WHERE account = ?";
 $stmt = mysqli_prepare($link, $sql);
 if (!$stmt) {
     die("查詢準備失敗：" . mysqli_error($link));
@@ -25,9 +28,9 @@ $結果 = mysqli_stmt_get_result($stmt);
 
 if ($結果 && $row = mysqli_fetch_assoc($結果)) {
     // 設置角色
-    if ($row['grade_id'] == 3) {
+    if ($row['grade_id'] == 2) {
         $_SESSION['user_role'] = '醫生';
-    } elseif ($row['grade_id'] == 2) {
+    } elseif ($row['grade_id'] == 3) {
         $_SESSION['user_role'] = '護士';
     } else {
         $_SESSION['user_role'] = '未知角色';
@@ -35,6 +38,7 @@ if ($結果 && $row = mysqli_fetch_assoc($結果)) {
 
     // 設置使用者姓名
     $_SESSION['name'] = $row['name'];
+    $_SESSION['user_id'] = $row['user_id'];
 } else {
     echo "<script>alert('無法確定您的角色或名稱，請重新登入。'); window.location.href = 'login.php';</script>";
     exit();
@@ -43,12 +47,13 @@ if ($結果 && $row = mysqli_fetch_assoc($結果)) {
 // 確保角色和姓名已設定
 $user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '未知角色';
 $name = isset($_SESSION['name']) ? $_SESSION['name'] : '未知姓名';
+$user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
 
 // 取得所有醫院資料
-$city = $_POST["city"];
-$area = $_POST["area"];
-$hospital = $_POST["hospital"];
-$department = $_POST["department"];
+$city = isset($_POST["city"]) ? $_POST["city"] : '';
+$area = isset($_POST["area"]) ? $_POST["area"] : '';
+$hospital = isset($_POST["hospital"]) ? $_POST["hospital"] : '';
+$department = isset($_POST["department"]) ? $_POST["department"] : '';
 
 // 建立 SQL 語句
 if (!empty($hospital)) {
@@ -83,9 +88,42 @@ if (mysqli_num_rows($result) > 0) {
     while ($row = mysqli_fetch_assoc($result)) {
         echo "<option value='" . htmlspecialchars($row['hospital_id'], ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($row['hospital'], ENT_QUOTES, 'UTF-8') . "</option>";
     }
-} 
-?>
+} else {
+    echo "<option value=''>查無資料</option>";
+}
 
+// 顯示當前角色
+echo "~歡迎回來~ " . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . "<br/>";
+echo "當前角色: " . htmlspecialchars($_SESSION['user_role'], ENT_QUOTES, 'UTF-8') . "</p>";
+echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"], ENT_QUOTES, 'UTF-8') . "</p>";
+
+// 查詢隸屬醫院和科別資料
+$hospital_query = "SELECT h.hospital, h.department FROM hospital h 
+                   JOIN medical m ON h.hospital_id = m.hospitalH_id 
+                   WHERE m.userA_id = ? OR m.userN_id = ?";
+$hospital_stmt = mysqli_prepare($link, $hospital_query);
+if ($hospital_stmt) {
+    mysqli_stmt_bind_param($hospital_stmt, "ii", $user_id, $user_id);
+    mysqli_stmt_execute($hospital_stmt);
+    $hospital_result = mysqli_stmt_get_result($hospital_stmt);
+    if ($hospital_result && $hospital_row = mysqli_fetch_assoc($hospital_result)) {
+        $departments = explode('、', $hospital_row['department']);
+        echo "隸屬醫院: " . htmlspecialchars($hospital_row['hospital'], ENT_QUOTES, 'UTF-8') . "</p>";
+        echo "科別: " . htmlspecialchars($departments[0], ENT_QUOTES, 'UTF-8') . "</p><br/>";
+    } else {
+        echo "隸屬醫院: 查無資料</p>";
+        echo "科別: 查無資料</p><br/>";
+    }
+    mysqli_stmt_close($hospital_stmt);
+} else {
+    echo "隸屬醫院: 查詢失敗</p>";
+    echo "科別: 查詢失敗</p><br/>";
+}
+
+mysqli_stmt_close($stmt);
+mysqli_close($link);
+
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -202,13 +240,6 @@ if (mysqli_num_rows($result) > 0) {
     </div>
     <!-- 頁首 End -->
 
-    <?php    
-    // 顯示當前角色
-    echo "~歡迎回來~ " . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . "<br/>";
-    echo "當前角色: " . htmlspecialchars($_SESSION['user_role'], ENT_QUOTES, 'UTF-8') . "</p>";
-    echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"], ENT_QUOTES, 'UTF-8') . "</p>";
-    ?>
-
     <div class="container-fluid"></div>
     <section class="resume-section p-0" id="about"> <!-- 將內邊距設為 0 -->
         <div class="my-auto">
@@ -256,11 +287,11 @@ if (mysqli_num_rows($result) > 0) {
 
             if ($是否刪除成功) {
                 // 刪除成功後顯示所有資料
-                $查詢語句 = "SELECT * FROM patients";
+                $查詢語句 = "SELECT * FROM patient";
                 $查詢結果 = mysqli_query($link, $查詢語句);
             } else {
                 // 查詢總記錄數
-                $總記錄數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM patients");
+                $總記錄數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM patient");
                 if (!$總記錄數查詢) {
                     die("查詢失敗: " . mysqli_error($link));
                 }
@@ -279,19 +310,20 @@ if (mysqli_num_rows($result) > 0) {
                 $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
 
                 // 查詢當前頁碼的資料
-                $查詢結果 = mysqli_query($link, "SELECT * FROM patients LIMIT $起始位置, $每頁記錄數");
+                $查詢結果 = mysqli_query($link, "SELECT * FROM patient LIMIT $起始位置, $每頁記錄數");
             }
 
             if (!$查詢結果) {
                 die("查詢失敗: " . mysqli_error($link));
             }
+
             ?>
+
 
             <table border="1">
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>日期</th>
                         <th>病例號</th>
                         <th>患者姓名</th>
                         <th>性別</th>
@@ -306,23 +338,23 @@ if (mysqli_num_rows($result) > 0) {
                 <tbody>
                     <?php while ($資料列 = mysqli_fetch_assoc($查詢結果)): ?>
                         <tr>
-                            <td><?php echo htmlspecialchars($資料列['id']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['dateday']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['patient_id']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['medicalnumber']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['patientname']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['gender']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['birthdaydate']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['department']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['doctorname']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['consultationperiod']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['gender_id']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['birthday']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['hospital_id']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['doctorshift_id']); ?></td>
+
+                            <td><?php echo htmlspecialchars($資料列['consultationT_id']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
                             <td>
                                 <form action="看診紀錄修改000.php" method="post" style="display:inline;">
-                                    <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
+                                    <input type="hidden" name="id" value="<?php echo $資料列['patient_id']; ?>">
                                     <button type="submit">修改</button>
                                 </form>
                                 <form method="POST" action="看診紀錄刪除ns.php" style="display:inline;">
-                                    <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
+                                    <input type="hidden" name="id" value="<?php echo $資料列['patient_id']; ?>">
                                     <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
                                 </form>
                             </td>
