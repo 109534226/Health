@@ -1,46 +1,68 @@
 <?php
-session_start();
-include "db.php";
+session_start(); // 啟動 Session，讓伺服器能夠追蹤使用者的登入狀態
+include "db.php"; // 引入資料庫連線檔案
 
-// 確認是否登入
-if (!isset($_SESSION["登入狀態"])) {
-    header("Location: login.html");
-    exit;
+// 確認使用者是否已登入
+if (!isset($_SESSION["登入狀態"]) || $_SESSION["登入狀態"] !== true) {
+    // 如果 Session 中沒有設定登入狀態，或狀態不為 true，則跳轉到登入頁面
+    header("Location: login.php"); // 跳轉到登入頁面
+    exit(); // 停止後續程式執行
 }
 
-// 獲取使用者帳號
-$帳號 = $_SESSION["帳號"];
+// 從 Session 中獲取使用者的帳號
+$帳號 = $_SESSION["帳號"]; // 取得使用者的帳號，通常在登入時已設置到 Session 中
 
-// 查詢該帳號的使用者資料
-$SQL檢查 = "SELECT * FROM people WHERE name = '$帳號'";
-$result = mysqli_query($link, $SQL檢查);
-$userData = mysqli_fetch_assoc($result);
+// 使用 SQL 查詢語句，從資料庫中查詢該帳號對應的詳細資料
+$SQL檢查 = "
+    SELECT 
+        user.name AS username,      -- 從 user 表中獲取使用者名稱
+        people.birthday,           -- 從 people 表中獲取出生年月日
+        people.idcard,             -- 從 people 表中獲取身分證字號
+        people.phone,              -- 從 people 表中獲取電話
+        people.email,              -- 從 people 表中獲取電子郵件
+        people.ecname,             -- 從 people 表中獲取緊急聯絡人姓名
+        people.ecphone,            -- 從 people 表中獲取緊急聯絡人電話
+        people.image               -- 從 people 表中獲取頭像
+    FROM user
+    JOIN people ON user.user_id = people.user_id -- 通過 user_id 建立關聯，確保查詢對應的詳細資料
+    WHERE user.account = '$帳號' -- 篩選出符合該帳號的用戶
+";
 
-// 將資料填入表單欄位
-$姓名 = $userData['username'] ?? '';
-$出生年月日 = $userData['birthday'] ?? '';
-$身分證字號 = $userData['idcard'] ?? '';
-$電話 = $userData['phone'] ?? '';
-$電子郵件 = $userData['email'] ?? '';
-$緊急聯絡人 = $userData['ecname'] ?? '';
-$緊急聯絡人電話 = $userData['ecphone'] ?? '';
+// 執行查詢語句，並檢查是否有錯誤
+$result = mysqli_query($link, $SQL檢查); // 將查詢結果存入 $result
+$userData = mysqli_fetch_assoc($result); // 將結果轉為關聯陣列格式
 
-// 頭像設置
-$profilePicture = !empty($userData['image'])
-    ? 'data:image/jpeg;base64,' . base64_encode($userData['image'])
-    : 'img/300.jpg';
+// 如果查無結果，說明該帳號的資料不存在
+if (!$userData) {
+    // 提示使用者重新登入，並跳轉到登入頁面
+    echo "<script>
+            alert('無法找到用戶資料，請重新登入。');
+            window.location.href = 'login.php'; // 跳轉到登入頁面
+          </script>";
+    exit(); // 停止後續程式執行
+}
 
-// 防止頁面被瀏覽器緩存
-header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
-header("Pragma: no-cache");
+// 將查詢到的資料填入變數，用於後續表單顯示
+$姓名 = $userData['username'] ?? ''; // 使用者名稱，默認為空字串
+$出生年月日 = $userData['birthday'] ?? ''; // 出生年月日，默認為空字串
+$身分證字號 = $userData['idcard'] ?? ''; // 身分證字號，默認為空字串
+$電話 = $userData['phone'] ?? ''; // 電話號碼，默認為空字串
+$電子郵件 = $userData['email'] ?? ''; // 電子郵件，默認為空字串
+$緊急聯絡人 = $userData['ecname'] ?? ''; // 緊急聯絡人姓名，默認為空字串
+$緊急聯絡人電話 = $userData['ecphone'] ?? ''; // 緊急聯絡人電話號碼，默認為空字串
 
-// if (isset($_GET['error'])) {
-//     echo "<script>alert('" . $_GET['error'] . "');</script>";
-// } elseif (isset($_GET['success'])) {
-//     echo "<script>alert('" . $_GET['success'] . "');</script>";
-// }
+// 設置頭像的顯示路徑
+$profilePicture = !empty($userData['image']) // 如果資料庫中有頭像數據
+    ? 'data:image/jpeg;base64,' . base64_encode($userData['image']) // 將頭像數據轉為 base64 格式，方便在網頁中直接嵌入
+    : 'img/300.jpg'; // 如果頭像數據為空，使用預設的頭像圖片
+
+// 設置 HTTP 標頭，防止頁面被瀏覽器緩存
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0"); // 不允許瀏覽器緩存頁面內容
+header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // 設定頁面已過期的時間為一個很早的時間點
+header("Pragma: no-cache"); // HTTP/1.0 的緩存控制，強制不緩存
+
 ?>
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 

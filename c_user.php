@@ -98,6 +98,39 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             margin: 0;
             padding: 0;
         }
+
+        table {
+            width: 100%;
+            /* 設定表格寬度為 100% */
+            border-collapse: collapse;
+            /* 將內框和外框線合併，避免雙線 */
+            border: 2px solid black;
+            /* 外框，設定表格外邊框線 */
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            /* 內框，設定每個表格單元格之間的邊框 */
+            padding: 10px;
+            /* 單元格內部的間距 */
+            text-align: center;
+            /* 將文字置中 */
+        }
+
+        thead {
+            background-color: #f2f2f2;
+            /* 表頭背景顏色 */
+            font-weight: bold;
+            /* 設置表頭文字為粗體 */
+            font-size: 1.5em;
+            /* 設置表頭文字大小 */
+        }
+
+        tbody td {
+            font-size: 1.2em;
+            /* 設置表格內容文字大小 */
+        }
     </style>
     <script>
         // 用戶成功登入後，設置登錄狀態
@@ -168,94 +201,90 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     <!-- 刪除帳號對話框 End -->
 
     <?php
-    include 'db.php';
+// 啟動 Session，確保能夠使用 Session 來存儲和共享資料
+session_start();
 
-    $sql = "SELECT * FROM user";
-    $result = mysqli_query($link, $sql);
+// 引入資料庫連線檔案
+include 'db.php';
 
-    if (!$result) {
-        die("Query Failed: " . mysqli_error($link));
-    }
+// 查詢 `user` 表與 `grade` 表的資料，通過 `grade_id` 進行關聯，並按 `user.id` 升序排序
+$sql = "
+    SELECT user.user_id AS id, user.name AS username, user.account, user.password, grade.grade
+    FROM user
+    LEFT JOIN grade ON user.grade_id = grade.grade_id
+    ORDER BY user.user_id ASC
+";
 
-    // 將所有查詢結果放入陣列中
-    $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
-    ?>
-    <!-- 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>用戶管理</title>
-</head>
-<body> -->
-    <h1>用戶管理</h1>
-    <a href="新增用戶.php">新增用戶</a>
-    <table while="100%" border="1">
+// 執行查詢並將結果存入 $result
+$result = mysqli_query($link, $sql);
+
+// 檢查查詢是否成功，如果失敗則終止並顯示錯誤訊息
+if (!$result) {
+    die("查詢失敗: " . mysqli_error($link));
+}
+
+// 將查詢到的所有結果放入一個關聯陣列中，方便後續使用
+$rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+?>
+
+<!-- 顯示頁面標題 -->
+<h1>用戶管理</h1>
+
+<!-- 顯示新增用戶的連結，點擊後可以跳轉到新增用戶的表單 -->
+<a href="新增用戶.php">新增用戶</a>
+
+<!-- 建立一個表格來顯示用戶資料 -->
+<table width="100%" border="1">
+    <tr>
+        <th>ID</th>
+        <th>用戶名</th>
+        <th>帳號</th>
+        <th>角色</th>
+        <th>操作</th>
+    </tr>
+
+    <!-- 使用 PHP 循環顯示每一筆查詢結果 -->
+    <?php foreach ($rows as $row): ?>
         <tr>
-            <th>ID</th>
-            <th>用戶名</th>
-            <th>電子郵件</th>
-            <th>角色</th>
-            <th>狀態</th>
-            <!-- <th>操作</th> -->
+            <!-- 顯示用戶的 ID -->
+            <td><?php echo $row['id']; ?></td>
+
+            <!-- 顯示用戶的姓名 -->
+            <td><?php echo htmlspecialchars($row['username']); ?></td>
+
+            <!-- 顯示用戶的帳號 -->
+            <td><?php echo htmlspecialchars($row['account']); ?></td>
+
+            <!-- 顯示用戶的角色名稱 -->
+            <td><?php echo htmlspecialchars($row['grade']); ?></td>
+
+            <!-- 操作選項：編輯和刪除 -->
+            <td>
+                <?php
+                // 儲存 `username` 到 Session，供後續使用
+                $_SESSION['編輯用戶'] = $row['username'];
+                ?>
+
+                <!-- 帶入帳號到編輯表單，點擊後可以跳轉到編輯用戶的頁面 -->
+                <a href="編輯用戶.php?name=<?php echo urlencode($row['username']); ?>"
+                   onclick="return confirm('你要編輯帳號為 <?php echo $row['account']; ?>，姓名為 <?php echo $row['username']; ?> 這位用戶嗎？');">
+                   編輯
+                </a>
+
+                <!-- 刪除用戶的連結，點擊後可以跳轉到刪除用戶的頁面 -->
+                <a href="刪除用戶.php?id=<?php echo $row['id']; ?>"
+                   onclick="return confirm('確定要刪除這位用戶嗎？');">
+                   刪除
+                </a>
+            </td>
         </tr>
-        <?php foreach ($rows as $row): ?>
-            <tr>
-                <td><?php echo $row['id']; ?></td>
-                <td><?php echo $row['username']; ?></td> <!-- 姓名 -->
-                <td><?php echo $row['email']; ?></td>
-                <td><?php echo $row['grade']; ?></td>
-                <td>
-                    <?php
-                    // 儲存 `name` 到 Session，供後續使用
-                    $_SESSION['編輯用戶'] = $row['name'];
-                    ?>
-                    <!-- 帶入帳號到編輯表單 -->
-                    <a href="編輯用戶.php?name=<?php echo urlencode($row['name']); ?>"
-                        onclick="return confirm('你要編輯帳號為 <?php echo $row['name']; ?>，姓名為 <?php echo $row['username']; ?> 這位用戶嗎？');">編輯</a>
-                    <a href="刪除用戶.php?id=<?php echo $row['id']; ?>" onclick="return confirm('確定要刪除這位用戶嗎？');">刪除</a>
-                </td>
-            </tr>
-        <?php endforeach; ?>
-    </table>
+    <?php endforeach; ?>
+</table>
 
-    <style>
-        table {
-            width: 100%;
-            /* 設定表格寬度為 100% */
-            border-collapse: collapse;
-            /* 將內框和外框線合併，避免雙線 */
-            border: 2px solid black;
-            /* 外框，設定表格外邊框線 */
-        }
-
-        th,
-        td {
-            border: 1px solid black;
-            /* 內框，設定每個表格單元格之間的邊框 */
-            padding: 10px;
-            /* 單元格內部的間距 */
-            text-align: center;
-            /* 將文字置中 */
-        }
-
-        thead {
-            background-color: #f2f2f2;
-            /* 表頭背景顏色 */
-            font-weight: bold;
-            /* 設置表頭文字為粗體 */
-            font-size: 1.5em;
-            /* 設置表頭文字大小 */
-        }
-
-        tbody td {
-            font-size: 1.2em;
-            /* 設置表格內容文字大小 */
-        }
-    </style>
-
-
-
-
+<?php
+// 關閉資料庫連線
+mysqli_close($link);
+?>
 
 
     <!-- JavaScript -->

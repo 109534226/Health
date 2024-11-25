@@ -1,20 +1,20 @@
 <?php
 session_start();
-include 'db.php';
+include 'db.php'; // 引入資料庫連線檔案
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // 從表單接收資料
     $name = $_POST["name"]; // 帳號
-    $username = $_POST["username"]; // 姓名
+    $username = $_POST["name"]; // 姓名
     $password = $_POST["password"]; // 明文密碼
-    $email = $_POST["email"]; // 電子郵件
-    $grade = intval($_POST["grade"]); // 等級
+    $grade_id = intval($_POST["grade_id"]); // 等級 ID
 
-    // 執行更新
-    $sql = "UPDATE user SET `username` = ?, `password` = ?, `email` = ?, `grade` = ? WHERE `name` = ?";
-    $stmt = mysqli_prepare($link, $sql);
-    mysqli_stmt_bind_param($stmt, "sssis", $username, $password, $email, $grade, $name);
+    // 更新 `user` 表中的資料
+    $sql = "UPDATE user SET `name` = ?, `password` = ?, `grade_id` = ? WHERE `name` = ?";
+    $stmt = mysqli_prepare($link, $sql); // 準備 SQL 語句
+    mysqli_stmt_bind_param($stmt, "ssis", $username, $password, $grade_id, $name); // 綁定參數
 
+    // 執行查詢並檢查結果
     if (mysqli_stmt_execute($stmt)) {
         if (mysqli_stmt_affected_rows($stmt) > 0) {
             echo "<script>
@@ -34,8 +34,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
               </script>";
     }
 
-    mysqli_stmt_close($stmt);
+    mysqli_stmt_close($stmt); // 關閉查詢語句
 }
 
-mysqli_close($link);
+mysqli_close($link); // 關閉資料庫連線
 ?>
