@@ -1,145 +1,35 @@
 <?php
 session_start();
-// 引入資料庫連線
-include('db.php');
+include "db.php";
 
-// 檢查是否登入
+// 確認是否登入
 if (!isset($_SESSION["登入狀態"])) {
     header("Location: login.html");
     exit;
 }
 
-// 防止頁面被瀏覽器快取
+// 獲取使用者帳號
+$帳號 = $_SESSION["帳號"];
+
+// 防止頁面被瀏覽器緩存
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 header("Pragma: no-cache");
 
-// 清除輸出緩衝區
-ob_clean();
-flush();
-
-// 檢查帳號和姓名是否存在於 $_SESSION 中
-if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
-    // 獲取使用者帳號和姓名
-    $account = $_SESSION['帳號'];
-    $name = $_SESSION['姓名'];
-} else {
-    echo "<script>
-            alert('會話過期或資料遺失，請重新登入。');
-            window.location.href = 'login.html';
-          </script>";
-    exit();
-}
-
-// 獲取目前的日期
-$currentDate = date('Y-m-d');
-
-// 查詢醫生班表的SQL語句
-$query = "SELECT * FROM doctorshift WHERE dateday >= '$currentDate' ORDER BY dateday ASC";
-$result = mysqli_query($link, $query);
-
-// 初始化陣列來儲存早、午、晚班的資料
-$morningShifts = [];
-$afternoonShifts = [];
-$eveningShifts = [];
-
-// 根據不同的班次來分類資料
-while ($row = mysqli_fetch_assoc($result)) {
-    switch ($row['consultationperiod']) {
-        case '早':
-            $morningShifts[] = $row;
-            break;
-        case '午':
-            $afternoonShifts[] = $row;
-            break;
-        case '晚':
-            $eveningShifts[] = $row;
-            break;
-    }
-}
-
-// 從 profession 資料表中獲取醫生名稱對應的使用者名稱
-$doctorUsernames = [];
-$professionQuery = "SELECT name, username FROM profession";
-$professionResult = mysqli_query($link, $professionQuery);
-while ($professionRow = mysqli_fetch_assoc($professionResult)) {
-    $doctorUsernames[$professionRow['name']] = $professionRow['username'];
-}
-
-// 顯示排班資訊的函數
-function displayShifts($shifts, $timePeriod)
-{
-    global $doctorUsernames;
-    echo "<div class='shift-section'>";
-    echo "<h2>$timePeriod:</h2>";
-    echo "<table class='table table-bordered'>";
-    echo "<thead><tr class='bg-success text-white' style='color: white;'><th style='text-align: center;'>診間號</th>";
-    for ($i = 0; $i < 7; $i++) {
-        // 顯示表格標頭，包含星期幾和日期
-        $dayOffset = "+$i day";
-        $date = date('Y-m-d', strtotime($dayOffset));
-        $dayName = date('l', strtotime($dayOffset));
-        $weekDaysCn = [
-            'Monday' => '星期一',
-            'Tuesday' => '星期二',
-            'Wednesday' => '星期三',
-            'Thursday' => '星期四',
-            'Friday' => '星期五',
-            'Saturday' => '星期六',
-            'Sunday' => '星期日'
-        ];
-        $dayNameCn = $weekDaysCn[$dayName];
-        echo "<th style='text-align: center;'>$dayNameCn<br>" . date('m-d', strtotime($date)) . "</th>";
-    }
-    echo "</tr></thead>";
-
-    // 顯示每一天的班次資訊
-    echo "<tbody>";
-    $clinicNumbers = array_unique(array_column($shifts, 'clinicnumber'));
-    foreach ($clinicNumbers as $clinicNumber) {
-        echo "<tr>";
-        echo "<td style='color: red; font-weight: bold; text-align: center;'>$clinicNumber</td>";
-        for ($i = 0; $i < 7; $i++) {
-            $dayOffset = "+$i day";
-            $date = date('Y-m-d', strtotime($dayOffset));
-            $hasShift = false;
-            foreach ($shifts as $shift) {
-                if ($shift['clinicnumber'] == $clinicNumber && $shift['dateday'] == $date) {
-                    $doctorName = $shift['doctorname'];
-                    $username = isset($doctorUsernames[$doctorName]) ? $doctorUsernames[$doctorName] : $doctorName;
-                    $registeredCount = $shift['Nregistered'];
-                    echo "<td style='font-weight: bold; text-align: center;'>$username</br>目前預約人數為:$registeredCount</td>";
-                    $hasShift = true;
-                    break;
-                }
-            }
-            if (!$hasShift) {
-                echo "<td style='font-weight: bold; text-align: center;'></td>";
-            }
-        }
-        echo "</tr>";
-    }
-    echo "</tbody>";
-    echo "</table>";
-    echo "</div>";
-}
-
-// 顯示早、午、晚班排班資訊
 ?>
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 
 <head>
     <meta charset="utf-8">
     <title>健康醫療網站</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="Free HTML Templates" name="keywords">
-    <meta content="Free HTML Templates" name="description">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <meta content="Health Website" name="keywords">
+    <meta content="Health Website" name="description">
+
     <!-- Favicon -->
     <link href="img/favicon.ico" rel="icon">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link
@@ -159,22 +49,9 @@ function displayShifts($shifts, $timePeriod)
 
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
+
+    <!-- 自訂樣式 -->
     <style>
-        .table th,
-        .table td {
-            text-align: center;
-            vertical-align: middle;
-            font-weight: bold;
-        }
-
-        .table th {
-            color: white;
-        }
-
-        .table td {
-            color: black;
-        }
-
         /* 彈出對話框的樣式 */
         .logout-box {
             position: fixed;
@@ -209,6 +86,75 @@ function displayShifts($shifts, $timePeriod)
             margin: 0;
             padding: 0;
         }
+
+        /* 表單樣式調整 */
+        .form-title {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            color: #00695c;
+            /* 使用醫療相關的深綠色 */
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #004d40;
+            /* 深綠色以突出標籤文字 */
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #80cbc4;
+            /* 使用健康綠色作為邊框顏色 */
+            background-color: #e0f2f1;
+            /* 淺綠色背景，讓輸入框顯得舒適 */
+            padding: 10px;
+        }
+
+        .form-control:focus {
+            border-color: #004d40;
+            /* 在聚焦時強調邊框顏色 */
+            box-shadow: 0 0 8px rgba(0, 77, 64, 0.4);
+            /* 聚焦效果，增加陰影 */
+        }
+
+        .btn-primary {
+            background-color: #00796b;
+            border-color: #00796b;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+
+        .btn-primary:hover {
+            background-color: #004d40;
+            border-color: #004d40;
+        }
+
+        .btn-secondary {
+            background-color: #b2dfdb;
+            border-color: #b2dfdb;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+
+        .btn-secondary:hover {
+            background-color: #80cbc4;
+            border-color: #80cbc4;
+        }
+
+        .btn-container {
+            text-align: center;
+            margin-top: 20px;
+        }
     </style>
     <script>
         // 用戶成功登入後，設置登錄狀態
@@ -217,12 +163,11 @@ function displayShifts($shifts, $timePeriod)
 </head>
 
 <body>
-
     <!-- 頁首 Start -->
     <div class="container-fluid sticky-top bg-white shadow-sm mb-5">
         <div class="container">
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
-                <a href="u_index.php" class="navbar-brand">
+                <a href="index.html" class="navbar-brand">
                     <h1 class="m-0 text-uppercase text-primary"><i class="fa fa-clinic-medical me-2"></i>健康醫療網站</h1>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
@@ -232,7 +177,7 @@ function displayShifts($shifts, $timePeriod)
                     <div class="navbar-nav ms-auto py-0">
                         <a href="u_index.php" class="nav-item nav-link">首頁</a>
                         <a href="u_medical.php" class="nav-item nav-link">相關醫療資訊</a>
-                        <a href="u_map.php" class="nav-item nav-link  active">預約及現場掛號人數</a>
+                        <a href="u_map.php" class="nav-item nav-link active">預約及現場掛號人數</a>
                         <a href="u_story.php" class="nav-item nav-link">患者故事與經驗分享</a>
                         <div class="nav-item">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
@@ -243,9 +188,10 @@ function displayShifts($shifts, $timePeriod)
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
-                                <form id="deleteAccountForm" action="刪除.php" method="POST" style="display:none;">
-                                    <input type="hidden" name="user_id" value="12345"> <!-- 用戶ID，從後端獲取 -->
-                                </form>
+                                <from id="deleteAccountForm" action="刪除.php" method="POST" style="display:none;">
+                                    <input type="hidden" name="帳號" value="<?php echo $帳號; ?>">
+                                    <input type="hidden" name="姓名" value="<?php echo $姓名; ?>">
+                                </from>
                             </ul>
                         </div>
                     </div>
@@ -254,6 +200,8 @@ function displayShifts($shifts, $timePeriod)
         </div>
     </div>
     <!-- 頁首 End -->
+    <!-- 回到頁首(Top 箭頭 -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
 
     <!-- 登出對話框 Start -->
     <div id="logoutBox" class="logout-box">
@@ -264,26 +212,6 @@ function displayShifts($shifts, $timePeriod)
         </div>
     </div>
     <!-- 登出對話框 End -->
-
-    <!-- 回到頁首(Top 箭頭 -->
-    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
-
-    <!-- JavaScript -->
-    <script>
-        function showLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'flex';
-        }
-
-        function hideLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'none';
-        }
-
-        function logout() {
-            alert('你已經登出！');
-            hideLogoutBox();
-            window.location.href = 'index.html'; // 替換為登出後的頁面
-        }
-    </script>
 
     <!-- 刪除帳號對話框 Start -->
     <div id="deleteAccountBox" class="logout-box">
@@ -325,47 +253,200 @@ function displayShifts($shifts, $timePeriod)
             document.getElementById('deleteAccountForm').submit();
         }
     </script>
-    <!-- 返回按鈕 Start -->
-    <div class="container mb-5">
-        <button id="backButton" class="btn btn-success btn-lg">返回</button>
-    </div>
-    <!-- 返回按鈕 End -->
 
-    <script>
-        document.getElementById('backButton').addEventListener('click', function () {
-            // 使用瀏覽器的返回功能
-            window.history.back();
-        });
-    </script>
+    <div class="container mt-5">
+        <div class="card p-4">
+            <div class="form-title">預約資料填寫</div>
+            <form action="reserve_action.php" method="post">
+                <div class="form-group">
+                    <div class="form-group">
+                        <label for="department">科別</label>
+                        <input type="text" class="form-control" id="department" name="department" required>
+                    </div>
+                    <label for="consultationtime">看診時間</label>
+                    <select class="form-control" id="consultationtime" name="consultationtime" required>
+                        <option value="">請選擇看診時間</option>
+                        <option value="上午">上午</option>
+                        <option value="下午">下午</option>
+                        <option value="晚上">晚上</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="doctor">醫生</label>
+                    <select class="form-control" id="doctor" name="doctor" required>
+                        <option value="">請選擇醫生</option>
+                        <?php foreach ($doctors as $doctor): ?>
+                            <option value="<?php echo $doctor; ?>"><?php echo $doctor; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="patientname">姓名</label>
+                    <input type="text" class="form-control" id="patientname" name="patientname" required>
+                </div>
+                <div class="form-group">
+                    <label for="idcard">身分證字號</label>
+                    <input type="text" class="form-control" id="idcard" name="idcard" required>
+                </div>
+                <div class="form-group">
+                    <label for="birthday">出生年月日</label>
+                    <input type="date" class="form-control" id="birthday" name="birthday" required
+                        max="<?php echo date('Y-m-d'); ?>" min="<?php echo date('Y-m-d', strtotime('-120 years')); ?>">
+                </div>
+                <div class="form-group">
+                    <label for="phone">行動電話</label>
+                    <input type="text" class="form-control" id="phone" name="phone" required>
+                </div>
 
-    <main>
-        <div class="container">
-            <?php
-            // 顯示各個時段的排班
-            displayShifts($morningShifts, '上午診');
-            displayShifts($afternoonShifts, '下午診');
-            displayShifts($eveningShifts, '晚上診');
-            ?>
+                <div class="form-group">
+                    <label for="address">地址</label>
+                    <input type="text" class="form-control" id="address" name="address" required>
+                </div>
+                <div class="form-group">
+                    <label for="allergies">過敏藥物</label>
+                    <textarea class="form-control" id="allergies" name="allergies" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="medicalhistory">歷史重大疾病</label>
+                    <textarea class="form-control" id="medicalhistory" name="medicalhistory" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" onclick="confirmData()">確認送出</button>
+                <button type="button" class="btn btn-secondary" onclick="window.history.back()">返回</button>
+            </form>
         </div>
-    </main>
-    <!-- "我要預約" 按鈕 Start -->
-    <div class="container text-center mb-5">
-        <button id="reserveButton" class="btn btn-primary btn-lg">我要預約</button>
     </div>
-    <!-- "我要預約" 按鈕 End -->
-
     <script>
-        document.getElementById('reserveButton').addEventListener('click', function () {
-            // 點擊“我要預約”按鈕後跳轉至預約頁面，修改為你的預約頁面 URL
-            window.location.href = 'u_registration.php';
-        });
+        // 確認資料並顯示 alert
+        function confirmData() {
+            const patientname = document.getElementById('patientname').value;
+            const birthday = document.getElementById('birthday').value;
+            const idcard = document.getElementById('idcard').value;
+            const userphone = document.getElementById('userphone').value;
+            // 驗證欄位格式
+
+            // 姓名驗證: 空白檢查與格式檢查（只允許中文、英文和數字）
+            if (!patientname) {
+                alert('姓名欄位不能為空');
+                return;
+            } else if (!/^[\u4E00-\u9FA5a-zA-Z0-9]+$/.test(patientname)) {
+                alert('姓名格式錯誤，只能包含中文、英文和數字，不能包含特殊符號');
+                return;
+            }
+
+            // 出生年月日驗證: 空白檢查
+            if (!birthday) {
+                alert('出生年月日欄位不能為空');
+                return;
+            }
+
+            // 台灣身分證字號驗證函數
+            function validateTaiwanID(identityNumber) {
+                // 檢查身分證字號是否符合正則格式
+                const identityFormat = /^[A-Z][1-2]\d{8}$/;
+                if (!identityFormat.test(identityNumber)) {
+                    alert("身分證字號格式錯誤，請確認格式是否正確！");
+                    return false;
+                }
+
+                // 首字母對應的數字範圍
+                const letterToNumberMap = {
+                    "A": 10, "B": 11, "C": 12, "D": 13, "E": 14, "F": 15, "G": 16,
+                    "H": 17, "J": 18, "K": 19, "L": 20, "M": 21, "N": 22, "P": 23,
+                    "Q": 24, "R": 25, "S": 26, "T": 27, "U": 28, "V": 29, "X": 30,
+                    "W": 31, "Y": 32, "Z": 33, "I": 34, "O": 35
+                };
+
+                // 取得字母部分
+                const firstLetter = identityNumber[0];
+
+                // 檢查字母是否合法
+                if (!letterToNumberMap.hasOwnProperty(firstLetter)) {
+                    alert("身分證字號的首字母無效！");
+                    return false;
+                }
+
+                // 轉換字母為數字
+                const firstLetterNumber = letterToNumberMap[firstLetter];
+
+                // 拆解身分證字號，取得每個數字
+                const digits = identityNumber.slice(1).split("").map(Number);
+
+                // 以身分證字號的第一個字母轉換成兩位數，並與後續數字結合
+                const firstDigit = Math.floor(firstLetterNumber / 10); // 取得字母數字的十位數
+                const secondDigit = firstLetterNumber % 10;           // 取得字母數字的個位數
+
+                // 將所有數字組成一個陣列
+                const fullDigits = [firstDigit, secondDigit, ...digits];
+
+                // 計算加權總和：每一位數字與對應的權重值相乘，然後求和
+                const weights = [1, 9, 8, 7, 6, 5, 4, 3, 2, 1, 1];  // 權重值
+                let weightedSum = 0;
+                for (let i = 0; i < fullDigits.length; i++) {
+                    // console.log(fullDigits[i]);
+
+                    // // 顯示在提示框中
+                    // alert(fullDigits[i]);
+                    weightedSum += fullDigits[i] * weights[i];
+                }
+                // console.log(weightedSum);
+
+                // // 顯示在提示框中
+                // alert(weightedSum);
+
+                // 檢查加權總和是否能被 10 整除
+                if (weightedSum % 10 !== 0) {
+                    alert("身分證字號無效，請確認輸入的字號！");
+                    return false;
+                }
+
+                // 如果檢查通過，返回 true
+                return true;
+            }
+
+            // 用法範例
+            const identityNumber = document.getElementById("idcard").value;  // 假設身分證欄位的ID是 idcard
+            if (!validateTaiwanID(identityNumber)) {
+                return; // 若驗證失敗，則不繼續提交表單
+            }
+
+
+            // 聯絡電話驗證: 台灣手機號碼格式（09開頭，後面8位數字，且不允許後8位數出現6位或以上的重複數字）
+            const phonePattern = /^09\d{8}$/;
+            const repeatedPattern = /(\d)\1{5,}/; // 檢查是否有6個或更多相同的數字連續出現
+
+            if (!phone) {
+                alert('聯絡電話欄位不能為空');
+                return;
+            } else if (!phonePattern.test(phone)) {
+                alert('聯絡電話格式錯誤，台灣手機號碼需為09開頭並有8位數字');
+                return;
+            } else if (repeatedPattern.test(phone.slice(2))) {
+                alert('聯絡電話格式錯誤，後面8位數字不可出現6位或以上重複的數字');
+                return;
+            }
+
+            // 組合要顯示在 alert 的訊息
+            const confirmMessage =
+                `請確認您的資料:\n` +
+                `姓名: ${patientname}\n` +
+                `出生年月日: ${birthday}\n` +
+                `身分證字號: ${idcard}\n` +
+                `行動電話: ${phone}\n` +
+                `確定要提交資料嗎？`;
+
+            // 顯示確認 alert
+            if (confirm(confirmMessage)) {
+                document.querySelector('form').submit(); // 確認後提交表單
+            }
+        }
     </script>
+
 
     <!-- 頁尾 Start -->
     <div class="container-fluid bg-dark text-light mt-5 py-5">
         <div class="container py-5">
+            <!--快速連結-->
             <div class="row g-5">
-                <!-- 快速連結 -->
                 <div class="col-lg-3 col-md-6">
                     <h4 class="d-inline-block text-primary text-uppercase border-bottom border-5 border-secondary mb-4">
                         快速連結</h4>
@@ -474,12 +555,10 @@ function displayShifts($shifts, $timePeriod)
                     });
                 </script>
 
-
             </div>
         </div>
     </div>
     <!-- 頁尾 End -->
-
 
 
     <!-- 回到頁首(Top 箭頭 -->
@@ -487,7 +566,7 @@ function displayShifts($shifts, $timePeriod)
 
 
     <!-- JavaScript Libraries -->
-    <!-- <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script> -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="lib/easing/easing.min.js"></script>
     <script src="lib/waypoints/waypoints.min.js"></script>
@@ -501,7 +580,3 @@ function displayShifts($shifts, $timePeriod)
 </body>
 
 </html>
-<?php
-// 關閉資料庫連接
-mysqli_close($link);
-?>

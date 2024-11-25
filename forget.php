@@ -81,33 +81,10 @@ Author URL: http://w3layouts.com
 						<div class="form-input">
 							<input type="text" name="email" placeholder="電子郵件" required="">
 						</div>
-							<!--
-						<div class="new-signup">
-							<a href="#reload" class="signuplink" style="float:right">傳送驗證碼 </a>
-						</div>
-						
-						<div class="form-input">
-							<input type="text" name="PIN" placeholder="驗證碼" required="">
-						</div>
-					
-						<div class="form-input">
-							<input type="text" name="Username" placeholder="新帳號" required="" autofocus>
-						</div>
-						<div class="form-input">
-							<input type="password" name="password" placeholder="新密碼" required="">
-						</div>
-						
-						<label class="check-remaind">
-							<input type="checkbox">
-							<span class="checkmark"></span>
-							<p class="remember">記住我</p>
-						</label>
-
-						-->
 						<button type="submit" class="btn btn-primary theme-button mt-4">確定</button>
-						<div class="new-signup">
+						<!-- <div class="new-signup">
 							<a href="#reload" class="signuplink">聯繫客服</a>
-						</div>
+						</div> -->
 					</form>
 					<p class="signup">想到密碼了? <a href="Login.html" class="signuplink">登入</a></p>
 				</div>

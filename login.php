@@ -103,10 +103,10 @@
                     <h3>登入</h3>
                     <form action="登入.php" method="POST" class="signin-form">
                         <div class="form-input">
-                            <input type="text" name="name" placeholder="帳號" required="" autofocus>
+                            <input type="text" name="account" placeholder="帳號" required="" autofocus>
                         </div>
                         <div class="form-input">
-                            <input type="password" name="passwd" placeholder="密碼" required="">
+                            <input type="password" name="password" placeholder="密碼" required="">
                         </div>
                         <button type="submit" class="btn btn-primary theme-button mt-4">登入</button>
                     </form>

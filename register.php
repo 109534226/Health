@@ -77,50 +77,21 @@
 					<h6> </h6>
 					<form action="註冊.php" method="post" class="signin-form">
 						<div class="form-input">
-							<input type="text" name="name" placeholder="帳號" required="" autofocus>
+							<input type="text" name="account" placeholder="帳號" required="" autofocus>
 						</div>
 						<div class="form-input">
 							<input type="password" name="password" placeholder="密碼" required="">
 						</div>
 						<div class="form-input">
-							<input type="text" name="Username" placeholder="姓名" required="">
+							<input type="text" name="name" placeholder="姓名" required="">
 						</div>
 						<div class="form-input">
 							<input type="email" name="email" placeholder="電子郵件" required="">
 						</div>
-						<!-- <div class="form-input">
-							<input type="text" name="verification_code" placeholder="驗證碼" required="">
-							<button type="button" onclick="sendVerificationCode()">發送驗證碼</button>
-							<script>
-								function sendVerificationCode() {
-									const email = document.querySelector('input[name="email"]').value;
-
-									if (email) {
-										fetch('驗證碼.php', {
-											method: 'POST',
-											headers: {
-												'Content-Type': 'application/json',
-											},
-											body: JSON.stringify({ email: email })
-										})
-											.then(response => response.text())
-											.then(data => {
-												alert(data); // 顯示結果
-											})
-											.catch(error => {
-												console.error('Error:', error);
-											});
-									} else {
-										alert("請輸入電子郵件地址。");
-									}
-								}
-							</script>
-
-						</div> -->
 						<button type="submit" class="btn btn-primary theme-button mt-4">註冊</button>
-						<div class="new-signup">
+						<!-- <div class="new-signup">
 							<a href="#reload" class="signuplink">聯繫客服</a>
-						</div>
+						</div> -->
 					</form>
 					<p class="signup">已經有帳號了? <a href="Login.php" class="signuplink">登入</a></p>
 				</div>

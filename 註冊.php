@@ -1,101 +1,99 @@
 <?php
-session_start();
-include "db.php";
+session_start(); // 啟動 Session
+include "db.php"; // 引入資料庫連線檔案
 
-$姓名 = $_POST["Username"];
-$帳號 = $_POST["name"];
+// 接收表單輸入的資料
+$姓名 = $_POST["name"];
+$帳號 = $_POST["account"];
 $密碼 = $_POST["password"];
 $電子郵件 = $_POST["email"];
-$身分 = $_POST["identity"];
 
-// 檢查是否已經存在該帳號
-$SQL檢查 = "SELECT COUNT(*) as cnt FROM `user` WHERE `name` = '$帳號'";
-$result = mysqli_query($link, $SQL檢查);
-$row = mysqli_fetch_assoc($result);
-
-if ($row['cnt'] > 0) {
-    echo "<script>
-            alert('帳號已存在，請選擇其他帳號。');
-            window.location.href = 'register.php';
-        </script>";
-    exit();
-}
-
+// 驗證用戶輸入是否完整
 if ($姓名 == "") {
     echo "<script>
             alert('姓名未輸入');
             window.location.href = 'register.php';
-        </script>";
-    exit; // 添加 exit; 確保不繼續執行
+          </script>";
+    exit; // 確保不繼續執行
 }
 if ($帳號 == "") {
     echo "<script>
             alert('帳號未輸入');
             window.location.href = 'register.php';
-        </script>";
-    exit; // 添加 exit; 確保不繼續執行
+          </script>";
+    exit; // 確保不繼續執行
 }
 if ($密碼 == "") {
     echo "<script>
             alert('密碼未輸入');
             window.location.href = 'register.php';
-        </script>";
-    exit; // 添加 exit; 確保不繼續執行
+          </script>";
+    exit; // 確保不繼續執行
 }
 if ($電子郵件 == "") {
     echo "<script>
             alert('電子郵件未輸入');
             window.location.href = 'register.php';
-        </script>";
-    exit; // 添加 exit; 確保不繼續執行
+          </script>";
+    exit; // 確保不繼續執行
 }
-if ($身分 == "") {
+
+// 檢查是否已經存在該帳號
+$SQL檢查 = "SELECT COUNT(*) as cnt FROM `user` WHERE `account` = '$帳號'";
+$result = mysqli_query($link, $SQL檢查);
+$row = mysqli_fetch_assoc($result);
+
+if ($row['cnt'] > 0) {
+    // 如果帳號已存在，提示用戶並跳轉回註冊頁面
     echo "<script>
-            alert('等級未輸入');
+            alert('帳號已存在，請選擇其他帳號。');
             window.location.href = 'register.php';
-        </script>";
-    exit; // 添加 exit; 確保不繼續執行
+          </script>";
+    exit();
 }
 
-// 插入使用者資料到資料庫
-$SQL指令 = "INSERT INTO `user` (`username`, `name`, `password`, `email`, `grade`) VALUES ('$姓名', '$帳號', '$密碼', '$電子郵件', '$身分');";
+// 預設等級為 "使用者"（grade_id = 1）
+$預設等級 = 1;
 
-// 檢查是否成功執行插入指令
-if ($ret = mysqli_query($link, $SQL指令)) {
-    // 插入成功，查詢剛註冊的使用者，確認身分等級
-    $SQL查詢 = "SELECT `grade` FROM `user` WHERE `name` = '$帳號';";  
-    if ($result = mysqli_query($link, $SQL查詢)) {
-        if ($row = mysqli_fetch_assoc($result)) {
-            // 根據等級導向不同頁面
-            if ($row["grade"] == "0") {  
-                header("Location: login.php?帳號=$帳號"); // 0 使用者
-            } elseif ($row["grade"] == "1") {
-                header("Location: login.html?帳號=$帳號"); // 1 醫生
-            } elseif ($row["grade"] == "2") {
-                header("Location: login.php?帳號=$帳號"); // 2 護士
-            } else {
-                echo "<script>
-                    alert('無效的使用者等級。');
-                    window.location.href = 'register.php';
-                </script>";
-            }
-            exit();
-        } else {
-            echo "<script>
-                    alert('無法取得使用者資訊，請稍後再試！');
-                    window.location.href = 'register.php';
-                </script>";
-        }
+// 插入新使用者到 `user` 表
+$SQL插入使用者 = "
+    INSERT INTO `user` (`name`, `account`, `password`, `grade_id`) 
+    VALUES ('$姓名', '$帳號', '$密碼', '$預設等級');
+";
+
+// 檢查插入是否成功
+if ($ret = mysqli_query($link, $SQL插入使用者)) {
+    // 獲取剛插入的使用者的 user_id
+    $user_id = mysqli_insert_id($link);
+
+    // 插入 `people` 表，對應的詳細個人資料，包含電子郵件
+    $SQL插入個人資料 = "
+        INSERT INTO `people` (`user_id`, `email`) 
+        VALUES ('$user_id', '$電子郵件');
+    ";
+    if ($retPeople = mysqli_query($link, $SQL插入個人資料)) {
+        // 註冊成功，導向使用者個人頁面
+        header("Location: u_profile.php?帳號=$帳號");
+        exit(); // 確保跳轉後不繼續執行
     } else {
+        // 插入個人資料失敗，刪除已插入的 `user` 記錄
+        $SQL刪除使用者 = "DELETE FROM `user` WHERE `user_id` = '$user_id'";
+        mysqli_query($link, $SQL刪除使用者);
         echo "<script>
-                    alert('查詢使用者資料時發生錯誤');
-                    window.location.href = 'register.php';
-                </script>" . mysqli_error($link);
+                alert('新增個人資料失敗，請稍後再試！');
+                window.location.href = 'register.php';
+              </script>";
+        exit();
     }
 } else {
+    // 插入 `user` 表失敗
     echo "<script>
-                    alert('註冊失敗，請稍後再試！');
-                    window.location.href = 'register.php';
-                </script>" . mysqli_error($link);
+            alert('註冊失敗，請稍後再試！');
+            window.location.href = 'register.php';
+          </script>";
+    exit();
 }
+
+// 關閉資料庫連接
+mysqli_close($link);
 ?>
