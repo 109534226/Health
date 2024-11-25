@@ -98,62 +98,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             padding: 0;
         }
     </style>
-    <script>
-        // 用戶成功登入後，設置登錄狀態
-        sessionStorage.setItem('isLoggedIn', 'true');
-
-        document.addEventListener('DOMContentLoaded', function () {
-            // 使用 fetch 獲取 PHP 的資料
-            fetch('文章.php')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('網路請求失敗，狀態碼：' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log(data); // 查看返回的資料
-
-                    const healthContainer = document.getElementById('health-articles-container');
-                    const diseaseContainer = document.getElementById('disease-articles-container');
-
-                    // 顯示健康相關文章
-                    data.health.forEach(item => {
-                        const articleDiv = document.createElement('div');
-                        articleDiv.classList.add('col-xl-4', 'col-lg-6');
-                        articleDiv.innerHTML = `
-                            <div class="bg-light rounded overflow-hidden">
-                                <img class="img-fluid w-100" src="${item.image}" alt="">
-                                <div class="p-4">
-                                    <a class="h3 d-block mb-3" href="${item.url}">${item.title}</a>
-                                    <p class="m-0">${item.subtitle}</p>
-                                    <p style="color: black;font-size:13px;">資料來源: ${item.source}</p>
-                                </div>
-                            </div>
-                        `;
-                        healthContainer.appendChild(articleDiv);
-                    });
-
-                    // 顯示疾病相關文章
-                    data.disease.forEach(item => {
-                        const articleDiv = document.createElement('div');
-                        articleDiv.classList.add('col-xl-4', 'col-lg-6');
-                        articleDiv.innerHTML = `
-                            <div class="bg-light rounded overflow-hidden">
-                                <img class="img-fluid w-100" src="${item.image}" alt="">
-                                <div class="p-4">
-                                    <a class="h3 d-block mb-3" href="${item.url}">${item.title}</a>
-                                    <p class="m-0">${item.subtitle}</p>
-                                    <p style="color: black;font-size:13px;">資料來源: ${item.source}</p>
-                                </div>
-                            </div>
-                        `;
-                        diseaseContainer.appendChild(articleDiv);
-                    });
-                })
-                .catch(error => console.error('錯誤:', error));
-        });
-    </script>
 </head>
 
 <body>
@@ -253,6 +197,63 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     <!-- 相關醫療資訊 Start -->
     <div class="container-fluid py-5">
         <div class="container">
+            <script>
+                // 用戶成功登入後，設置登錄狀態
+                sessionStorage.setItem('isLoggedIn', 'true');
+
+                document.addEventListener('DOMContentLoaded', function () {
+                    // 使用 fetch 獲取 PHP 的資料
+                    fetch('文章.php')
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('網路請求失敗，狀態碼：' + response.status);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log(data); // 查看返回的資料
+
+                            const healthContainer = document.getElementById('health-articles-container');
+                            const diseaseContainer = document.getElementById('disease-articles-container');
+
+                            // 顯示健康相關文章
+                            data.health.forEach(item => {
+                                const articleDiv = document.createElement('div');
+                                articleDiv.classList.add('col-xl-4', 'col-lg-6');
+                                articleDiv.innerHTML = `
+                            <div class="bg-light rounded overflow-hidden">
+                                <img class="img-fluid w-100" src="${item.image}" alt="">
+                                <div class="p-4">
+                                    <a class="h3 d-block mb-3" href="${item.url}">${item.title}</a>
+                                    <p class="m-0">${item.subtitle}</p>
+                                    <p style="color: black;font-size:13px;">資料來源: ${item.source}</p>
+                                </div>
+                            </div>
+                        `;
+                                healthContainer.appendChild(articleDiv);
+                            });
+
+                            // 顯示疾病相關文章
+                            data.disease.forEach(item => {
+                                const articleDiv = document.createElement('div');
+                                articleDiv.classList.add('col-xl-4', 'col-lg-6');
+                                articleDiv.innerHTML = `
+                            <div class="bg-light rounded overflow-hidden">
+                                <img class="img-fluid w-100" src="${item.image}" alt="">
+                                <div class="p-4">
+                                    <a class="h3 d-block mb-3" href="${item.url}">${item.title}</a>
+                                    <p class="m-0">${item.subtitle}</p>
+                                    <p style="color: black;font-size:13px;">資料來源: ${item.source}</p>
+                                </div>
+                            </div>
+                        `;
+                                diseaseContainer.appendChild(articleDiv);
+                            });
+                        })
+                        .catch(error => console.error('錯誤:', error));
+                });
+            </script>
+            
             <!-- 健康相關文章 -->
             <div class="text-center mx-auto mb-5" style="max-width: 500px;">
                 <h5 class="d-inline-block text-primary text-uppercase border-bottom border-5">醫療訊息</h5>
