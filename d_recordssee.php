@@ -270,6 +270,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <th>出生日期</th>
                         <th>科別</th>
                         <th>看診醫生</th>
+                        <th>看診時間</th>
                         <th>紀錄創建時間</th>
                         <th>功能選項</th>
                     </tr>
@@ -285,6 +286,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <td><?php echo htmlspecialchars($資料列['birthdaydate']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['department']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['doctorname']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['consultationperiod']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
                             <td>
                                 <form action="看診紀錄修改000.php" method="post" style="display:inline;">

@@ -303,6 +303,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <input id="doctor_name" type="text" name="doctor_name" required />
                         <small>請輸入醫生的全名。</small>
                     </div>
+
                     <div class="form-row">
                         <label for="consultation_period">看診時段</label>
                         <select id="consultation_period" name="consultation_period" required>
@@ -313,6 +314,12 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <option value="夜間">夜間</option>
                         </select>
                     </div>
+
+                    <div class="form-row">
+                        <label for="department">看診科別</label>
+                        <input id="department" type="text" name="department" required />
+                    </div>
+
                     <button type="submit" class="aa">提交</button>
                 </form>
 

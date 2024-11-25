@@ -328,6 +328,17 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <input id="doctor_name" type="text" name="doctor_name" required />
                     </div>
 
+                    <div class="form-row">
+                        <label for="consultation_period">看診時段</label>
+                        <select id="consultation_period" name="consultation_period" required>
+                            <option value="">選擇一個時段</option>
+                            <option value="早">早</option>
+                            <option value="午">午</option>
+                            <option value="晚">晚</option>
+                            <option value="夜間">夜間</option>
+                        </select>
+                    </div>
+
                     <button type="submit" class="aa">提交</button>
                 </form>
 

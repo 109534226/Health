@@ -7,12 +7,14 @@ $日期 = trim($_POST['appointment_date']);
 $診間號 = trim($_POST['clinic_number']);
 $醫生姓名 = trim($_POST['doctor_name']);
 $看診時段 = trim($_POST['consultation_period']);
+$看診科別 = trim($_POST['department']);
 
 // 防止 SQL 注入
 $日期 = mysqli_real_escape_string($link, $日期);
 $診間號 = mysqli_real_escape_string($link, $診間號);
 $醫生姓名 = mysqli_real_escape_string($link, $醫生姓名);
 $看診時段 = mysqli_real_escape_string($link, $看診時段);
+$看診科別 = mysqli_real_escape_string($link, $看診科別);
 
 // 檢查是否有空值
 $errors = [];
@@ -24,6 +26,8 @@ if (empty($醫生姓名))
   $errors[] = '醫生姓名未輸入';
 if (empty($看診時段))
   $errors[] = '看診時段未輸入';
+if (empty($看診科別))
+  $errors[] = '看診科別未輸入';
 
 if (!empty($errors)) {
   echo "<script>
@@ -39,6 +43,7 @@ $SQL指令 = "UPDATE `doctorshift` SET
                 `clinicnumber` = '$診間號', 
                 `doctorname` = '$醫生姓名', 
                 `consultationperiod` = '$看診時段',
+                `department` = '$看診科別',
                 `created_at` = NOW()
             WHERE `id` = $id";
 

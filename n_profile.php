@@ -361,9 +361,11 @@ header("Pragma: no-cache");
                 $result = mysqli_query($link, $SQL查詢資料);
 
                 if ($row = mysqli_fetch_assoc($result)) {
+                    $姓名=$row['username'] ?? "";
                     $出生年月日 = $row['birthday'] ?? "";
                     $身分證字號 = $row['idcard'] ?? "";
                     $電話 = $row['phone'] ?? "";
+                    $電子郵件= $row['email'] ?? "";
                     $隸屬醫院 = $row['hospital'] ?? "";
                     $科別 = $row['department'] ?? "";
 

@@ -331,6 +331,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <th>診間號</th>
                         <th>醫生姓名</th>
                         <th>看診時間</th>
+                        <th>看診科別</th>
                         <th>紀錄創建時間</th>
                     </tr>
                 </thead>
@@ -342,6 +343,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <td><?php echo htmlspecialchars($資料列['clinicnumber']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['doctorname']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['consultationperiod']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['department']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
                         </tr>
                     <?php endwhile; ?>
