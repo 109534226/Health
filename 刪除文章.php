@@ -163,7 +163,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
     <body>
         <h1>文章管理</h1>
-        <form method="POST" action="刪除文章的後端.php" onsubmit="return confirm('確定要刪除選中的文章嗎？');">
+        <form method="POST" action="刪除文章的後端.php" onsubmit="return confirm('確定要刪除選中的文章嗎？');"> 
             <table>
                 <thead>
                     <tr>
@@ -177,24 +177,45 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if ($result->num_rows > 0): ?>
-                        <?php while ($row = $result->fetch_assoc()): ?>
-                            <tr>
-                                <td><input type="checkbox" name="ids[]" value="<?= $row['id']; ?>" class="itemCheckbox"></td>
-                                <td><?= $row['id']; ?></td>
-                                <td><?= htmlspecialchars($row['title']); ?></td>
-                                <td><?= htmlspecialchars($row['subtitle']); ?></td>
-                                <td><?= htmlspecialchars($row['source']); ?></td>
-                                <td><a href="<?= htmlspecialchars($row['url']); ?>" target="_blank">連結</a></td>
-                                <td><img src="<?= htmlspecialchars($row['image']); ?>" alt="圖片"></td>
-                            </tr>
-                        <?php endwhile; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="7">目前無資料</td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
+    <?php if ($result->num_rows > 0): ?>
+        <?php while ($row = $result->fetch_assoc()): ?>
+            <tr>
+                <td><input type="checkbox" name="ids[]" value="<?= $row['id']; ?>" class="itemCheckbox"></td>
+                <td><?= $row['id']; ?></td>
+                <td><?= htmlspecialchars($row['title']); ?></td>
+                <td><?= htmlspecialchars($row['subtitle']); ?></td>
+                <td>
+                    <select name="source_id[]" class="source-select">
+                        <option value="1" <?= $row['source_id'] == 1 ? 'selected' : ''; ?>>天下雜誌</option>
+                        <option value="2" <?= $row['source_id'] == 2 ? 'selected' : ''; ?>>銀天下</option>
+                     
+                    </select>
+                </td>
+                <td>
+                    <select name="type_id[]" class="type-select">
+                        <option value="1" <?= $row['type_id'] == 1 ? 'selected' : ''; ?>>健康</option>
+                        <option value="2" <?= $row['type_id'] == 2 ? 'selected' : ''; ?>>疾病</option>
+                        <!-- 根據需求增加選項 -->
+                    </select>
+                </td>
+                <td>
+                    <select name="review_id[]" class="review-select">
+                        <option value="1" <?= $row['review_id'] == 1 ? 'selected' : ''; ?>>已審核</option>
+                        <option value="2" <?= $row['review_id'] == 2 ? 'selected' : ''; ?>>未審核</option>
+                        <!-- 根據需求增加選項 -->
+                    </select>
+                </td>
+                <td><a href="<?= htmlspecialchars($row['url']); ?>" target="_blank">連結</a></td>
+                <td><img src="<?= htmlspecialchars($row['image']); ?>" alt="圖片"></td>
+            </tr>
+        <?php endwhile; ?>
+    <?php else: ?>
+        <tr>
+            <td colspan="9">目前無資料</td>
+        </tr>
+    <?php endif; ?>
+</tbody>
+
             </table>
 
             <script>

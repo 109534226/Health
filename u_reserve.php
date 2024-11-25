@@ -401,7 +401,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                                 <script>
                                     function sLocation() {
-                                        var location = document.getElementById("location").value;
+                                           var location = document.getElementById("location").value;
                                         if (location) {
                                             var url = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(location);
                                             window.open(url, '_blank');
