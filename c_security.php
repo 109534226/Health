@@ -122,7 +122,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 </head>
 
 <body>
-  <!-- 頁首 Start -->
+  <!-- 頁首區塊開始 -->
   <div class="container-fluid sticky-top bg-white shadow-sm">
     <div class="container">
       <nav class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
@@ -135,9 +135,10 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         <div class="collapse navbar-collapse" id="navbarCollapse">
           <div class="navbar-nav ms-auto py-0">
             <a href="c_user.php" class="nav-item nav-link">用戶管理</a>
-            <a href="c_content.php" class="nav-item nav-link ">內容管理</a>
+            <a href="c_content.php" class="nav-item nav-link">內容管理</a>
             <a href="c_security.php" class="nav-item nav-link active">安全管理</a>
 
+            <!-- 個人檔案下拉選單 -->
             <div class="nav-item">
               <a href="#" class="nav-link dropdown-toggle " data-bs-toggle="dropdown" aria-expanded="false">個人檔案</a>
               <ul class="dropdown-menu dropdown-menu-end">
@@ -145,7 +146,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 <li><a href="c_change.php" class="dropdown-item">忘記密碼</a></li>
                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
-                <!-- 隱藏表單，用於提交刪除帳號請求 -->
+
+                <!-- 隱藏的表單，用於提交刪除帳號請求 -->
                 <form id="deleteAccountForm" action="刪除.php" method="POST" style="display:none;">
                   <input type="hidden" name="帳號" value="<?php echo $帳號; ?>">
                   <input type="hidden" name="姓名" value="<?php echo $姓名; ?>">
@@ -157,9 +159,10 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
       </nav>
     </div>
   </div>
-  <!-- 頁首 End -->
+  <!-- 頁首區塊結束 -->
 
-  <h2>安全管理系統</h2>
+
+  <!-- <h2>安全管理系統</h2>
 
   <table>
     <thead>
@@ -170,31 +173,29 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
       </tr>
     </thead>
     <tbody id="userTable">
-      <!-- 使用JavaScript動態新增資料 -->
+      使用JavaScript動態新增資料
     </tbody>
-  </table>
+  </table> -->
 
   <script>
-    // 模擬一些登入的使用者數據，包括帳號
-    const users = [
-      { type: "醫生", account: "doctor123", loginTime: "2024-11-14 08:15:00" },
-      { type: "護士", account: "nurse456", loginTime: "2024-11-14 09:05:00" },
-      { type: "管理者", account: "admin789", loginTime: "2024-11-14 10:25:00" },
-      { type: "醫生", account: "doctor999", loginTime: "2024-11-14 11:30:00" }
-    ];
+    // // 模擬一些登入的使用者數據，包括帳號
+    // const users = [
+    //   { type: "醫生", account: "doctor123", loginTime: "2024-11-14 08:15:00" },
+    //   { type: "護士", account: "nurse456", loginTime: "2024-11-14 09:05:00" },
+    //   { type: "管理者", account: "admin789", loginTime: "2024-11-14 10:25:00" },
+    //   { type: "醫生", account: "doctor999", loginTime: "2024-11-14 11:30:00" }
+    // ];
 
-    // 動態生成表格內容   
-    const userTable = document.getElementById("userTable");
-    users.forEach(user => {
-      const row = document.createElement("tr");
-      const userTypeCell = document.createElement("td");
-      const accountCell = document.createElement("td");
-      const loginTimeCell = document.createElement("td");
-    });
-  </script>
+    // // 動態生成表格內容   
+    // const userTable = document.getElementById("userTable");
+    // users.forEach(user => {
+    //   const row = document.createElement("tr");
+    //   const userTypeCell = document.createElement("td");
+    //   const accountCell = document.createElement("td");
+    //   const loginTimeCell = document.createElement("td");
+    // });
 
-  <!-- JavaScript 功能函數 -->
-  <script>
+    // JavaScript 功能函數
     // 顯示登出彈出框
     function showLogoutBox() {
       document.getElementById('logoutBox').style.display = 'flex';
