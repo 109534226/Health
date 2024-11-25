@@ -1,8 +1,6 @@
 <?php
-
-include("link.php");
-
 session_start();
+include "db.php"; // 引入資料庫連線檔案
 
 // 確保用戶已經登入，否則重定向到登入頁面
 if (!isset($_SESSION["帳號"]) || empty($_SESSION["帳號"])) {

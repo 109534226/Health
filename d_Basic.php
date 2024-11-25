@@ -1,30 +1,89 @@
 <?php
-session_start();
-include "db.php";
+session_start(); // 啟動 Session，讓伺服器能夠追蹤使用者的登入狀態
+include "db.php"; // 引入資料庫連線檔案
 
-$帳號 = mysqli_real_escape_string($link, $_POST['account']);
-$密碼 = mysqli_real_escape_string($link, $_POST['password']);
+// 確認使用者是否已登入
+if (!isset($_SESSION["登入狀態"]) || $_SESSION["登入狀態"] !== true) {
+    // 如果 Session 中沒有設定登入狀態，或狀態不為 true，則跳轉到登入頁面
+    header("Location: login.php"); // 跳轉到登入頁面
+    exit(); // 停止後續程式執行
+}
 
-// 驗證帳號密碼
-$查詢 = "
-    SELECT user_id, name, grade_id 
-    FROM user 
-    WHERE account = '$帳號' AND password = '$密碼'
-";
+// 從 Session 中獲取使用者的帳號
+$帳號 = $_SESSION["帳號"]; // 取得使用者的帳號，通常在登入時已設置到 Session 中
 
-$結果 = mysqli_query($link, $查詢);
+// 查詢登入使用者的身份和姓名
+$帳號 = $_SESSION['帳號'];
+$sql = "SELECT grade_id, name FROM user WHERE account = ?";
+$stmt = mysqli_prepare($link, $sql);
+if (!$stmt) {
+    die("查詢準備失敗：" . mysqli_error($link));
+}
+mysqli_stmt_bind_param($stmt, "s", $帳號);
+mysqli_stmt_execute($stmt);
+$結果 = mysqli_stmt_get_result($stmt);
 
 if ($結果 && $row = mysqli_fetch_assoc($結果)) {
-    // 將用戶信息存入 Session
-    $_SESSION['user_id'] = $row['user_id'];
-    $_SESSION['name'] = $row['name'];
-    $_SESSION['grade_id'] = $row['grade_id'];
-    $_SESSION['登入狀態'] = true;
+    // 設置角色
+    if ($row['grade_id'] == 3) {
+        $_SESSION['user_role'] = '醫生';
+    } elseif ($row['grade_id'] == 2) {
+        $_SESSION['user_role'] = '護士';
+    } else {
+        $_SESSION['user_role'] = '未知角色';
+    }
 
-    echo "<script>alert('登入成功'); window.location.href = 'user_dashboard.php';</script>";
+    // 設置使用者姓名
+    $_SESSION['name'] = $row['name'];
 } else {
-    echo "<script>alert('帳號或密碼錯誤'); history.go(-1);</script>";
+    echo "<script>alert('無法確定您的角色或名稱，請重新登入。'); window.location.href = 'login.php';</script>";
+    exit();
 }
+
+// 確保角色和姓名已設定
+$user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '未知角色';
+$name = isset($_SESSION['name']) ? $_SESSION['name'] : '未知姓名';
+
+// 取得所有醫院資料
+$city = $_POST["city"];
+$area = $_POST["area"];
+$hospital = $_POST["hospital"];
+$department = $_POST["department"];
+
+// 建立 SQL 語句
+if (!empty($hospital)) {
+    $sql = "SELECT * FROM hospital h 
+            JOIN medical m ON h.hospital_id = m.hospitalH_id
+            JOIN user uA ON m.userA_id = uA.user_id
+            JOIN user uN ON m.userN_id = uN.user_id
+            WHERE h.city = ? AND h.area = ? AND h.hospital = ? AND h.department = ?";
+    $stmt = mysqli_prepare($link, $sql);
+    if (!$stmt) {
+        die("查詢準備失敗：" . mysqli_error($link));
+    }
+    mysqli_stmt_bind_param($stmt, "ssss", $city, $area, $hospital, $department);
+} else {
+    $sql = "SELECT * FROM hospital h 
+            JOIN medical m ON h.hospital_id = m.hospitalH_id
+            JOIN user uA ON m.userA_id = uA.user_id
+            JOIN user uN ON m.userN_id = uN.user_id
+            WHERE h.city = ? AND h.area = ? AND h.department = ?";
+    $stmt = mysqli_prepare($link, $sql);
+    if (!$stmt) {
+        die("查詢準備失敗：" . mysqli_error($link));
+    }
+    mysqli_stmt_bind_param($stmt, "sss", $city, $area, $department);
+}
+
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+
+// 顯示搜尋結果
+if (mysqli_num_rows($result) > 0) {
+    while ($row = mysqli_fetch_assoc($result)) {
+        echo "<option value='" . htmlspecialchars($row['hospital_id'], ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($row['hospital'], ENT_QUOTES, 'UTF-8') . "</option>";
+    }
+} 
 ?>
 
 

@@ -1,33 +1,33 @@
 <?php
+session_start(); // 啟動 Session，讓伺服器能夠追蹤使用者的登入狀態
+include "db.php"; // 引入資料庫連線檔案
 
-include("link.php");
-
-session_start();
-
-// 確保用戶已經登入，否則重定向到登入頁面
-if (!isset($_SESSION["帳號"]) || empty($_SESSION["帳號"])) {
-    echo "<script>alert('無效的帳號，請重新登入。'); window.location.href = 'login.php';</script>";
-    exit();
+// 確認使用者是否已登入
+if (!isset($_SESSION["登入狀態"]) || $_SESSION["登入狀態"] !== true) {
+    // 如果 Session 中沒有設定登入狀態，或狀態不為 true，則跳轉到登入頁面
+    header("Location: login.php"); // 跳轉到登入頁面
+    exit(); // 停止後續程式執行
 }
 
-// 檢查資料庫連接是否成功
-if (!$link) {
-    die("資料庫連接失敗：" . mysql_error());
-}
+// 從 Session 中獲取使用者的帳號
+$帳號 = $_SESSION["帳號"]; // 取得使用者的帳號，通常在登入時已設置到 Session 中
 
 // 查詢登入使用者的身份和姓名
 $帳號 = $_SESSION['帳號'];
-$sql = "SELECT grade, name FROM user WHERE account = '$帳號'";
-$結果 = mysql_query($sql, $link);
-if (!$結果) {
-    die("查詢失敗：" . mysql_error());
+$sql = "SELECT grade_id, name FROM user WHERE account = ?";
+$stmt = mysqli_prepare($link, $sql);
+if (!$stmt) {
+    die("查詢準備失敗：" . mysqli_error($link));
 }
+mysqli_stmt_bind_param($stmt, "s", $帳號);
+mysqli_stmt_execute($stmt);
+$結果 = mysqli_stmt_get_result($stmt);
 
-if ($row = mysql_fetch_assoc($結果)) {
+if ($結果 && $row = mysqli_fetch_assoc($結果)) {
     // 設置角色
-    if ($row['grade'] == 1) {
+    if ($row['grade_id'] == 3) {
         $_SESSION['user_role'] = '醫生';
-    } elseif ($row['grade'] == 2) {
+    } elseif ($row['grade_id'] == 2) {
         $_SESSION['user_role'] = '護士';
     } else {
         $_SESSION['user_role'] = '未知角色';
@@ -56,36 +56,34 @@ if (!empty($hospital)) {
             JOIN medical m ON h.hospital_id = m.hospitalH_id
             JOIN user uA ON m.userA_id = uA.user_id
             JOIN user uN ON m.userN_id = uN.user_id
-            WHERE h.city = '$city' AND h.area = '$area' AND h.hospital = '$hospital' AND h.department = '$department'";
+            WHERE h.city = ? AND h.area = ? AND h.hospital = ? AND h.department = ?";
+    $stmt = mysqli_prepare($link, $sql);
+    if (!$stmt) {
+        die("查詢準備失敗：" . mysqli_error($link));
+    }
+    mysqli_stmt_bind_param($stmt, "ssss", $city, $area, $hospital, $department);
 } else {
     $sql = "SELECT * FROM hospital h 
             JOIN medical m ON h.hospital_id = m.hospitalH_id
             JOIN user uA ON m.userA_id = uA.user_id
             JOIN user uN ON m.userN_id = uN.user_id
-            WHERE h.city = '$city' AND h.area = '$area' AND h.department = '$department'";
+            WHERE h.city = ? AND h.area = ? AND h.department = ?";
+    $stmt = mysqli_prepare($link, $sql);
+    if (!$stmt) {
+        die("查詢準備失敗：" . mysqli_error($link));
+    }
+    mysqli_stmt_bind_param($stmt, "sss", $city, $area, $department);
 }
 
-$result = mysql_query($sql, $link);
-if (!$result) {
-    die("查詢失敗：" . mysql_error());
-}
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
 
 // 顯示搜尋結果
-if (mysql_num_rows($result) > 0) {
-    while ($row = mysql_fetch_assoc($result)) {
+if (mysqli_num_rows($result) > 0) {
+    while ($row = mysqli_fetch_assoc($result)) {
         echo "<option value='" . htmlspecialchars($row['hospital_id'], ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($row['hospital'], ENT_QUOTES, 'UTF-8') . "</option>";
     }
-} else {
-    echo "<option value=''>查無資料</option>";
-}
-
-// 顯示當前角色
-echo "~歡迎回來~ " . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . "<br/>";
-echo "當前角色: " . htmlspecialchars($_SESSION['user_role'], ENT_QUOTES, 'UTF-8') . "</p>";
-echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"], ENT_QUOTES, 'UTF-8') . "</p>";
-
-mysql_close($link);
-
+} 
 ?>
 
 
@@ -204,6 +202,12 @@ mysql_close($link);
     </div>
     <!-- 頁首 End -->
 
+    <?php    
+    // 顯示當前角色
+    echo "~歡迎回來~ " . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . "<br/>";
+    echo "當前角色: " . htmlspecialchars($_SESSION['user_role'], ENT_QUOTES, 'UTF-8') . "</p>";
+    echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"], ENT_QUOTES, 'UTF-8') . "</p>";
+    ?>
 
     <div class="container-fluid"></div>
     <section class="resume-section p-0" id="about"> <!-- 將內邊距設為 0 -->
@@ -354,7 +358,7 @@ mysql_close($link);
                     document.getElementById('messageModal').style.display = "none"; // 隱藏彈跳視窗
                 }
             </script>
-            
+
             <style>
                 /* 表格樣式 */
                 table {
