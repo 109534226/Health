@@ -1,7 +1,8 @@
 <?php
+// 啟動 PHP Session，確保可以使用 $_SESSION 變數來共享資料
 session_start();
 
-// 禁止瀏覽器緩存頁面
+// 禁止瀏覽器緩存頁面，確保每次都獲取最新的頁面
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
@@ -10,12 +11,12 @@ header("Pragma: no-cache");
 if (!isset($_SESSION["登入狀態"]) || $_SESSION["登入狀態"] !== true) {
     echo "<script>
             alert('你還沒有登入，請先登入帳號。');
-            window.location.href = 'login.php';
+            window.location.href = 'login.php'; // 導向至登入頁面
           </script>";
-    exit();
+    exit(); // 終止執行，防止後續程式碼執行
 }
 
-// 檢查 "帳號" 和 "姓名" 是否存在於 $_SESSION 中
+// 檢查是否存在帳號和姓名的 Session 變數
 if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     // 獲取用戶帳號和姓名
     $帳號 = $_SESSION['帳號'];
@@ -23,9 +24,25 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 } else {
     echo "<script>
             alert('會話過期或資料遺失，請重新登入。');
-            window.location.href = 'login.php';
+            window.location.href = 'login.php'; // 導向至登入頁面
           </script>";
-    exit();
+    exit(); // 終止執行
+}
+
+include 'db.php'; // 引入資料庫連線檔案。
+
+// 查詢 `article` 表與 `source` 和 `type` 表的資料，通過 `source_id` 和 `type_id` 進行關聯
+$sql = "
+    SELECT article.article_id, article.title, article.subtitle, source.source, type.type, article.url, article.image
+    FROM article
+    LEFT JOIN source ON article.source_id = source.source_id
+    LEFT JOIN type ON article.type_id = type.type_id
+";
+$result = mysqli_query($link, $sql); // 執行查詢
+
+// 檢查查詢是否成功，如果失敗則終止並顯示錯誤訊息
+if (!$result) {
+    die("查詢失敗: " . mysqli_error($link));
 }
 ?>
 
@@ -49,7 +66,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         rel="stylesheet">
 
     <!-- Icon Font Stylesheet -->
-
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -63,8 +79,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
 
+    <!-- 自定義彈出對話框的樣式 -->
     <style>
-        /* 彈出對話框的樣式 */
         .logout-box {
             position: fixed;
             top: 0;
@@ -99,14 +115,15 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             padding: 0;
         }
     </style>
+
+    <!-- 用戶成功登入後，設置登錄狀態 -->
     <script>
-        // 用戶成功登入後，設置登錄狀態
         sessionStorage.setItem('isLoggedIn', 'true');
     </script>
 </head>
 
 <body>
-    <!-- 頁首 Start -->
+    <!-- 頁首區塊開始 -->
     <div class="container-fluid sticky-top bg-white shadow-sm">
         <div class="container">
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
@@ -122,6 +139,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <a href="c_content.php" class="nav-item nav-link active">內容管理</a>
                         <a href="c_security.php" class="nav-item nav-link">安全管理</a>
 
+                        <!-- 個人檔案下拉選單 -->
                         <div class="nav-item">
                             <a href="#" class="nav-link dropdown-toggle " data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
@@ -130,31 +148,32 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 <li><a href="c_change.php" class="dropdown-item">忘記密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
-                                <!-- 隱藏表單，用於提交刪除帳號請求 -->
+
+                                <!-- 隱藏的表單，用於提交刪除帳號請求 -->
                                 <form id="deleteAccountForm" action="刪除.php" method="POST" style="display:none;">
                                     <input type="hidden" name="帳號" value="<?php echo $帳號; ?>">
                                     <input type="hidden" name="姓名" value="<?php echo $姓名; ?>">
                                 </form>
                             </ul>
                         </div>
-
                     </div>
                 </div>
             </nav>
         </div>
     </div>
-    <!-- 頁首 End -->
+    <!-- 頁首區塊結束 -->
+
+    <!-- 顯示待審核文章列表 -->
     <?php
-    // 連接資料庫
-    include "db.php";
-    // 列出所有待審核文章
-    $sql = "SELECT * FROM article WHERE title = 'draft'";
-    $result = $link->query($sql);
-    // 更新文章狀態以發布
+    include "db.php"; // 連接資料庫
+    $sql = "SELECT * FROM article WHERE title = 'draft'"; // 查詢所有狀態為草稿的文章
+    $result = $link->query($sql); // 執行查詢
+    
+    // 處理發布請求
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['publish'])) {
         $article_id = $_POST['article_id'];
 
-        // 這裡可以添加更新狀態的 SQL 查詢
+        // 更新文章狀態為草稿
         $sql = "UPDATE article SET status='draft' WHERE id=?";
         $stmt = $link->prepare($sql);
         $stmt->bind_param("i", $article_id);
@@ -162,86 +181,77 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
         echo "文章已成功發布！";
     }
-
     ?>
 
-    <!DOCTYPE html>
-    <html>
+    <!-- 文章審核與發布 -->
+    <h1>文章審核與發布</h1>
+    <ul>
+        <input type="submit" onclick="location.href='新增.php'" name="publish" value="新增">
+        <?php while ($row = $result->fetch_assoc()): ?>
+            <li>
+                <h2><?= htmlspecialchars($row['title']) ?></h2>
+                <p><?= htmlspecialchars($row['subtitle']) ?></p>
+                <form method="POST">
+                    <input type="hidden" name="article_id" value="<?= $row['id'] ?>">
+                    <input type="button" onclick="location.href='編輯.php'" name="publish" value="編輯">
+                </form>
+            </li>
+        <?php endwhile; ?>
+    </ul>
 
-    <head>
-        <title>文章管理</title>
-    </head>
+    <!-- 顯示刪除文章區塊 -->
+    <h1>刪除文章</h1>
+    <ul>
+        <input type="submit" onclick="location.href='刪除文章.php'" name="publish" value="刪除">
+        <?php while ($row = $result->fetch_assoc()): ?>
+            <li>
+                <h2><?= htmlspecialchars($row['title']) ?></h2>
+                <p><?= htmlspecialchars($row['subtitle']) ?></p>
+                <form method="POST">
+                    <input type="hidden" name="article_id" value="<?= $row['id'] ?>">
+                    <input type="button" onclick="location.href='刪除.php'" name="publish" value="刪除">
+                </form>
+            </li>
+        <?php endwhile; ?>
+    </ul>
 
-    <body>
-        <h1>文章審核與發布</h1>
-        <ul>
-        <input type="submit"  onclick="location.href='新增.php'" name="publish" value="新增">
-            <?php while ($row = $result->fetch_assoc()): ?>
-                <li>
-                    <h2><?= htmlspecialchars($row['title']) ?></h2>
-                    <p><?= htmlspecialchars($row['subtitle']) ?></p>
-                    <form method="POST" >
-                        <input type="hidden" name="article_id" value="<?= $row['id'] ?>">
-                        <input type="button" onclick="location.href='編輯.php'" name="publish" value="編輯">
-                        
-                    </form>
-                </li>
-            <?php endwhile; ?>
-        </ul>
-    </body>
-    <body>
-        <h1>刪除文章</h1>
-        <ul>
-        <input type="submit"  onclick="location.href='刪除文章.php'" name="publish" value="刪除">
-            <?php while ($row = $result->fetch_assoc()): ?>
-                <li>
-                    <h2><?= htmlspecialchars($row['title']) ?></h2>
-                    <p><?= htmlspecialchars($row['subtitle']) ?></p>
-                    <form method="POST" >
-                        <input type="hidden" name="article_id" value="<?= $row['id'] ?>">
-                        <input type="button" onclick="location.href='刪除.php'" name="publish" value="刪除">
-                        
-                    </form>
-                </li>
-            <?php endwhile; ?>
-        </ul>
-    </body>
+    <?php $link->close(); // 關閉資料庫連線 ?>
 
-
-
-    </html>
-    <?php $link->close(); ?>
-
-
-
-    <!-- JavaScript -->
+    <!-- JavaScript 功能函數 -->
     <script>
+        // 顯示登出彈出框
         function showLogoutBox() {
             document.getElementById('logoutBox').style.display = 'flex';
         }
 
+        // 隱藏登出彈出框
         function hideLogoutBox() {
             document.getElementById('logoutBox').style.display = 'none';
         }
 
+        // 執行登出操作
         function logout() {
             alert('你已經登出！');
             hideLogoutBox();
             window.location.href = 'login.php'; // 替換為登出後的頁面
         }
 
+        // 顯示刪除帳號彈出框
         function showDeleteAccountBox() {
             document.getElementById('deleteAccountBox').style.display = 'flex';
         }
 
+        // 隱藏刪除帳號彈出框
         function hideDeleteAccountBox() {
             document.getElementById('deleteAccountBox').style.display = 'none';
         }
 
+        // 提交刪除帳號表單
         function deleteAccount() {
             document.getElementById('deleteAccountForm').submit();
         }
     </script>
+
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>

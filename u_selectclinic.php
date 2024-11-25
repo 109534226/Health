@@ -67,7 +67,8 @@ while ($professionRow = mysqli_fetch_assoc($professionResult)) {
 }
 
 // 顯示排班資訊的函數
-function displayShifts($shifts, $timePeriod) {
+function displayShifts($shifts, $timePeriod)
+{
     global $doctorUsernames;
     echo "<div class='shift-section'>";
     echo "<h2>$timePeriod:</h2>";
@@ -106,7 +107,8 @@ function displayShifts($shifts, $timePeriod) {
                 if ($shift['clinicnumber'] == $clinicNumber && $shift['dateday'] == $date) {
                     $doctorName = $shift['doctorname'];
                     $username = isset($doctorUsernames[$doctorName]) ? $doctorUsernames[$doctorName] : $doctorName;
-                    echo "<td style='font-weight: bold; text-align: center;'>$username</td>";
+                    $registeredCount = $shift['Nregistered'];
+                    echo "<td style='font-weight: bold; text-align: center;'>$username</br>目前預約人數為:$registeredCount</td>";
                     $hasShift = true;
                     break;
                 }
@@ -158,14 +160,17 @@ function displayShifts($shifts, $timePeriod) {
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
     <style>
-        .table th, .table td {
+        .table th,
+        .table td {
             text-align: center;
             vertical-align: middle;
             font-weight: bold;
         }
+
         .table th {
             color: white;
         }
+
         .table td {
             color: black;
         }
@@ -320,6 +325,18 @@ function displayShifts($shifts, $timePeriod) {
             document.getElementById('deleteAccountForm').submit();
         }
     </script>
+    <!-- 返回按鈕 Start -->
+    <div class="container mb-5">
+        <button id="backButton" class="btn btn-success btn-lg">返回</button>
+    </div>
+    <!-- 返回按鈕 End -->
+
+    <script>
+        document.getElementById('backButton').addEventListener('click', function () {
+            // 使用瀏覽器的返回功能
+            window.history.back();
+        });
+    </script>
 
     <main>
         <div class="container">
@@ -331,6 +348,18 @@ function displayShifts($shifts, $timePeriod) {
             ?>
         </div>
     </main>
+    <!-- "我要預約" 按鈕 Start -->
+    <div class="container text-center mb-5">
+        <button id="reserveButton" class="btn btn-primary btn-lg">我要預約</button>
+    </div>
+    <!-- "我要預約" 按鈕 End -->
+
+    <script>
+        document.getElementById('reserveButton').addEventListener('click', function () {
+            // 點擊“我要預約”按鈕後跳轉至預約頁面，修改為你的預約頁面 URL
+            window.location.href = 'u_registration.php';
+        });
+    </script>
 
     <!-- 頁尾 Start -->
     <div class="container-fluid bg-dark text-light mt-5 py-5">

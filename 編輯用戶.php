@@ -178,8 +178,13 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         exit; // 終止程式執行。
     }
 
-    // 從資料庫中查詢該用戶的所有資料。
-    $sql = "SELECT * FROM user WHERE name = ?"; // 使用 `name` 作為條件查詢。
+    // 從資料庫中查詢該用戶的所有資料，包括關聯的等級資料。
+    $sql = "
+    SELECT user.user_id, user.name, user.account, user.password, user.grade_id, grade.grade
+    FROM user
+    LEFT JOIN grade ON user.grade_id = grade.grade_id
+    WHERE user.name = ?
+";
     $stmt = mysqli_prepare($link, $sql); // 準備 SQL 查詢。
     mysqli_stmt_bind_param($stmt, "s", $name); // 綁定 `name` 參數到查詢語句，避免 SQL 注入。
     mysqli_stmt_execute($stmt); // 執行查詢。
@@ -193,25 +198,42 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     }
     ?>
 
+    <!-- 編輯使用者表單 -->
     <h1>編輯使用者</h1>
     <form method="POST" action="編輯用戶的後端.php"> <!-- 表單，提交到後端進行資料更新 -->
         <!-- 隱藏欄位，帶入用戶帳號 `name` 作為唯一標識 -->
         <input type="hidden" name="name" value="<?php echo htmlspecialchars($user['name']); ?>">
 
-        <label for="username">姓名:</label> <!-- 顯示用戶姓名的輸入欄位 -->
-        <input type="text" name="username" value="<?php echo htmlspecialchars($user['username']); ?>"><br>
-        
+        <label for="name">姓名:</label> <!-- 顯示用戶姓名的輸入欄位 -->
+        <input type="text" name="name" value="<?php echo htmlspecialchars($user['name']); ?>"><br>
+
         <label for="password">密碼:</label> <!-- 顯示用戶密碼的輸入欄位 -->
         <input type="password" name="password" value=""><br> <!-- 密碼欄位留空，要求用戶輸入新密碼 -->
 
-        <label for="email">電子郵件:</label> <!-- 顯示用戶電子郵件的輸入欄位 -->
-        <input type="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>"><br>
-
-        <label for="grade">使用者等級:</label> <!-- 顯示用戶等級的輸入欄位 -->
-        <input type="number" name="grade" value="<?php echo htmlspecialchars($user['grade']); ?>"><br>
+        <label for="grade_id">使用者等級:</label> <!-- 顯示用戶等級的輸入欄位 -->
+        <select name="grade_id">
+            <option value="1" <?php if ($user['grade_id'] == 1)
+                echo 'selected'; ?>>使用者</option>
+            <option value="2" <?php if ($user['grade_id'] == 2)
+                echo 'selected'; ?>>醫生</option>
+            <option value="3" <?php if ($user['grade_id'] == 3)
+                echo 'selected'; ?>>護士</option>
+            <option value="4" <?php if ($user['grade_id'] == 4)
+                echo 'selected'; ?>>醫院</option>
+            <option value="5" <?php if ($user['grade_id'] == 5)
+                echo 'selected'; ?>>管理者</option>
+            <option value="6" <?php if ($user['grade_id'] == 6)
+                echo 'selected'; ?>>未登入</option>
+        </select><br>
 
         <button type="submit">更新</button> <!-- 表單提交按鈕 -->
     </form>
+
+    <?php
+    // 關閉資料庫連線
+    mysqli_close($link);
+    ?>
+
 
 </body>
 
