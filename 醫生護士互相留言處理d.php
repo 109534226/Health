@@ -1,31 +1,45 @@
 <?php
 session_start();
-include "db.php";  // 包含資料庫連接
+include "db.php"; // 資料庫連線
 
-$sender = isset($_POST['sender']) ? trim($_POST['sender']) : null;
-$message = trim($_POST['message']);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // 驗證登入狀態
+    if (!isset($_SESSION["登入狀態"]) || $_SESSION["登入狀態"] !== true) {
+        echo "<script>alert('請先登入'); window.location.href = 'login.php';</script>";
+        exit();
+    }
 
-// 檢查是否填寫了留言
-if (!$message) {
-    echo "<script>alert('請輸入留言內容'); window.location.href = '留言頁面d.php';</script>";
-    exit();
+    $sender_id = $_SESSION['user_id']; // 發送者 ID
+    $receiver_account = mysqli_real_escape_string($link, $_POST['receiver_account']);
+    $message = mysqli_real_escape_string($link, trim($_POST['message']));
+
+    // 驗證訊息是否為空
+    if (empty($message)) {
+        echo "<script>alert('訊息不可為空'); history.go(-1);</script>";
+        exit();
+    }
+
+    // 查找接收者 ID
+    $查詢接收者 = "
+        SELECT user_id FROM user WHERE account = '$receiver_account'
+    ";
+    $接收者結果 = mysqli_query($link, $查詢接收者);
+
+    if ($接收者結果 && $row = mysqli_fetch_assoc($接收者結果)) {
+        $receiver_id = $row['user_id'];
+
+        // 插入留言
+        $插入留言 = "
+            INSERT INTO messenger (medicalS_id, medicalP_id, messenger) 
+            VALUES ($sender_id, $receiver_id, '$message')
+        ";
+        if (mysqli_query($link, $插入留言)) {
+            echo "<script>alert('留言成功'); window.location.href = '留言頁面d.php';</script>";
+        } else {
+            echo "<script>alert('留言失敗'); history.go(-1);</script>";
+        }
+    } else {
+        echo "<script>alert('接收者不存在'); history.go(-1);</script>";
+    }
 }
-
-// 檢查 sender 是否正確，確保是 doctor 或 nurse
-if (!$sender || !in_array($sender, ['醫生', '護士'])) {
-    echo "<script>console.log('Invalid sender value: $sender');</script>";
-    echo "<script>alert('發送者身份不正確，請重新登入。'); window.location.href = 'login.php';</script>";
-    exit();
-}
-
-// 插入留言到 chatmessages 資料表
-$插入指令 = "INSERT INTO chatmessages (sender, message, timestamp) VALUES ('$sender', '$message', NOW())";
-// if (mysqli_query($link, $插入指令)) {
-//     echo "<script>alert('留言已送出'); window.location.href = '留言頁面d.php';</script>";
-// } else {
-//     echo "<script>alert('留言失敗：" . mysqli_error($link) . "'); window.location.href = '留言頁面d.php';</script>";
-// }
-
-// 關閉資料庫連線
-mysqli_close($link);
 ?>

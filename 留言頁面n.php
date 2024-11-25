@@ -1,63 +1,54 @@
 <?php
 session_start();
+include "db.php"; // 資料庫連接
 
-// 禁止瀏覽器緩存頁面
-header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Cache-Control: post-check=0, pre-check=0", false);
-header("Pragma: no-cache");
-
-include "db.php";  // 包含資料庫連接
-
-// 確認使用者是否已登入
+// 驗證使用者是否已登入
 if (!isset($_SESSION["登入狀態"]) || $_SESSION["登入狀態"] !== true) {
-    echo "<script>alert('你還沒有登入，請先登入帳號。'); window.location.href = 'login.php';</script>";
+    echo "<script>alert('請先登入'); window.location.href = 'login.php';</script>";
     exit();
 }
 
-// 確認帳號是否存在於 Session 中
-if (isset($_SESSION["帳號"])) {
-    $帳號 = $_SESSION['帳號'];
-} else {
-    echo "<script>alert('會話過期或資料遺失，請重新登入。'); window.location.href = 'login.php';</script>";
-    exit();
-}
-
-// 查詢登入使用者的身份和姓名
-$查詢資料 = "SELECT grade, username FROM user WHERE name = '$帳號'";
-$結果 = mysqli_query($link, $查詢資料);
-
+// 獲取登入使用者的帳號與角色
+$帳號 = mysqli_real_escape_string($link, $_SESSION["帳號"]);
+$查詢使用者 = "
+    SELECT u.user_id, u.name AS user_name, g.grade AS user_role 
+    FROM user u
+    JOIN grade g ON u.grade_id = g.grade_id 
+    WHERE u.account = '$帳號'
+";
+$結果 = mysqli_query($link, $查詢使用者);
 if ($結果 && $row = mysqli_fetch_assoc($結果)) {
-    // 設置角色
-    if ($row['grade'] == 1) {
-        $_SESSION['user_role'] = '醫生';
-    } elseif ($row['grade'] == 2) {
-        $_SESSION['user_role'] = '護士';
-    } else {
-        $_SESSION['user_role'] = '未知角色';
-    }
-
-    // 設置使用者姓名
-    $_SESSION['name'] = $row['username'];
+    $user_id = $row['user_id'];
+    $user_name = $row['user_name'];
+    $user_role = $row['user_role'];
+    $_SESSION['user_id'] = $user_id;
 } else {
-    echo "<script>alert('無法確定您的角色或名稱，請重新登入。'); window.location.href = 'login.php';</script>";
+    echo "<script>alert('無法獲取使用者資訊'); window.location.href = 'login.php';</script>";
     exit();
 }
 
-// 確保角色和姓名已設定
-$user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '未知角色';
-$name = isset($_SESSION['name']) ? $_SESSION['name'] : '未知姓名';
-
-// 取得所有來自醫生和護士的留言，按時間排序
-$查詢指令 = "SELECT sender, message, timestamp FROM chatmessages WHERE sender IN ('醫生', '護士') ORDER BY timestamp DESC";
-$查詢結果 = mysqli_query($link, $查詢指令);
-
-if (!$查詢結果) {
-    die("查詢失敗: " . mysqli_error($link));
-}
+// 查詢留言記錄
+$查詢留言 = "
+    SELECT 
+        sender.name AS sender_name,
+        sender_role.grade AS sender_role,
+        receiver.name AS receiver_name,
+        receiver_role.grade AS receiver_role,
+        m.messenger AS message,
+        m.timestamp AS message_time
+    FROM messenger m
+    JOIN user sender ON m.medicalS_id = sender.user_id
+    JOIN grade sender_role ON sender.grade_id = sender_role.grade_id
+    JOIN user receiver ON m.medicalP_id = receiver.user_id
+    JOIN grade receiver_role ON receiver.grade_id = receiver_role.grade_id
+    ORDER BY m.timestamp DESC
+";
+$留言結果 = mysqli_query($link, $查詢留言);
 ?>
 
 
 <input type="hidden" name="sender" value="<?php echo htmlspecialchars($_SESSION['user_role']); ?>">
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -127,8 +118,8 @@ if (!$查詢結果) {
             padding: 0;
         }
     </style>
-    <!-- 設置每 3 秒自動刷新頁面 -->
-    <meta http-equiv="refresh" content="3">
+    <!-- 設置每 5 秒自動刷新頁面 -->
+    <meta http-equiv="refresh" content="5">
 </head>
 
 <body>
@@ -172,38 +163,42 @@ if (!$查詢結果) {
     </div>
     <!-- 頁首 End -->
 
-    <?php
-    echo "~歡迎回來~ " . htmlspecialchars($name) . "<br/>";
-    echo "當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>"; // 顯示當前角色
-    echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"]) . "</p>";
-    ?>
+
+    <h1>歡迎，<?php echo htmlspecialchars($user_name); ?></h1>
+    <?php echo "當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>"; // 顯示當前角色
+    echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"]) . "</p>"; ?>
 
     <br />
-    <h2>醫生與護士的留言記錄</h2>
 
-    <!-- 顯示留言記錄 -->
-    <div id="messageHistory">
-        <?php if (mysqli_num_rows($查詢結果) > 0): ?>
+    <h2>留言記錄</h2>
+    <div id="messages">
+        <?php if (mysqli_num_rows($留言結果) > 0): ?>
             <ul>
-                <?php while ($row = mysqli_fetch_assoc($查詢結果)): ?>
+                <?php while ($row = mysqli_fetch_assoc($留言結果)): ?>
                     <li>
-                        <strong><?php echo htmlspecialchars($row['sender']); ?>:</strong>
-                        <?php echo htmlspecialchars($row['timestamp']) . " - " . htmlspecialchars($row['message']); ?>
+                        <strong><?php echo htmlspecialchars($row['sender_name']); ?>
+                            (<?php echo htmlspecialchars($row['sender_role']); ?>)</strong>
+                        對
+                        <strong><?php echo htmlspecialchars($row['receiver_name']); ?>
+                            (<?php echo htmlspecialchars($row['receiver_role']); ?>)</strong>
+                        說：
+                        <?php echo htmlspecialchars($row['message']); ?>
+                        <br>
+                        <small><?php echo htmlspecialchars($row['message_time']); ?></small>
                     </li>
                 <?php endwhile; ?>
             </ul>
         <?php else: ?>
-            <p>尚無留言。</p>
+            <p>目前沒有留言。</p>
         <?php endif; ?>
     </div>
-    <br />
-    <!-- 留言輸入表單 -->
+
     <h3>發送新留言</h3>
     <form method="POST" action="醫生護士互相留言處理n.php">
-        <!-- 使用 Session 中的 user_role 設置 sender 的值 -->
-        <input type="hidden" name="sender" value="<?php echo htmlspecialchars($_SESSION['user_role']); ?>">
-        <textarea name="message" rows="4" cols="50" placeholder="請輸入留言"></textarea><br>
-        <button type="submit">送出留言</button>
+        <label for="receiver">接收者帳號：</label>
+        <input type="text" id="receiver" name="receiver_account" required><br>
+        <textarea name="message" rows="4" cols="50" placeholder="輸入您的留言" required></textarea><br>
+        <button type="submit">送出</button>
     </form>
 
 
