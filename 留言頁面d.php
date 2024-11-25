@@ -29,38 +29,48 @@ $查詢使用者 = "
     JOIN grade g ON u.grade_id = g.grade_id 
     WHERE u.account = '$帳號'
 ";
+// 執行查詢，查詢目前登入使用者的名稱與角色
 $結果 = mysqli_query($link, $查詢使用者);
 
 if ($結果 && $row = mysqli_fetch_assoc($結果)) {
+    // 如果查詢成功，將使用者名稱與角色存入 Session 變數中
     $_SESSION['user_name'] = $row['user_name'];
     $_SESSION['user_role'] = $row['user_role'];
 } else {
+    // 如果查詢失敗，顯示錯誤訊息並跳轉至登入頁面
     echo "<script>alert('無法獲取使用者資訊，請重新登入'); window.location.href = 'login.php';</script>";
     exit();
 }
 
+// 從 Session 中取得使用者名稱與角色，用於後續使用
 $user_name = $_SESSION['user_name'];
 $user_role = $_SESSION['user_role'];
 
 // 查詢留言記錄
 $查詢留言 = "
     SELECT 
-        sender.name AS sender_name,
-        sender_role.grade AS sender_role,
-        receiver.name AS receiver_name,
-        receiver_role.grade AS receiver_role,
-        m.messenger AS message,
-        m.timestamp AS message_time
-    FROM messenger m
-    JOIN user sender ON m.medicalS_id = sender.user_id
-    JOIN grade sender_role ON sender.grade_id = sender_role.grade_id
-    JOIN user receiver ON m.medicalP_id = receiver.user_id
-    JOIN grade receiver_role ON receiver.grade_id = receiver_role.grade_id
-    ORDER BY m.timestamp DESC
+        sender.name AS sender_name, -- 發送者的姓名，別名為 sender_name
+        sender_role.grade AS sender_role, -- 發送者的角色，例如醫生或護士，別名為 sender_role
+        receiver.account AS receiver_account, -- 接收者的帳號，別名為 receiver_account
+        receiver.name AS receiver_name, -- 接收者的姓名，別名為 receiver_name
+        receiver_role.grade AS receiver_role, -- 接收者的角色，例如醫生或護士，別名為 receiver_role
+        m.messenger AS message, -- 留言的內容，別名為 message
+        m.timestamp AS message_time -- 留言的時間戳記，別名為 message_time
+    FROM messenger m -- 從 messenger 表中選取留言資料，別名為 m
+    JOIN user sender ON m.medicalS_id = sender.user_id -- 將 messenger 表中的 medicalS_id 與 user 表中的 user_id 做連接，以獲取發送者的資料，別名為 sender
+    JOIN grade sender_role ON sender.grade_id = sender_role.grade_id -- 將發送者的 grade_id 與 grade 表中的 grade_id 做連接，以獲取發送者的角色，別名為 sender_role
+    JOIN medical med ON m.medicalP_id = med.medical_id -- 將 messenger 表中的 medicalP_id 與 medical 表中的 medical_id 做連接，以獲取 medical 表的資料，別名為 med
+    JOIN user receiver ON med.userA_id = receiver.user_id -- 將 medical 表中的 userA_id 與 user 表中的 user_id 做連接，以獲取接收者的資料，別名為 receiver
+    JOIN grade receiver_role ON receiver.grade_id = receiver_role.grade_id -- 將接收者的 grade_id 與 grade 表中的 grade_id 做連接，以獲取接收者的角色，別名為 receiver_role
+    ORDER BY m.timestamp DESC -- 根據留言的時間戳記做降序排序，將最新的留言排在最前面
 ";
+
+
+// 執行查詢，獲取所有留言記錄
 $留言結果 = mysqli_query($link, $查詢留言);
 
 if (!$留言結果) {
+    // 如果查詢留言記錄失敗，顯示錯誤訊息並終止執行
     die("查詢留言記錄失敗：" . mysqli_error($link));
 }
 ?>
