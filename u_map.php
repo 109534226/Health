@@ -32,8 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // 獲取請求參數
-    $county = trim($_POST['county'] ?? '');
-    $district = trim($_POST['district'] ?? '');
+    $county = trim($_POST['county'] ?? ''); // 縣市名稱
+    $district = trim($_POST['district'] ?? ''); // 地區名稱
 
     // 驗證請求參數
     if (empty($county) || empty($district)) {
@@ -45,11 +45,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     include 'db.php';
 
     // 查詢資料庫
-    $query = "SELECT DISTINCT `醫事機構` FROM `hospital` WHERE `縣市名稱` = ? AND `區域` = ?";
+    $query = "SELECT DISTINCT `hospital` FROM `hospital` WHERE `city` = ? AND `area` = ?";
     $stmt = $link->prepare($query);
 
     if (!$stmt) {
-        echo json_encode(["message" => "伺服器內部錯誤，請稍後再試。"]);
+        echo json_encode(["message" => "使服器內部錯誤，請稍後再試。"]);
         exit;
     }
 
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($result->num_rows > 0) {
         $clinics = [];
         while ($row = $result->fetch_assoc()) {
-            $clinics[] = htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8');
+            $clinics[] = htmlspecialchars($row['hospital'], ENT_QUOTES, 'UTF-8');
         }
         echo json_encode(["clinics" => $clinics]);
     } else {
@@ -75,9 +75,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-// // 非 POST 請求的處理
-// echo json_encode(["message" => "無效的請求方法。"]);
-// exit;
 ?>
 
 <!DOCTYPE html>
