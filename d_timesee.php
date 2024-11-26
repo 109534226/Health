@@ -207,7 +207,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         ds.consultationD AS 日期,
         ds.clinicnumber_id AS 診間號,
         CASE 
-            WHEN ds.consultationT_id = 1 THEN '上'
+            WHEN ds.consultationT_id = 1 THEN '早'
             WHEN ds.consultationT_id = 2 THEN '午'
             WHEN ds.consultationT_id = 3 THEN '晚'
             ELSE '未知時段'
