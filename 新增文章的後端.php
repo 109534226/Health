@@ -49,7 +49,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (mysqli_stmt_execute($stmt_article)) {
         echo "<script>
                 alert('文章新增成功！');
-                window.location.href = '文章列表.php'; // 跳轉到文章列表頁面
+                window.location.href = 'c_content.php'; // 跳轉到文章列表頁面
               </script>";
     } else {
         echo "<script>
