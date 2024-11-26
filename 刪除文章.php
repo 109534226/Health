@@ -127,6 +127,11 @@ if (!$result) {
     <div class="container-fluid sticky-top bg-white shadow-sm">
         <div class="container">
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
+            <form method="POST" action="c_content.php">
+            <div class="button-container">
+                    <button type="submit" class="submit-button">返回</button>
+                </div>
+                </form>
                 <a href="n_profile.php" class="navbar-brand">
                     <h1 class="m-0 text-uppercase text-primary"><i class="fa fa-clinic-medical me-2"></i>健康醫療網站</h1>
                 </a>
