@@ -36,14 +36,14 @@ $result = mysqli_query($link, $SQL檢查); // 將查詢結果存入 $result
 $userData = mysqli_fetch_assoc($result); // 將結果轉為關聯陣列格式
 
 // 如果查無結果，說明該帳號的資料不存在
-if (!$userData) {
-    // 提示使用者重新登入，並跳轉到登入頁面
-    echo "<script>
-            alert('無法找到用戶資料，請重新登入。');
-            window.location.href = 'login.php'; // 跳轉到登入頁面
-          </script>";
-    exit(); // 停止後續程式執行
-}
+// if (!$userData) {
+//     // 提示使用者重新登入，並跳轉到登入頁面
+//     echo "<script>
+//             alert('無法找到用戶資料，請重新登入。');
+//             window.location.href = 'login.php'; // 跳轉到登入頁面
+//           </script>";
+//     exit(); // 停止後續程式執行
+// }
 
 // 將查詢到的資料填入變數，用於後續表單顯示
 $姓名 = $userData['username'] ?? ''; // 使用者名稱，默認為空字串
