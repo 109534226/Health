@@ -2,67 +2,112 @@
 session_start(); // 開啟 session
 include "db.php"; // 包含資料庫連接文件
 
-// 獲取 POST 資料
-$帳號 = $_SESSION["帳號"]; // 從 session 中獲取帳號
-$姓名 = $_POST["username"]; // 從表單中獲取使用者名稱
-$出生年月日 = $_POST["userdate"]; // 從表單中獲取使用者生日
-$身分證字號 = $_POST["useridcard"]; // 從表單中獲取使用者身分證字號
-$電話 = $_POST["userphone"]; // 從表單中獲取使用者電話
-$電子郵件 = $_POST["useremail"]; // 從表單中獲取使用者電子郵件
-$hospital_id = $_POST["useremergencycontact"]; // 從表單中獲取緊急聯絡人
-$profilePicture = $_FILES['profilePicture']; // 從表單中獲取使用者上傳的個人圖片
-
-// 資料驗證
-if (empty($出生年月日) || empty($身分證字號) || empty($電話)) {
-    // 如果必要欄位為空，則顯示錯誤訊息並重新導向到個人資料頁面
-    echo "<script>alert('必要資料為空，請填寫所有欄位！'); window.location.href = 'u_profile.php';</script>";
-    exit;
+// 確認使用者是否已登入
+if (!isset($_SESSION["登入狀態"]) || $_SESSION["登入狀態"] !== true) {
+    // 如果 Session 中沒有設定登入狀態，或狀態不為 true，則跳轉到登入頁面
+    header("Location: login.php"); // 跳轉到登入頁面
+    exit(); // 停止後續程式執行
 }
 
-// 檢查資料庫中是否已有該使用者的資料
-$SQL檢查 = "SELECT * FROM profession WHERE name = '$帳號'"; // 查詢 profession資料表中是否有對應的帳號
-$result = mysqli_query($link, $SQL檢查); // 執行查詢
-$userData = mysqli_fetch_assoc($result); // 獲取查詢結果
+// 從 Session 中獲取使用者的帳號
+$帳號 = $_SESSION["帳號"];
 
-if ($userData) {
-    // 如果資料已存在，則執行更新
-    $SQL指令 = "UPDATE profession SET username='$姓名', birthday='$出生年月日', idcard='$身分證字號', 
-                phone='$電話', email='$電子郵件', ecname='$緊急聯絡人', ecphone='$緊急聯絡人電話'";
+// 從 user 表中查詢 user_id
+$sql_user = "SELECT user_id FROM user WHERE account = ?";
+$stmt_user = $link->prepare($sql_user);
+if ($stmt_user) {
+    $stmt_user->bind_param("s", $帳號);
+    $stmt_user->execute();
+    $stmt_user->bind_result($user_id);
+    $stmt_user->fetch();
+    $stmt_user->close();
 
-    // 如果有上傳新圖片，更新 image 欄位
-    if (!empty($profilePicture['tmp_name']) && $profilePicture['error'] == 0) {
-        $imageData = addslashes(file_get_contents($profilePicture['tmp_name'])); // 讀取圖片內容並轉換為字串
-        $SQL指令 .= ", image='$imageData'"; // 更新 image 欄位
+    if (!$user_id) {
+        echo "無法找到對應的 user_id，請重新登入";
+        exit();
+    }
+} else {
+    echo "查詢 user_id 時出現錯誤: " . $link->error;
+    exit();
+}
+
+// 處理表單提交
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // 取得表單資料
+    $name = $_POST['username'];
+    $gender = ($_POST['gender'] == '男') ? 1 : 2; // 根據性別選擇相應的 gender_id
+    $birthday = $_POST['userdate'];
+    $idcard = $_POST['useridcard'];
+    $phone = $_POST['userphone'];
+    $email = $_POST['useremail'];
+
+    // 處理圖片上傳
+    $imagePath = null;
+    if (isset($_FILES['profilePicture']) && $_FILES['profilePicture']['error'] == UPLOAD_ERR_OK) {
+        // 設定圖片保存的目錄
+        $uploadDir = 'uploads/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true); // 如果目錄不存在，創建它
+        }
+
+        // 生成唯一的文件名，避免重名
+        $imagePath = $uploadDir . uniqid() . "_" . basename($_FILES['profilePicture']['name']);
+        if (!move_uploaded_file($_FILES['profilePicture']['tmp_name'], $imagePath)) {
+            echo "圖片上傳失敗";
+            exit();
+        }
     }
 
-    $SQL指令 .= " WHERE name='$帳號'"; // 指定更新的使用者條件
+    // 檢查 profession 表中是否已經存在該 user_id 的資料
+    $sql_check = "SELECT COUNT(*) FROM profession WHERE user_id = ?";
+    $stmt_check = $link->prepare($sql_check);
+    if ($stmt_check) {
+        $stmt_check->bind_param("i", $user_id);
+        $stmt_check->execute();
+        $stmt_check->bind_result($count);
+        $stmt_check->fetch();
+        $stmt_check->close();
 
-    // 更新 user 資料表中的 username 欄位
-    $SQL更新User = "UPDATE user SET username='$姓名' WHERE email='$電子郵件'"; // 更新 user 資料表中的使用者名稱
-} else {
-    // 如果資料不存在，則插入新資料
-    $SQL指令 = "INSERT INTO profession (name, username, birthday, idcard, phone, email";
-
-    if (!empty($profilePicture['tmp_name']) && $profilePicture['error'] == 0) {
-        $imageData = addslashes(file_get_contents($profilePicture['tmp_name'])); // 讀取圖片內容並轉換為字串
-        $SQL指令 .= ", image) VALUES ('$帳號', '$姓名', '$出生年月日', '$身分證字號', '$電話', '$電子郵件', '$imageData')"; // 插入新資料，包含圖片
+        if ($count > 0) {
+            // 更新 profession 表中的資料
+            $sql_update = "UPDATE profession SET gender_id = ?, birthday = ?, idcard = ?, phone = ?, email = ?, image = ? WHERE user_id = ?";
+            $stmt_update = $link->prepare($sql_update);
+            if ($stmt_update) {
+                $stmt_update->bind_param("isssssi", $gender, $birthday, $idcard, $phone, $email, $imagePath, $user_id);
+                if ($stmt_update->execute()) {
+                    // 資料更新成功後跳轉到 n_profile.php
+                    echo "<script>alert('資料更新成功'); window.location.href = 'n_profile.php';</script>";
+                    exit();
+                } else {
+                    echo "資料更新失敗: " . $stmt_update->error;
+                }
+                $stmt_update->close();
+            } else {
+                echo "更新預備語句失敗: " . $link->error;
+            }
+        } else {
+            // 插入 profession 表中的新資料
+            $sql_insert = "INSERT INTO profession (user_id, gender_id, birthday, idcard, phone, email, image) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            $stmt_insert = $link->prepare($sql_insert);
+            if ($stmt_insert) {
+                $stmt_insert->bind_param("iisssss", $user_id, $gender, $birthday, $idcard, $phone, $email, $imagePath);
+                if ($stmt_insert->execute()) {
+                    // 資料新增成功後跳轉到 n_profile.php
+                    echo "<script>alert('資料新增成功'); window.location.href = 'n_profile.php';</script>";
+                    exit();
+                } else {
+                    echo "資料新增失敗: " . $stmt_insert->error;
+                }
+                $stmt_insert->close();
+            } else {
+                echo "插入預備語句失敗: " . $link->error;
+            }
+        }
     } else {
-        $SQL指令 .= ") VALUES ('$帳號', '$姓名', '$出生年月日', '$身分證字號', '$電話', '$電子郵件')"; // 插入新資料，不包含圖片
+        echo "檢查 profession 表時出現錯誤: " . $link->error;
     }
-
-    // 插入新記錄後，也在 user 表中插入或更新對應的 username
-    $SQL更新User = "UPDATE user SET username='$姓名' WHERE email='$電子郵件'"; // 更新 user 資料表中的使用者名稱
 }
 
-// 執行資料庫操作
-if (mysqli_query($link, $SQL指令) && mysqli_query($link, $SQL更新User)) {
-    // 如果執行成功，重新導向到個人資料頁面，並顯示成功訊息
-    header("Location: n_profile.php?帳號=$帳號&success=資料已成功修改");
-} else {
-    // 如果執行失敗，記錄錯誤並重新導向到個人資料頁面，顯示錯誤訊息
-    error_log("SQL Error: " . mysqli_error($link));
-    header("Location: n_profile.php?帳號=$帳號&error=修改失敗，請稍後再試");
-}
-
-mysqli_close($link); // 關閉資料庫連接
+// 關閉連線
+$link->close();
 ?>
