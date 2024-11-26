@@ -96,6 +96,8 @@ if (mysqli_num_rows($result) > 0) {
 echo "~歡迎回來~ " . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . "<br/>";
 echo "當前角色: " . htmlspecialchars($_SESSION['user_role'], ENT_QUOTES, 'UTF-8') . "</p>";
 echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"], ENT_QUOTES, 'UTF-8') . "</p>";
+echo "隸屬醫院: " . htmlspecialchars($, ENT_QUOTES, 'UTF-8') . "</p>";
+echo "隸屬科別: " . htmlspecialchars($, ENT_QUOTES, 'UTF-8') . "</p>";
 
 // 查詢隸屬醫院和科別資料
 $hospital_query = "SELECT h.hospital, h.department FROM hospital h 
@@ -287,7 +289,9 @@ mysqli_close($link);
 
             if ($是否刪除成功) {
                 // 刪除成功後顯示所有資料
-                $查詢語句 = "SELECT * FROM patient";
+                $查詢語句 = "SELECT patient.*, consultationt.consultationT 
+                  FROM patient
+                  LEFT JOIN consultationt ON patient.consultationT_id = consultationt.consultationT_id";
                 $查詢結果 = mysqli_query($link, $查詢語句);
             } else {
                 // 查詢總記錄數
@@ -309,16 +313,18 @@ mysqli_close($link);
                 // 計算起始記錄
                 $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
 
-                // 查詢當前頁碼的資料
-                $查詢結果 = mysqli_query($link, "SELECT * FROM patient LIMIT $起始位置, $每頁記錄數");
+                // 查詢當前頁碼的資料，並使用 LEFT JOIN 來抓取看診時間
+                $查詢語句 = "SELECT patient.*, consultationt.consultationT 
+                  FROM patient
+                  LEFT JOIN consultationt ON patient.consultationT_id = consultationt.consultationT_id
+                  LIMIT $起始位置, $每頁記錄數";
+                $查詢結果 = mysqli_query($link, $查詢語句);
             }
 
             if (!$查詢結果) {
                 die("查詢失敗: " . mysqli_error($link));
             }
-
             ?>
-
 
             <table border="1">
                 <thead>
@@ -345,8 +351,8 @@ mysqli_close($link);
                             <td><?php echo htmlspecialchars($資料列['birthday']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['hospital_id']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['doctorshift_id']); ?></td>
-
-                            <td><?php echo htmlspecialchars($資料列['consultationT_id']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['consultationT'] ?: '未提供'); ?></td>
+                            <!-- 顯示看診時間，如果為空顯示'未提供' -->
                             <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
                             <td>
                                 <form action="看診紀錄修改000.php" method="post" style="display:inline;">
@@ -354,7 +360,7 @@ mysqli_close($link);
                                     <button type="submit">修改</button>
                                 </form>
                                 <form method="POST" action="看診紀錄刪除ns.php" style="display:inline;">
-                                    <input type="hidden" name="id" value="<?php echo $資料列['patient_id']; ?>">
+                                    <input type="hidden"     name="id" value="<?php echo $資料列['patient_id']; ?>">
                                     <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
                                 </form>
                             </td>
@@ -362,6 +368,7 @@ mysqli_close($link);
                     <?php endwhile; ?>
                 </tbody>
             </table>
+
 
             <div class="pagination">
                 <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p> <!-- 顯示總資料筆數 -->

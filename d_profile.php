@@ -1,42 +1,68 @@
 <?php
-session_start();
-include "db.php";
+session_start(); // 啟動 Session，讓伺服器能夠追蹤使用者的登入狀態
+include "db.php"; // 引入資料庫連線檔案
 
-// 確認是否登入
-if (!isset($_SESSION["登入狀態"])) {
-    header("Location: login.php");
-    exit;
+// 確認使用者是否已登入
+if (!isset($_SESSION["登入狀態"]) || $_SESSION["登入狀態"] !== true) {
+    header("Location: login.php"); // 跳轉到登入頁面
+    exit();
 }
 
-// 獲取使用者帳號
+// 從 Session 中獲取使用者的帳號
 $帳號 = $_SESSION["帳號"];
-$姓名 = $_SESSION["姓名"];
-$電子郵件 = $_SESSION["電子郵件"];
 
-// 查詢該帳號的使用者資料
-$SQL檢查 = "SELECT * FROM profession WHERE name = '$帳號'";
+// 使用 SQL 查詢語句，從資料庫中查詢該帳號對應的詳細資料
+$SQL檢查 = "
+    SELECT 
+        user.name AS username,
+        gender.gender,
+        profession.birthday,
+        profession.idcard,
+        profession.phone,
+        profession.email,
+        hospital.hospital,
+        department.department,
+        profession.image
+    FROM user
+    JOIN profession ON user.user_id = profession.user_id
+    LEFT JOIN hospital ON profession.hospital_id = hospital.hospital_id
+    LEFT JOIN department ON profession.department_id = department.department_id
+    LEFT JOIN gender ON profession.gender_id = gender.gender_id
+    WHERE user.account = '$帳號'
+";
+
 $result = mysqli_query($link, $SQL檢查);
+
+// 如果查詢失敗或沒有找到資料，提示錯誤並重新登入
+if (!$result || mysqli_num_rows($result) == 0) {
+    echo "<script>
+            alert('無法找到用戶資料，請重新登入。');
+            window.location.href = 'login.php';
+          </script>";
+    exit();
+}
+
 $userData = mysqli_fetch_assoc($result);
 
-// 將資料填入表單欄位
-// $姓名 = $userData['username'] ?? '';
+// 將查詢到的資料填入變數
+$姓名 = $userData['username'] ?? '';
+$性別 = $userData['gender'] ?? '';
 $出生年月日 = $userData['birthday'] ?? '';
 $身分證字號 = $userData['idcard'] ?? '';
 $電話 = $userData['phone'] ?? '';
-// $電子郵件 = $userData['email'] ?? '';
-// $緊急聯絡人 = $userData['ecname'] ?? '';
-// $緊急聯絡人電話 = $userData['ecphone'] ?? '';
+$電子郵件 = $userData['email'] ?? '';
+$隸屬醫院 = $userData['hospital'] ?? '';
+$隸屬科別 = $userData['department'] ?? '';
 
-// 頭像設置
+// 設置頭像的顯示路徑
 $profilePicture = !empty($userData['image'])
     ? 'data:image/jpeg;base64,' . base64_encode($userData['image'])
     : 'img/300.jpg';
 
-// 防止頁面被瀏覽器緩存
+// 設置 HTTP 標頭，防止頁面被瀏覽器緩存
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 header("Pragma: no-cache");
-
 ?>
 
 <!DOCTYPE html>
@@ -322,6 +348,12 @@ header("Pragma: no-cache");
                 </div>
 
                 <div class="form-row">
+                    <label for="gender">性別 :</label>
+                    <input id="gender" type="text" name="gender" value="<?php echo htmlspecialchars($性別); ?>"
+                        disabled>
+                </div>
+
+                <div class="form-row">
                     <label for="userdate">出生年月日 :</label>
                     <input id="userdate" type="date" name="userdate" value="<?php echo htmlspecialchars($出生年月日); ?>"
                         disabled>
@@ -345,10 +377,6 @@ header("Pragma: no-cache");
                         disabled>
                 </div>
 
-                <div class="form-row">
-                    <label for="gender">性別 :</label>
-                    <input id="gender" type="text" name="gender" value="<?php echo htmlspecialchars($性別); ?>" disabled>
-                </div>
 
                 <div class="form-row">
                     <label for="hospital">隸屬醫院 :</label>
@@ -357,7 +385,7 @@ header("Pragma: no-cache");
                 </div>
 
                 <div class="form-row">
-                    <label for="department">科別 :</label>
+                    <label for="department">隸屬科別 :</label>
                     <input id="department" type="text" name="department" value="<?php echo htmlspecialchars($科別); ?>"
                         disabled>
                 </div>
@@ -537,12 +565,13 @@ header("Pragma: no-cache");
             const confirmMessage =
                 `請確認您的資料:\n` +
                 `姓名: ${username}\n` +
+                `性別: ${gender}\n` +
                 `出生年月日: ${userdate}\n` +
                 `身分證字號: ${useridcard}\n` +
                 `聯絡電話: ${userphone}\n` +
                 `電子郵件: ${useremail}\n` +
-                `隸屬醫院: ${hospital_id}\n` +
-                `隸屬科別: ${hospital_id}\n` +
+                `隸屬醫院: ${hospital}\n` +
+                `隸屬科別: ${department}\n` +
                 `確定要提交資料嗎？`;
 
             // 顯示確認 alert
