@@ -186,158 +186,180 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             </div>
 
             <?php
-            include "db.php"; // 連接資料庫
-            
-            // 設定分頁
-            $每頁筆數 = 15;
+include "db.php"; // 連接資料庫
 
-            // 獲取當前頁碼
-            $當前頁碼 = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-            $當前頁碼 = max(1, $當前頁碼); // 確保當前頁碼至少為 1
-            
-            // 計算起始記錄
-            $起始位置 = ($當前頁碼 - 1) * $每頁筆數;
+// 擷取搜尋的資料
+$搜尋詞 = isset($_POST['search']) ? $_POST['search'] : '';
 
-            // 查詢醫生班表資料，並加入 `user` 表以顯示醫生姓名
-            $查詢語句 = "
+// 如果沒有輸入，顯示請輸入搜尋資料
+if (empty($搜尋詞)) {
+    header('Content-Type: text/html; charset=UTF-8');  // 設置編碼
+    echo "<script>
+        alert('請輸入搜尋資料');
+        window.location.href = 'n_recordssee.php';
+    </script>";
+    exit;
+}
+
+// 設定每頁顯示的記錄數
+$每頁記錄數 = 15;
+
+// 獲取當前頁碼
+$當前頁碼 = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$當前頁碼 = max(1, $當前頁碼); // 確保當前頁碼至少為 1
+
+// 計算起始記錄
+$起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
+
+// 聯表查詢患者、科別、醫生和看診時間等資料
+$查詢語句 = "
     SELECT 
-        ds.doctorshift_id AS id, 
-        ds.consultationD AS 看診日期,
+        p.patient_id AS id, 
+        ds.consultationD AS 日期,
+        p.medicalnumber AS 病例號,
+        p.patientname AS 患者姓名,
+        p.birthday AS 出生日期,
+        g.gender AS 性別,
+        d.department AS 科別,
+        u.name AS 醫生姓名,
         ds.consultationT_id AS 看診時段,
         cn.clinicnumber AS 診間號,
-        u.name AS 醫生姓名,
-        d.department AS 科別,
-        ds.created_at AS 紀錄創建時間
-    FROM doctorshift ds
+        p.created_at AS 紀錄創建時間
+    FROM patient p
+    LEFT JOIN gender g ON p.gender_id = g.gender_id
+    LEFT JOIN department d ON p.department_id = d.department_id
+    LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
     LEFT JOIN `user` u ON ds.user_id = u.user_id
-    LEFT JOIN department d ON ds.medical_id = d.department_id
     LEFT JOIN clinicnumber cn ON ds.clinicnumber_id = cn.clinicnumber_id
+    WHERE p.patientname = ?
+    ORDER BY p.patient_id ASC
     LIMIT ?, ?";
 
-            // 準備並執行查詢
-            $查詢準備 = mysqli_prepare($link, $查詢語句);
-            mysqli_stmt_bind_param($查詢準備, "ii", $起始位置, $每頁筆數);
-            mysqli_stmt_execute($查詢準備);
-            $查詢結果 = mysqli_stmt_get_result($查詢準備);
+// 準備查詢
+$查詢準備 = $link->prepare($查詢語句);
+if (!$查詢準備) {
+    die("查詢準備失敗: " . mysqli_error($link));
+}
 
-            if (!$查詢結果) {
-                die("查詢失敗: " . mysqli_error($link));
-            }
+// 綁定參數
+$查詢準備->bind_param("sii", $搜尋詞, $起始位置, $每頁記錄數);
+$查詢準備->execute();
+$查詢結果 = $查詢準備->get_result();
 
-            // 計算總記錄數
-            $總筆數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM doctorshift");
-            if (!$總筆數查詢) {
-                die("查詢失敗: " . mysqli_error($link));
-            }
-            $總筆數結果 = mysqli_fetch_assoc($總筆數查詢);
-            $總記錄數 = $總筆數結果['總數'];
-            $總頁數 = ceil($總記錄數 / $每頁筆數);
-            ?>
+if (!$查詢結果) {
+    die("查詢失敗: " . mysqli_error($link));
+}
 
-            <!-- 顯示資料 -->
-            <div class="form-container">
-                <?php if ($總記錄數 > 0): ?>
-                    <table border="1">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>看診日期</th>
-                                <th>診間號</th>
-                                <th>醫生姓名</th>
-                                <th>看診時間</th>
-                                <th>科別</th>
-                                <th>紀錄創建時間</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php while ($資料列 = mysqli_fetch_assoc($查詢結果)): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($資料列['id']); ?></td>
-                                    <td><?php echo htmlspecialchars($資料列['看診日期']); ?></td>
-                                    <td><?php echo htmlspecialchars($資料列['診間號']); ?></td>
-                                    <td><?php echo htmlspecialchars($資料列['醫生姓名']); ?></td>
-                                    <td>
-                                        <?php
-                                        // 顯示看診時段文字描述
-                                        switch ($資料列['看診時段']) {
-                                            case 1:
-                                                echo '早';
-                                                break;
-                                            case 2:
-                                                echo '午';
-                                                break;
-                                            case 3:
-                                                echo '晚';
-                                                break;
-                                            default:
-                                                echo '未知時段';
-                                        }
-                                        ?>
-                                    </td>
-                                    <td><?php echo htmlspecialchars($資料列['科別']); ?></td>
-                                    <td><?php echo htmlspecialchars($資料列['紀錄創建時間']); ?></td>
-                                </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
-                <?php endif; ?>
-            </div>
+// 獲取總記錄數
+$總記錄數查詢 = "
+    SELECT COUNT(*) as 總數
+    FROM patient p
+    LEFT JOIN gender g ON p.gender_id = g.gender_id
+    LEFT JOIN department d ON p.department_id = d.department_id
+    LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
+    LEFT JOIN `user` u ON ds.user_id = u.user_id
+    WHERE p.patientname = ?";
+$查詢準備_總數 = $link->prepare($總記錄數查詢);
+$查詢準備_總數->bind_param("s", $搜尋詞);
+$查詢準備_總數->execute();
+$總記錄數結果 = $查詢準備_總數->get_result();
 
-            <!-- 顯示分頁 -->
-            <div class="pagination">
-                <?php if ($總記錄數 > 0): ?>
-                    <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p>
-                    <span>第 <?php echo $當前頁碼; ?> 頁 / 共 <?php echo $總頁數; ?> 頁</span>
+if ($總記錄數結果) {
+    $總筆數結果 = $總記錄數結果->fetch_assoc();
+    $總記錄數 = $總筆數結果['總數'];
+    $總頁數 = ceil($總記錄數 / $每頁記錄數);
+} else {
+    die("查詢失敗: " . mysqli_error($link));
+}
 
-                    <?php if ($當前頁碼 > 1): ?>
-                        <a href="?page=<?php echo $當前頁碼 - 1; ?>">上一頁</a>
-                    <?php endif; ?>
+// 如果沒有找到任何記錄，顯示「查無此人資料」
+if ($總記錄數 == 0) {
+    echo "<script>
+        alert('查無此人');
+        window.location.href = 'n_recordssee.php';
+    </script>";
+    exit;
+}
+?>
 
-                    <?php if ($當前頁碼 < $總頁數): ?>
-                        <a href="?page=<?php echo $當前頁碼 + 1; ?>">下一頁</a>
-                    <?php endif; ?>
-                <?php else: ?>
-                    <p>沒有資料可以顯示分頁。</p>
-                <?php endif; ?>
-            </div>
+<div class="form-container">
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>日期</th>
+                <th>病例號</th>
+                <th>患者姓名</th>
+                <th>出生日期</th>
+                <th>性別</th>
+                <th>診間號</th>
+                <th>科別</th>
+                <th>看診醫生</th>
+                <th>看診時間</th>
+                <th>紀錄創建時間</th>
+                <th>功能選項</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php while ($資料列 = $查詢結果->fetch_assoc()): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($資料列['id']); ?></td>
+                    <td><?php echo htmlspecialchars($資料列['日期']); ?></td>
+                    <td><?php echo htmlspecialchars($資料列['病例號']); ?></td>
+                    <td><?php echo htmlspecialchars($資料列['患者姓名']); ?></td>
+                    <td><?php echo htmlspecialchars($資料列['出生日期']); ?></td> 
+                    <td><?php echo htmlspecialchars($資料列['性別']); ?></td>
+                    <td><?php echo htmlspecialchars($資料列['診間號']); ?></td>
+                    <td><?php echo htmlspecialchars($資料列['科別']); ?></td>
+                    <td><?php echo htmlspecialchars($資料列['醫生姓名']); ?></td>
+                    <td>
+                        <?php
+                        // 將看診時段的數字轉換為文字描述
+                        switch ($資料列['看診時段']) {
+                            case 1:
+                                echo '早';
+                                break;
+                            case 2:
+                                echo '午';
+                                break;
+                            case 3:
+                                echo '晚';
+                                break;
+                            default:
+                                echo '未知時段';
+                        }
+                        ?>
+                    </td>
+                    <td><?php echo htmlspecialchars($資料列['紀錄創建時間']); ?></td>
+                    <td>
+                        <form action="看診紀錄修改00.php" method="post" style="display:inline;">
+                            <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
+                            <button type="submit">修改</button>
+                        </form>
+                        <form method="POST" action="看診紀錄刪除nd.php?search=<?php echo urlencode($搜尋詞); ?>" style="display:inline;">
+                            <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
+                            <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
+                        </form>
+                    </td>
+                </tr>
+            <?php endwhile; ?>
+        </tbody>
+    </table>
+</div>
 
-            <!-- 顯示分頁 -->
-            <div class="pagination">
-                <?php if ($總記錄數 > 0): ?>
-                    <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p>
-                    <span>第 <?php echo $當前頁碼; ?> 頁 / 共 <?php echo $總頁數; ?> 頁</span>
+<!-- 顯示分頁 -->
+<div class="pagination">
+    <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p>
+    <span>第 <?php echo $當前頁碼; ?> 頁 / 共 <?php echo $總頁數; ?> 頁</span>
 
-                    <?php if ($當前頁碼 > 1): ?>
-                        <a href="?page=<?php echo $當前頁碼 - 1; ?>">上一頁</a>
-                    <?php endif; ?>
+    <?php if ($當前頁碼 > 1): ?>
+        <a href="?page=<?php echo $當前頁碼 - 1; ?>&search=<?php echo urlencode($搜尋詞); ?>">上一頁</a>
+    <?php endif; ?>
 
-                    <?php if ($當前頁碼 < $總頁數): ?>
-                        <a href="?page=<?php echo $當前頁碼 + 1; ?>">下一頁</a>
-                    <?php endif; ?>
-                <?php else: ?>
-                    <p>沒有資料可以顯示分頁。</p>
-                <?php endif; ?>
-            </div>
-
-
-            <!-- 顯示分頁 -->
-            <div class="pagination">
-                <?php if ($總筆數 > 0): ?>
-                    <p>(總共 <?php echo $總筆數; ?> 筆資料)</p>
-                    <span>第 <?php echo $當前頁碼; ?> 頁 / 共 <?php echo $總頁數; ?> 頁</span>
-
-                    <?php if ($當前頁碼 > 1): ?>
-                        <a href="?page=<?php echo $當前頁碼 - 1; ?>&search=<?php echo urlencode($搜尋詞); ?>">上一頁</a>
-                    <?php endif; ?>
-
-                    <?php if ($當前頁碼 < $總頁數): ?>
-                        <a href="?page=<?php echo $當前頁碼 + 1; ?>&search=<?php echo urlencode($搜尋詞); ?>">下一頁</a>
-                    <?php endif; ?>
-                <?php else: ?>
-                    <p>沒有資料可以顯示分頁。</p>
-                <?php endif; ?>
-            </div>
-
+    <?php if ($當前頁碼 < $總頁數): ?>
+        <a href="?page=<?php echo $當前頁碼 + 1; ?>&search=<?php echo urlencode($搜尋詞); ?>">下一頁</a>
+    <?php endif; ?>
+</div>
 
 
 

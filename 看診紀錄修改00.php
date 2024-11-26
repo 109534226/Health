@@ -176,33 +176,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             </h1>
             <br />
 
-            <?php
-            include "db.php";
-
-            if (isset($_POST['id'])) {
-                $id = intval($_POST['id']);
-
-                // 從資料庫取得資料
-                $sql = "SELECT * FROM patient WHERE patient_id = $id";
-                $result = mysqli_query($link, $sql);
-
-                if ($result && mysqli_num_rows($result) > 0) {
-                    $row = mysqli_fetch_assoc($result);
-                } else {
-                    echo "<script>
-        alert('無法找到指定ID的資料。');
-        window.location.href = 'n_Basicsee.php';
-        </script>";
-                    exit;
-                }
-            } else {
-                echo "<script>
-    alert('未提供有效的ID。');
-    window.location.href = 'n_Basicsee.php';
-    </script>";
-                exit;
-            }
-            ?>
+           
             <div class="form-container">
                 <form id="updateForm" action="看診紀錄修改2.php" method="post">
                     <input type="hidden" name="id" value="<?php echo htmlspecialchars($row['patient_id']); ?>">

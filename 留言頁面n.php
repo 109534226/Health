@@ -1,50 +1,38 @@
 <?php
-session_start();
-include "db.php"; // 資料庫連接
+include "db.php"; // 連接資料庫
 
-// 驗證使用者是否已登入
-if (!isset($_SESSION["登入狀態"]) || $_SESSION["登入狀態"] !== true) {
-    echo "<script>alert('請先登入'); window.location.href = 'login.php';</script>";
-    exit();
-}
-
-// 獲取登入使用者的帳號與角色
-$帳號 = mysqli_real_escape_string($link, $_SESSION["帳號"]);
-$查詢使用者 = "
-    SELECT u.user_id, u.name AS user_name, g.grade AS user_role 
-    FROM user u
-    JOIN grade g ON u.grade_id = g.grade_id 
-    WHERE u.account = '$帳號'
-";
-$結果 = mysqli_query($link, $查詢使用者);
-if ($結果 && $row = mysqli_fetch_assoc($結果)) {
-    $user_id = $row['user_id'];
-    $user_name = $row['user_name'];
-    $user_role = $row['user_role'];
-    $_SESSION['user_id'] = $user_id;
-} else {
-    echo "<script>alert('無法獲取使用者資訊'); window.location.href = 'login.php';</script>";
-    exit();
-}
-
-// 查詢留言記錄
-$查詢留言 = "
+// 查詢留言記錄資料
+$查詢語句 = "
     SELECT 
-        sender.name AS sender_name,
-        sender_role.grade AS sender_role,
-        receiver.name AS receiver_name,
-        receiver_role.grade AS receiver_role,
-        m.messenger AS message,
-        m.timestamp AS message_time
-    FROM messenger m
-    JOIN user sender ON m.medicalS_id = sender.user_id
-    JOIN grade sender_role ON sender.grade_id = sender_role.grade_id
-    JOIN user receiver ON m.medicalP_id = receiver.user_id
-    JOIN grade receiver_role ON receiver.grade_id = receiver_role.grade_id
-    ORDER BY m.timestamp DESC
+        msg.*, 
+        u.name AS 發送者姓名, 
+        p.name AS 接收者姓名 
+    FROM messenger msg
+    LEFT JOIN medical med ON msg.medicalS_id = med.user_id
+    LEFT JOIN `user` u ON msg.medicalS_id = u.user_id
+    LEFT JOIN `user` p ON msg.medicalP_id = p.user_id
+    WHERE msg.messenger_id = ?
 ";
-$留言結果 = mysqli_query($link, $查詢留言);
+
+// 準備並執行查詢
+$查詢準備 = mysqli_prepare($link, $查詢語句);
+mysqli_stmt_bind_param($查詢準備, "i", $留言ID);
+mysqli_stmt_execute($查詢準備);
+$查詢結果 = mysqli_stmt_get_result($查詢準備);
+
+if (!$查詢結果) {
+    die("查詢留言記錄失敗: " . mysqli_error($link));
+}
+
+//  顯示查詢結果
+// if ($資料列 = mysqli_fetch_assoc($查詢結果)) {
+//     echo "留言內容：" . htmlspecialchars($資料列['messenger']);
+//     // 顯示其他相關訊息...
+// } else {
+//     echo "查無留言記錄。";
+// }
 ?>
+
 
 
 <input type="hidden" name="sender" value="<?php echo htmlspecialchars($_SESSION['user_role']); ?>">
@@ -164,11 +152,11 @@ $留言結果 = mysqli_query($link, $查詢留言);
     <!-- 頁首 End -->
 
 
-    <h1>歡迎，<?php echo htmlspecialchars($user_name); ?></h1>
+    <!-- <h1>歡迎，<?php echo htmlspecialchars($user_name); ?></h1>
     <?php echo "當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>"; // 顯示當前角色
-    echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"]) . "</p>"; ?>
+    echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"]) . "</p>"; ?> -->
 
-    <br />
+    <!-- <br /> -->
 
     <h2>留言記錄</h2>
     <div id="messages">

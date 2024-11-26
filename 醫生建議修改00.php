@@ -176,40 +176,22 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             </h1>
             <br />
 
-            <?php
-            include "db.php";
-
-            if (isset($_POST['id'])) {
-                $id = intval($_POST['id']);
-
-                // 從資料庫取得資料
-                $sql = "SELECT * FROM patients WHERE id = $id";
-                $result = mysqli_query($link, $sql);
-
-                if ($result && mysqli_num_rows($result) > 0) {
-                    $row = mysqli_fetch_assoc($result);
-                } else {
-                    echo "<script>
-            alert('無法找到指定ID的資料。');
-            window.location.href = 'd_advicefind.php';
-        </script>";
-                    exit;
-                }
-            } else {
-                echo "<script>
-        alert('未提供有效的ID。');
-        window.location.href = 'd_advicefind.php';
-    </script>";
-                exit;
-            }
-            ?>
             <div class="form-container">
                 <form id="updateForm" action="醫生建議修改2.php" method="post">
                     <input type="hidden" name="id" value="<?php echo htmlspecialchars($row['id']); ?>">
 
-                    <label for="appointment_date">日期(星期)</label>
+                    <label for="appointment_date">看診日期</label>
                     <input id="appointment_date" type="date" name="appointment_date"
                         value="<?php echo htmlspecialchars($row['dateday']); ?>" required />
+
+                    <label for="appointment_date">看診時段</label>
+                    <select id="gender" name="gender" required>
+                        <option value="">選擇時段</option>
+                        <option value="早" <?php echo $row['consultationT'] == '早' ? 'selected' : ''; ?>>早</option>
+                        <option value="午" <?php echo $row['consultationT'] == '午' ? 'selected' : ''; ?>>午</option>
+                        <option value="晚" <?php echo $row['consultationT'] == '晚' ? 'selected' : ''; ?>>晚</option>
+                    </select><br>
+
 
                     <label for="clinic_number">病歷號</label>
                     <input id="clinic_number" type="text" name="clinic_number"
@@ -230,6 +212,10 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <option value="女" <?php echo $row['gender'] == '女' ? 'selected' : ''; ?>>女</option>
                     </select>
 
+                    <label for="department">看診科別</label>
+                    <input id="department" type="text" name="department"
+                        value="<?php echo htmlspecialchars($row['department']); ?>" required />
+
                     <label for="doctor_name">看診醫生</label>
                     <input id="doctor_name" type="text" name="doctor_name"
                         value="<?php echo htmlspecialchars($row['doctorname']); ?>" required />
@@ -237,13 +223,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     <label for="doctor_advice">醫生建議</label>
                     <input id="doctor_advice" type="text" name="doctor_advice"
                         value="<?php echo htmlspecialchars($row['doctoradvice']); ?>" required />
-
-                    <label for="follow_up">是否回診</label>
-                    <select id="follow_up" name="follow_up" required>
-                        <option value="">選擇</option>
-                        <option value="是" <?php echo $row['followup'] == '是' ? 'selected' : ''; ?>>是</option>
-                        <option value="否" <?php echo $row['followup'] == '否' ? 'selected' : ''; ?>>否</option>
-                    </select>
 
                     <br>
                     <button type="button" class="aa" onclick="confirmUpdate()">更新</button>

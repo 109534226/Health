@@ -256,7 +256,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             <div class="form-container">
                 <form action="醫生班表2.php" method="post" onsubmit="return validateForm()">
                     <div class="form-row">
-                        <label for="appointment_date">日期(星期)</label>
+                        <label for="appointment_date">看診日期</label>
                         <input id="appointment_date" type="date" name="appointment_date"
                             min="<?php echo date('Y-m-d'); ?>" required />
                         <small>請選擇今天或未來的日期。</small>

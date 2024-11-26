@@ -24,13 +24,13 @@ if (!$查詢結果) {
     die("查詢留言記錄失敗: " . mysqli_error($link));
 }
 
-// 顯示查詢結果
-if ($資料列 = mysqli_fetch_assoc($查詢結果)) {
-    echo "留言內容：" . htmlspecialchars($資料列['messenger']);
-    // 顯示其他相關訊息...
-} else {
-    echo "查無留言記錄。";
-}
+//  顯示查詢結果
+// if ($資料列 = mysqli_fetch_assoc($查詢結果)) {
+//     echo "留言內容：" . htmlspecialchars($資料列['messenger']);
+//     // 顯示其他相關訊息...
+// } else {
+//     echo "查無留言記錄。";
+// }
 ?>
 
 
@@ -151,11 +151,11 @@ if ($資料列 = mysqli_fetch_assoc($查詢結果)) {
     <!-- 頁首 End -->
 
 
-    <h1>歡迎，<?php echo htmlspecialchars($user_name); ?></h1>
+    <!-- <h1>歡迎，<?php echo htmlspecialchars($user_name); ?></h1>
     <?php echo "當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>"; // 顯示當前角色
     echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"]) . "</p>"; ?>
 
-    <br />
+    <br /> -->
 
     <h2>留言記錄</h2>
     <div id="messages">

@@ -311,7 +311,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>日期</th>
+                            <th>看診日期</th>
                             <th>診間號</th>
                             <th>醫生姓名</th>
                             <th>看診時間</th>

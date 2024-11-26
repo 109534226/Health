@@ -206,7 +206,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             <div class="form-container">
                 <!-- 表單顯示及更新 -->
                 <form id="updateForm" action="醫生班表修改2.php" method="post" onsubmit="return confirmUpdate()">
-                    <label for="appointment_date">日期(星期)</label>
+                    <label for="appointment_date">看診日期</label>
                     <input id="appointment_date" type="date" name="appointment_date"
                         value="<?php echo htmlspecialchars($row['dateday']); ?>" required />
                     <label for="clinic_number">診間號</label>
@@ -221,7 +221,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <option value="早" <?php echo $row['consultationperiod'] == '早' ? 'selected' : ''; ?>>早</option>
                         <option value="午" <?php echo $row['consultationperiod'] == '午' ? 'selected' : ''; ?>>午</option>
                         <option value="晚" <?php echo $row['consultationperiod'] == '晚' ? 'selected' : ''; ?>>晚</option>
-                        <option value="夜間" <?php echo $row['consultationperiod'] == '夜間' ? 'selected' : ''; ?>>夜間</option>
                     </select>
 
                     <label for="department">看診科別</label>
