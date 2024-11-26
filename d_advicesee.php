@@ -146,68 +146,12 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     </div>
     <!-- 頁首 End -->
 
-    <!-- <?php
-    include "db.php"; // 連接資料庫
-
-    // 啟用 Session
-    session_start();
-
-    // 檢查是否有使用者登入
-    if (isset($_SESSION['帳號'])) {
-        $帳號 = $_SESSION['帳號'];
-    } else {
-        echo "<script>alert('請先登入。'); window.location.href = 'login.php';</script>";
-        exit();
-    }
-
-    // 查詢登入使用者的身份和姓名
-    $查詢資料 = "SELECT g.grade, u.name FROM user u LEFT JOIN grade g ON u.grade_id = g.grade_id WHERE u.account = ?";
-    $查詢準備 = mysqli_prepare($link, $查詢資料);
-    mysqli_stmt_bind_param($查詢準備, "s", $帳號);
-    mysqli_stmt_execute($查詢準備);
-    $結果 = mysqli_stmt_get_result($查詢準備);
-
-    if ($結果 && $row = mysqli_fetch_assoc($結果)) {
-        // 設置角色
-        $_SESSION['user_role'] = $row['grade'] ? $row['grade'] : '未知角色';
-
-        // 設置使用者姓名
-        $_SESSION['name'] = $row['name'];
-    } else {
-        echo "<script>alert('無法確定您的角色或名稱，請重新登入。'); window.location.href = 'login.php';</script>";
-        exit();
-    }
-
-    // 確保角色和姓名已設定
-    $user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '未知角色';
-    $name = isset($_SESSION['name']) ? $_SESSION['name'] : '未知姓名';
-
-    // 查詢隸屬的醫院和科別
-    $查詢隸屬 = "SELECT h.hospital, d.department 
-                  FROM user u
-                  LEFT JOIN hospital h ON h.user_id = u.user_id
-                  LEFT JOIN department d ON d.hospital_id = h.hospital_id
-                  WHERE u.account = ?";
-    $查詢準備 = mysqli_prepare($link, $查詢隸屬);
-    mysqli_stmt_bind_param($查詢準備, "s", $帳號);
-    mysqli_stmt_execute($查詢準備);
-    $隸屬結果 = mysqli_stmt_get_result($查詢準備);
-
-    if ($隸屬結果 && $隸屬資料 = mysqli_fetch_assoc($隸屬結果)) {
-        $hospital = $隸屬資料['hospital'] ? $隸屬資料['hospital'] : '未知醫院';
-        $department = $隸屬資料['department'] ? $隸屬資料['department'] : '未知科別';
-    } else {
-        $hospital = '未知醫院';
-        $department = '未知科別';
-    }
-
-    // 顯示使用者資料
+    <?php
+    // 顯示當前角色
     echo "~歡迎回來~ " . htmlspecialchars($name) . "<br/>";
-    echo "當前角色: " . htmlspecialchars($user_role) . "</p>"; // 顯示當前角色
-    echo "登入帳號: " . htmlspecialchars($帳號) . "</p>";
-    echo "隸屬醫院: " . htmlspecialchars($hospital) . "</p>";
-    echo "隸屬科別: " . htmlspecialchars($department) . "</p>";
-?> -->
+    echo "當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>"; // 顯示當前角色
+    echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"]) . "</p>";
+    ?>
 
 
     <!--醫生建議-->
@@ -250,38 +194,35 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </div>
                 <a href="d_advice.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a>
             </div>
+
             <?php
             include "db.php"; // 連接資料庫
             
-            // 擷取資料
-            $查詢語句 = "SELECT * FROM patients";
-            $查詢結果 = mysqli_query($link, $查詢語句);
-
-            if (!$查詢結果) {
-                die("查詢失敗: " . mysqli_error($link));
-            }
-
-            // 獲取總記錄數
-            $總記錄數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM patients");
-            if (!$總記錄數查詢) {
-                die("查詢失敗: " . mysqli_error($link));
-            }
-            $總記錄數結果 = mysqli_fetch_assoc($總記錄數查詢);
-            $總記錄數 = $總記錄數結果['總數'];
-
             // 設定每頁顯示的記錄數
             $每頁記錄數 = 15;
-            $總頁數 = ceil($總記錄數 / $每頁記錄數);
 
-            // 獲取當前頁碼
-            $當前頁碼 = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-            $當前頁碼 = max(1, min($總頁數, $當前頁碼)); // 確保當前頁碼在範圍內
-            
-            // 計算起始記錄
-            $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
+            // 擷取患者資料與相關聯的表格資料
+            $查詢語句 = "
+    SELECT 
+        p.patient_id AS id, 
+        p.patientname, 
+        p.birthday, 
+        g.gender, 
+        p.medicalnumber, 
+        d.department, 
+        ds.consultationD, 
+        u.name AS doctorname,
+        p.doctoradvice, 
+        p.created_at
+    FROM patient p
+    LEFT JOIN gender g ON p.gender_id = g.gender_id
+    LEFT JOIN department d ON p.department_id = d.department_id
+    LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
+    LEFT JOIN `user` u ON ds.user_id = u.user_id
+    LIMIT $每頁記錄數";
 
             // 查詢當前頁碼的資料
-            $查詢結果 = mysqli_query($link, "SELECT * FROM patients LIMIT $起始位置, $每頁記錄數");
+            $查詢結果 = mysqli_query($link, $查詢語句);
             if (!$查詢結果) {
                 die("查詢失敗: " . mysqli_error($link));
             }
@@ -297,9 +238,9 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <th>患者姓名</th>
                             <th>出生日期</th>
                             <th>性別</th>
+                            <th>看診科別</th>
                             <th>看診醫生</th>
                             <th>醫生建議</th>
-                            <th>是否回診</th>
                             <th>紀錄創建時間</th>
                             <th>功能選項</th>
                         </tr>
@@ -308,14 +249,14 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <?php while ($資料列 = mysqli_fetch_assoc($查詢結果)): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($資料列['id']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['dateday']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['consultationD']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['medicalnumber']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['patientname']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['birthdaydate']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['birthday']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['gender']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['department']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['doctorname']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['doctoradvice']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['followup']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
                                 <td>
                                     <form action="醫生建議修改000.php" method="post" style="display:inline;">
@@ -334,6 +275,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     </tbody>
                 </table>
             </div>
+
+
 
             <!-- 分頁 -->
             <div class="pagination">

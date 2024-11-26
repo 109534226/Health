@@ -189,6 +189,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     <a href="d_advice.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a>
                 </div>
             </div>
+
             <?php
             include "db.php"; // 連接資料庫
             
@@ -200,7 +201,25 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
             if (!empty($搜尋詞) && strlen($搜尋詞) >= $最小搜尋長度) {
                 // 進行精確比對查詢
-                $查詢語句 = "SELECT * FROM patients WHERE patientname = ?";
+                $查詢語句 = "
+        SELECT 
+            p.patient_id AS id, 
+            p.patientname, 
+            p.birthday, 
+            g.gender, 
+            p.medicalnumber, 
+            d.department, 
+            ds.consultationD, 
+            ds.consultationT_id, 
+            u.name AS doctorname,
+            p.doctoradvice, 
+            p.created_at
+        FROM patient p
+        LEFT JOIN gender g ON p.gender_id = g.gender_id
+        LEFT JOIN department d ON p.department_id = d.department_id
+        LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
+        LEFT JOIN `user` u ON ds.user_id = u.user_id
+        WHERE p.patientname = ?";
                 $查詢準備 = mysqli_prepare($link, $查詢語句);
                 mysqli_stmt_bind_param($查詢準備, "s", $搜尋詞);
                 mysqli_stmt_execute($查詢準備);
@@ -222,7 +241,26 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     $起始位置 = ($當前頁碼 - 1) * $每頁筆數;
 
                     // 查詢當前頁碼的資料
-                    $查詢語句 = "SELECT * FROM patients WHERE patientname = ? LIMIT ?, ?";
+                    $查詢語句 = "
+            SELECT 
+                p.patient_id AS id, 
+                p.patientname, 
+                p.birthday, 
+                g.gender, 
+                p.medicalnumber, 
+                d.department, 
+                ds.consultationD, 
+                ds.consultationT_id, 
+                u.name AS doctorname,
+                p.doctoradvice, 
+                p.created_at
+            FROM patient p
+            LEFT JOIN gender g ON p.gender_id = g.gender_id
+            LEFT JOIN department d ON p.department_id = d.department_id
+            LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
+            LEFT JOIN `user` u ON ds.user_id = u.user_id
+            WHERE p.patientname = ?
+            LIMIT ?, ?";
                     $查詢準備 = mysqli_prepare($link, $查詢語句);
                     mysqli_stmt_bind_param($查詢準備, "sii", $搜尋詞, $起始位置, $每頁筆數);
                     mysqli_stmt_execute($查詢準備);
@@ -245,7 +283,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             }
             ?>
 
-
             <div class="form-container">
                 <!-- 顯示資料表格 -->
                 <?php if ($總筆數 > 0): ?>
@@ -254,13 +291,14 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <tr>
                                 <th>ID</th>
                                 <th>看診日期</th>
+                                <th>看診時間</th>
                                 <th>病例號</th>
                                 <th>患者姓名</th>
                                 <th>出生日期</th>
                                 <th>性別</th>
+                                <th>看診科別</th>
                                 <th>看診醫生</th>
                                 <th>醫生建議</th>
-                                <th>是否回診</th>
                                 <th>紀錄創建時間</th>
                                 <th>功能選項</th>
                             </tr>
@@ -269,14 +307,15 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <?php while ($資料列 = mysqli_fetch_assoc($查詢結果)): ?>
                                 <tr>
                                     <td><?php echo htmlspecialchars($資料列['id']); ?></td>
-                                    <td><?php echo htmlspecialchars($資料列['dateday']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['consultationD']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['consultationT_id']); ?></td> <!-- 顯示看診時間 -->
                                     <td><?php echo htmlspecialchars($資料列['medicalnumber']); ?></td>
                                     <td><?php echo htmlspecialchars($資料列['patientname']); ?></td>
-                                    <td><?php echo htmlspecialchars($資料列['birthdaydate']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['birthday']); ?></td>
                                     <td><?php echo htmlspecialchars($資料列['gender']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['department']); ?></td>
                                     <td><?php echo htmlspecialchars($資料列['doctorname']); ?></td>
                                     <td><?php echo htmlspecialchars($資料列['doctoradvice']); ?></td>
-                                    <td><?php echo htmlspecialchars($資料列['followup']); ?></td>
                                     <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
                                     <td>
                                         <form action="醫生建議修改00.php" method="post" style="display:inline;">
@@ -299,76 +338,78 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 <?php endif; ?>
             </div>
 
-            <!-- 顯示分頁 -->
-            <div class="pagination">
-                <?php if ($總筆數 > 0): ?>
-                    <p>(總共 <?php echo $總筆數; ?> 筆資料)</p>
-                    <span>第 <?php echo $當前頁碼; ?> 頁 / 共 <?php echo $總頁數; ?> 頁</span>
+        </div>
 
-                    <?php if ($當前頁碼 > 1): ?>
-                        <a href="?page=<?php echo $當前頁碼 - 1; ?>&search=<?php echo urlencode($搜尋詞); ?>">上一頁</a>
-                    <?php endif; ?>
+        <!-- 顯示分頁 -->
+        <div class="pagination">
+            <?php if ($總筆數 > 0): ?>
+                <p>(總共 <?php echo $總筆數; ?> 筆資料)</p>
+                <span>第 <?php echo $當前頁碼; ?> 頁 / 共 <?php echo $總頁數; ?> 頁</span>
 
-                    <?php if ($當前頁碼 < $總頁數): ?>
-                        <a href="?page=<?php echo $當前頁碼 + 1; ?>&search=<?php echo urlencode($搜尋詞); ?>">下一頁</a>
-                    <?php endif; ?>
-                <?php else: ?>
-                    <p>沒有資料可以顯示分頁。</p>
+                <?php if ($當前頁碼 > 1): ?>
+                    <a href="?page=<?php echo $當前頁碼 - 1; ?>&search=<?php echo urlencode($搜尋詞); ?>">上一頁</a>
                 <?php endif; ?>
-            </div>
 
-            <style>
-                /* 設置全域字體和背景 */
-                body {
-                    font-family: Arial, sans-serif;
-                    background-color: #f8f9fa;
-                    margin: 0;
-                    padding: 0;
-                }
+                <?php if ($當前頁碼 < $總頁數): ?>
+                    <a href="?page=<?php echo $當前頁碼 + 1; ?>&search=<?php echo urlencode($搜尋詞); ?>">下一頁</a>
+                <?php endif; ?>
+            <?php else: ?>
+                <p>沒有資料可以顯示分頁。</p>
+            <?php endif; ?>
+        </div>
 
-                /* 主容器樣式 */
-                .form-container {
-                    max-width: 1200px;
-                    margin: 20px auto;
-                    padding: 20px;
-                    background-color: #ffffff;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-                }
+        <style>
+            /* 設置全域字體和背景 */
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f8f9fa;
+                margin: 0;
+                padding: 0;
+            }
 
-                /* 表格樣式 */
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin: 20px 0;
-                }
+            /* 主容器樣式 */
+            .form-container {
+                max-width: 1200px;
+                margin: 20px auto;
+                padding: 20px;
+                background-color: #ffffff;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
 
-                th {
-                    padding: 12px;
-                    text-align: center;
-                    border: 1px solid #dee2e6;
-                    background-color: #007bff;
-                    color: #ffffff;
-                    font-weight: bold;
-                    white-space: nowrap;
-                    /* 禁止換行 */
-                }
+            /* 表格樣式 */
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+            }
 
-                td {
-                    padding: 12px;
-                    text-align: center;
-                    border: 1px solid #dee2e6;
-                    white-space: nowrap;
-                    /* 禁止換行 */
-                }
+            th {
+                padding: 12px;
+                text-align: center;
+                border: 1px solid #dee2e6;
+                background-color: #007bff;
+                color: #ffffff;
+                font-weight: bold;
+                white-space: nowrap;
+                /* 禁止換行 */
+            }
 
-                tr:nth-child(even) {
-                    background-color: #f2f2f2;
-                }
-            </style>
+            td {
+                padding: 12px;
+                text-align: center;
+                border: 1px solid #dee2e6;
+                white-space: nowrap;
+                /* 禁止換行 */
+            }
+
+            tr:nth-child(even) {
+                background-color: #f2f2f2;
+            }
+        </style>
 
 
-            <!-- <style>
+        <!-- <style>
         table {
             width: 100%;
             /* 設定表格寬度為 100% */
@@ -404,100 +445,100 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     </style> -->
 
 
-            <style>
-                /* 頁碼 上一頁 下一頁 */
-                .pagination {
-                    display: flex;
-                    flex-direction: column;
-                    /* 讓顯示的資料筆數與按鈕垂直排列 */
-                    justify-content: center;
-                    align-items: center;
-                    margin: 20px 0;
-                }
+        <style>
+            /* 頁碼 上一頁 下一頁 */
+            .pagination {
+                display: flex;
+                flex-direction: column;
+                /* 讓顯示的資料筆數與按鈕垂直排列 */
+                justify-content: center;
+                align-items: center;
+                margin: 20px 0;
+            }
 
-                .pagination a {
-                    margin: 0 10px;
-                    text-decoration: none;
-                    color: #007BFF;
-                }
+            .pagination a {
+                margin: 0 10px;
+                text-decoration: none;
+                color: #007BFF;
+            }
 
-                .pagination a:hover {
-                    text-decoration: underline;
-                }
+            .pagination a:hover {
+                text-decoration: underline;
+            }
 
-                .pagination span {
-                    margin: 0 10px;
-                }
+            .pagination span {
+                margin: 0 10px;
+            }
 
-                .pagination p {
-                    margin-bottom: 10px;
-                    /* 與分頁按鈕之間留些距離 */
-                }
-            </style>
+            .pagination p {
+                margin-bottom: 10px;
+                /* 與分頁按鈕之間留些距離 */
+            }
+        </style>
 
-            <!-- 回到頁首(Top 箭頭 -->
-            <a href="#" class="btn btn-lg btn-primary  back-to-top"><i class="bi bi-arrow-up"></i></a>
-            <!-- 登出對話框 Start -->
-            <div id="logoutBox" class="logout-box">
-                <div class="logout-dialog">
-                    <p>你確定要登出嗎？</p>
-                    <button onclick="logout()">確定</button>
-                    <button onclick="hideLogoutBox()">取消</button>
-                </div>
+        <!-- 回到頁首(Top 箭頭 -->
+        <a href="#" class="btn btn-lg btn-primary  back-to-top"><i class="bi bi-arrow-up"></i></a>
+        <!-- 登出對話框 Start -->
+        <div id="logoutBox" class="logout-box">
+            <div class="logout-dialog">
+                <p>你確定要登出嗎？</p>
+                <button onclick="logout()">確定</button>
+                <button onclick="hideLogoutBox()">取消</button>
             </div>
-            <!-- 登出對話框 End -->
+        </div>
+        <!-- 登出對話框 End -->
 
-            <!-- 刪除帳號對話框 Start -->
-            <div id="deleteAccountBox" class="logout-box">
-                <div class="logout-dialog">
-                    <p>你確定要刪除帳號嗎？這個操作無法撤銷！</p>
-                    <button onclick="deleteAccount()">確定</button>
-                    <button onclick="hideDeleteAccountBox()">取消</button>
-                </div>
+        <!-- 刪除帳號對話框 Start -->
+        <div id="deleteAccountBox" class="logout-box">
+            <div class="logout-dialog">
+                <p>你確定要刪除帳號嗎？這個操作無法撤銷！</p>
+                <button onclick="deleteAccount()">確定</button>
+                <button onclick="hideDeleteAccountBox()">取消</button>
             </div>
-            <!-- 刪除帳號對話框 End -->
+        </div>
+        <!-- 刪除帳號對話框 End -->
 
-            <!-- JavaScript -->
-            <script>
-                function showLogoutBox() {
-                    document.getElementById('logoutBox').style.display = 'flex';
-                }
+        <!-- JavaScript -->
+        <script>
+            function showLogoutBox() {
+                document.getElementById('logoutBox').style.display = 'flex';
+            }
 
-                function hideLogoutBox() {
-                    document.getElementById('logoutBox').style.display = 'none';
-                }
+            function hideLogoutBox() {
+                document.getElementById('logoutBox').style.display = 'none';
+            }
 
-                function logout() {
-                    alert('你已經登出！');
-                    hideLogoutBox();
-                    window.location.href = 'login.php'; // 替換為登出後的頁面
-                }
+            function logout() {
+                alert('你已經登出！');
+                hideLogoutBox();
+                window.location.href = 'login.php'; // 替換為登出後的頁面
+            }
 
-                function showDeleteAccountBox() {
-                    document.getElementById('deleteAccountBox').style.display = 'flex';
-                }
+            function showDeleteAccountBox() {
+                document.getElementById('deleteAccountBox').style.display = 'flex';
+            }
 
-                function hideDeleteAccountBox() {
-                    document.getElementById('deleteAccountBox').style.display = 'none';
-                }
+            function hideDeleteAccountBox() {
+                document.getElementById('deleteAccountBox').style.display = 'none';
+            }
 
-                function deleteAccount() {
-                    document.getElementById('deleteAccountForm').submit();
-                }
-            </script>
+            function deleteAccount() {
+                document.getElementById('deleteAccountForm').submit();
+            }
+        </script>
 
-            <!-- JavaScript Libraries -->
-            <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-            <script src="lib/easing/easing.min.js"></script>
-            <script src="lib/waypoints/waypoints.min.js"></script>
-            <script src="lib/owlcarousel/owl.carousel.min.js"></script>
-            <script src="lib/tempusdominus/js/moment.min.js"></script>
-            <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
-            <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+        <!-- JavaScript Libraries -->
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="lib/easing/easing.min.js"></script>
+        <script src="lib/waypoints/waypoints.min.js"></script>
+        <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+        <script src="lib/tempusdominus/js/moment.min.js"></script>
+        <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
+        <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
 
-            <!-- Template Javascript -->
-            <script src="js/main.js"></script>
+        <!-- Template Javascript -->
+        <script src="js/main.js"></script>
 </body>
 
 </html>
