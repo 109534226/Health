@@ -23,6 +23,69 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
           </script>";
     exit();
 }
+// 防止頁面被瀏覽器緩存
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+header("Pragma: no-cache");
+// header('Content-Type: application/json; charset=utf-8');
+
+// 清空輸出緩存
+ob_clean();
+flush();
+
+// 檢查是否為 POST 請求
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+
+    // 驗證操作類型
+    if ($action !== 'get_clinics') {
+        echo json_encode(["message" => "無效的操作類型。"]);
+        exit;
+    }
+
+    // 獲取請求參數
+    $county = trim($_POST['county'] ?? ''); // 縣市名稱
+    $district = trim($_POST['district'] ?? ''); // 地區名稱
+
+    // 驗證請求參數
+    if (empty($county) || empty($district)) {
+        echo json_encode(["message" => "請選擇縣市和地區！"]);
+        exit;
+    }
+
+    // 引入資料庫連線
+    include 'db.php';
+
+    // 查詢資料庫
+    $query = "SELECT DISTINCT `hospital` FROM `hospital` WHERE `city` = ? AND `area` = ?";
+    $stmt = $link->prepare($query);
+
+    if (!$stmt) {
+        echo json_encode(["message" => "使服器內部錯誤，請稍後再試。"]);
+        exit;
+    }
+
+    // 綁定參數並執行查詢
+    $stmt->bind_param('ss', $county, $district);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // 處理結果
+    if ($result->num_rows > 0) {
+        $clinics = [];
+        while ($row = $result->fetch_assoc()) {
+            $clinics[] = htmlspecialchars($row['hospital'], ENT_QUOTES, 'UTF-8');
+        }
+        echo json_encode(["clinics" => $clinics]);
+    } else {
+        echo json_encode(["message" => "未找到符合條件的診所或醫院。"]);
+    }
+
+    // 關閉連線
+    $stmt->close();
+    $link->close();
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -337,7 +400,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     </div>
     <!-- 相關醫療資訊  End -->
 
-    <!-- 搜尋交通工具 Start -->
+    <!-- 交通工具 Start -->
     <div class="container-fluid bg-primary my-5 py-5">
         <div class="container py-5">
             <div class="row gx-5">
@@ -350,32 +413,34 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     <p class="text-white mb-5">
                         歡迎使用交通工具查詢系統！我們致力於為您提供最全面、最便捷的交通工具資訊，在這裡找到最適合的解決方案我們將為您推薦最合適的交通工具及路線，讓您輕鬆實現想去哪間醫院的出行願望。感謝您選擇我們的交通工具查詢系統，我們將竭誠為您提供最優質的服務，幫助您暢行無阻，享受每一段旅程的美好！
                     </p>
-                    <a class="btn btn-dark rounded-pill py-3 px-5 me-3" href="u_reserve.html">預約</a>
+                    <a class="btn btn-dark rounded-pill py-3 px-5 me-3" href="u_reserve.php">預約</a>
                 </div>
                 <div class="col-lg-6">
                     <div class="bg-white text-center rounded p-5">
                         <h1 class="mb-4">交通工具</h1>
-                        <form>
+                        <form action="u_selectclinic2.php" method="POST">
                             <div class="row g-3">
-
                                 <div class="mx-auto" style="width: 100%; max-width: 600px;">
                                     <div class="input-group">
+                                        <!-- 搜尋輸入框 -->
                                         <input type="text" class="form-control border-primary w-50" id="location"
                                             placeholder="搜尋醫院或診所">
                                         <button class="btn btn-dark border-0 w-25"
                                             onclick="searchLocation()">查詢</button>
                                     </div>
                                 </div>
+
                                 <script>
+                                    // 查詢功能
                                     function searchLocation() {
-                                        var location = document.getElementById("location").value;
+                                        const location = document.getElementById("location").value;
                                         if (location) {
-                                            var url = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(location);
-                                            window.open(url, '_blank');
+                                            const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+                                            window.open(url, "_blank");
                                         } else {
                                             alert("請輸入地點");
                                         }
-                                    }
+                                    }                                    
                                 </script>
 
                                 <div class="col-12 col-sm-6">
@@ -391,23 +456,117 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                     </select>
                                 </div>
 
-                                <div class="col-12 col-sm-6" style="width: 100%; max-width: 600px;">
-                                    <select class="form-select bg-light border-0" style="height: 55px;">
+                                <div class="col-12 col-sm-6">
+                                    <!-- 診所下拉選單 -->
+                                    <select class="form-select bg-light border-0" style="height: 55px;" id="clinic"
+                                        name="clinic">
                                         <option selected value="">選擇診所或醫院</option>
+                                        <?php
+                                        // 使用 mysqli 查詢診所列表
+                                        $sql = "SELECT DISTINCT 醫事機構 FROM hospital";
+                                        $result = mysqli_query($conn, $sql);
+
+                                        if (mysqli_num_rows($result) > 0) {
+                                            while ($row = mysqli_fetch_assoc($result)) {
+                                                echo "<option value='" . htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8') . "</option>";
+                                            }
+                                        }
+                                        ?>
                                     </select>
                                 </div>
+
+                                <div class="col-12 col-sm-6">
+                                    <!-- 科別下拉選單 -->
+                                    <select class="form-select bg-light border-0" style="height: 55px;" id="department"
+                                        name="department">
+                                        <option selected value="">選擇看診科目</option>
+                                    </select>
+                                </div>
+
+                                <script>
+                                    $(document).ready(function () {
+                                        // 當地區選項改變時，請求對應診所列表
+                                        $('#district_box').on('change', function () {
+                                            const county = $('#county_box').val();
+                                            const district = $(this).val();
+
+                                            if (!county || !district) {
+                                                alert("請先選擇縣市和地區！");
+                                                return;
+                                            }
+
+                                            $.ajax({
+                                                url: 'u_reserve.php', // 請替換為你的 PHP 文件路徑
+                                                type: 'POST',
+                                                data: {
+                                                    action: 'get_clinics',
+                                                    county: county,
+                                                    district: district
+                                                },
+                                                success: function (response) {
+                                                    try {
+                                                        const data = JSON.parse(response);
+                                                        $('#clinic').empty().append('<option value="" disabled selected>選擇診所或醫院</option>');
+
+                                                        if (data.clinics) {
+                                                            data.clinics.forEach(function (clinic) {
+                                                                $('#clinic').append(`<option value="${clinic}">${clinic}</option>`);
+                                                            });
+                                                        } else if (data.message) {
+                                                            alert(data.message);
+                                                        }
+                                                    } catch (e) {
+                                                        console.error("JSON 解析失敗:", e);
+                                                        alert("發生錯誤，無法載入診所列表！");
+                                                    }
+                                                },
+                                                error: function () {
+                                                    alert("發生錯誤，請稍後再試！");
+                                                }
+                                            });
+                                        });
+
+                                        // 當選擇診所後請求科別
+                                        $('#clinic').on('change', function () {
+                                            const selectedClinic = $(this).val();
+                                            const departmentSelect = $('#department');
+
+                                            departmentSelect.empty().append('<option value="" selected disabled>選擇看診科目</option>');
+
+                                            if (selectedClinic) {
+                                                $.ajax({
+                                                    url: '選擇看診科目.php', // 請替換為你的 PHP 文件路徑
+                                                    type: 'POST',
+                                                    data: {
+                                                        clinic: selectedClinic
+                                                    },
+                                                    success: function (response) {
+                                                        departmentSelect.append(response);
+                                                    },
+                                                    error: function () {
+                                                        alert("發生錯誤，無法載入科別！");
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    });
+
+                                </script>
+
                                 <div class="row">
                                     <p><br /></p>
                                     <div class="col-md-6 mb-3">
-                                        <button class="btn btn-primary  py-3" style="width: 100%"
-                                            type="submit">查看現場掛號人數</button>
+                                        <style>
+                                            .custom-button {
+                                                width: 220%;
+                                                height: 50px;
+                                            }
+                                        </style>
+                                        <button class="btn btn-primary custom-button" type="submit">查看現場掛號人數</button>
                                     </div>
 
-                                    <div class="col-md-6 mb-3">
-                                        <button class="btn btn-primary  py-3" style="width: 100%" type="submit"
-                                            onclick="sLocation()">搜尋路線/交通方式</button>
-                                    </div>
                                 </div>
+
                                 <script>
                                     function sLocation() {
                                         var location = document.getElementById("location").value;
@@ -427,7 +586,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             </div>
         </div>
     </div>
-    <!-- 搜尋交通工具 End -->
+    <!-- 交通工具 End -->
 
     <!-- 頁尾 Start -->
     <div class="container-fluid bg-dark text-light mt-5 py-5">
