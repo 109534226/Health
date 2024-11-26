@@ -173,7 +173,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     </div>
     <!-- 刪除帳號對話框 End -->
 
-    <form method="POST" action="發布.php">
         <!DOCTYPE html>
         <html lang="zh">
 
@@ -251,22 +250,34 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
         <body>
             <!-- 資料表是關聯性資料庫要注意！！ -->
-            <form method="POST" action="新增文章的後端.php"> <!-- 確保 action 指向 新增文章的後端.php -->
-                <label for="title">標題:</label>
-                <input type="text" id="title" name="title" class="text-box" placeholder="請輸入標題" required>
+                <!-- 內容表單 -->
+    <div class="container mt-4">
+        <form method="POST" action="新增文章的後端.php">
+            <label for="title">標題:</label>
+            <input type="text" id="title" name="title" class="text-box" placeholder="請輸入標題" required>
 
-                <label for="subtitle">內容:</label>
-                <textarea id="subtitle" name="subtitle" class="content-box" placeholder="請輸入內容" required></textarea>
+            <label for="subtitle">內容:</label>
+            <textarea id="subtitle" name="subtitle" class="content-box" placeholder="請輸入內容" required></textarea>
 
-                 <label for="source">資料來源:</label>  <!-- 缺少下拉式選單 資料表是 source-->
-                <input type="text" id="source" name="source" class="text-box" placeholder="請輸入資料來源" required>
+            <label for="source">資料來源:</label>
+            <select id="source" name="source" class="dropdown" required>
+                <option value="">請選擇資料來源</option>
+                <option value="1">天下雜誌</option>
+                <option value="2">銀天下</option>
+            </select>
 
-                <label for="url">連結:</label>
-                <input type="url" id="url" name="url" class="text-box" placeholder="請輸入連結" required>
+            <label for="url">連結:</label>
+            <input type="url" id="url" name="url" class="text-box" placeholder="請輸入連結" required>
 
-                <label for="image">圖片路徑:</label>
-                <input type="text" id="image" name="image" class="text-box" placeholder="請輸入圖片路徑" required>
+            <label for="image">圖片路徑:</label>
+            <input type="text" id="image" name="image" class="text-box" placeholder="請輸入圖片路徑" required>
 
+            <label for="review">審核結果:</label>
+            <select id="review" name="review" class="dropdown" required>
+                <option value="">未選擇</option>
+                <option value="1">已審核</option>
+                <option value="2">未審核</option>
+            </select>
                 <!-- 新增文章類型欄位 資料表是 type -->
 
                 <div class="button-container">

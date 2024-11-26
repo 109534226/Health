@@ -9,11 +9,9 @@ session_start();
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // 從表單獲取數據
     $id = $_POST['id']; // 用戶 ID
-    $username = $_POST['username']; // 用戶名
     $name = $_POST['name']; // 帳號名稱
     $password = $_POST['password']; // 密碼
-    $email = $_POST['email']; // 電子郵件
-    $grade = $_POST['grade']; // 用戶權限等級
+    $grade_id = $_POST['grade_id']; // 用戶權限等級
     $state = $_POST['state']; // 用戶狀態
 
     // 檢查是否已經存在該帳號
@@ -31,14 +29,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // 防止 SQL 注入的措施，轉義特殊字符
-    $username = mysqli_real_escape_string($link, $username); // 轉義用戶名
-    $email = mysqli_real_escape_string($link, $email); // 轉義電子郵件
-    $grade = mysqli_real_escape_string($link, $grade); // 轉義權限等級
+    $grade_id = mysqli_real_escape_string($link, $grade_id); // 轉義權限等級
     $name = mysqli_real_escape_string($link, $name); // 轉義帳號名稱
+    $account = mysqli_real_escape_string($link, $account); 
     $password = mysqli_real_escape_string($link, $password); // 轉義密碼
 
     // SQL 插入語句，將用戶數據插入資料庫
-    $sql = "INSERT INTO `user` (`username`,`name`,`password`, `email`, `grade`) VALUES ('$username','$name','$password', '$email', '$grade')";
+    $sql = "INSERT INTO `user` (`user_id`,`name`,`password`,`account`, `grade_id`) VALUES (null,'$name','$password', '$account', '$grade_id')";
 
     // 使用 mysqli_query 執行 SQL 插入語句
     if (mysqli_query($link, $sql)) {
