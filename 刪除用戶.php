@@ -1,7 +1,7 @@
 <?php
 include 'db.php';
 $id = $_GET['id'];
-$sql = "DELETE FROM user WHERE id=$id";
+$sql = "DELETE FROM user WHERE 	user_id=$id";
 if ($link->query($sql) === TRUE) {
     header("Location: c_user.php");
 } else {

@@ -9,7 +9,8 @@ session_start();
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // 從表單獲取數據
     $id = $_POST['id']; // 用戶 ID
-    $name = $_POST['name']; // 帳號名稱
+    $name = $_POST['username']; // 帳號名稱
+    $account = $_POST['name']; // 帳號名稱
     $password = $_POST['password']; // 密碼
     $grade_id = $_POST['grade_id']; // 用戶權限等級
     $state = $_POST['state']; // 用戶狀態
@@ -31,6 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // 防止 SQL 注入的措施，轉義特殊字符
     $grade_id = mysqli_real_escape_string($link, $grade_id); // 轉義權限等級
     $name = mysqli_real_escape_string($link, $name); // 轉義帳號名稱
+
     $account = mysqli_real_escape_string($link, $account); 
     $password = mysqli_real_escape_string($link, $password); // 轉義密碼
 
