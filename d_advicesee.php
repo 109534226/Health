@@ -146,24 +146,33 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     </div>
     <!-- 頁首 End -->
 
-    <?php
+    <!-- <?php
     include "db.php"; // 連接資料庫
-// 查詢登入使用者的身份和姓名
-    $查詢資料 = "SELECT grade, username FROM user WHERE name = '$帳號'";
-    $結果 = mysqli_query($link, $查詢資料);
+
+    // 啟用 Session
+    session_start();
+
+    // 檢查是否有使用者登入
+    if (isset($_SESSION['帳號'])) {
+        $帳號 = $_SESSION['帳號'];
+    } else {
+        echo "<script>alert('請先登入。'); window.location.href = 'login.php';</script>";
+        exit();
+    }
+
+    // 查詢登入使用者的身份和姓名
+    $查詢資料 = "SELECT g.grade, u.name FROM user u LEFT JOIN grade g ON u.grade_id = g.grade_id WHERE u.account = ?";
+    $查詢準備 = mysqli_prepare($link, $查詢資料);
+    mysqli_stmt_bind_param($查詢準備, "s", $帳號);
+    mysqli_stmt_execute($查詢準備);
+    $結果 = mysqli_stmt_get_result($查詢準備);
 
     if ($結果 && $row = mysqli_fetch_assoc($結果)) {
         // 設置角色
-        if ($row['grade'] == 1) {
-            $_SESSION['user_role'] = '醫生';
-        } elseif ($row['grade'] == 2) {
-            $_SESSION['user_role'] = '護士';
-        } else {
-            $_SESSION['user_role'] = '未知角色';
-        }
+        $_SESSION['user_role'] = $row['grade'] ? $row['grade'] : '未知角色';
 
         // 設置使用者姓名
-        $_SESSION['name'] = $row['username'];
+        $_SESSION['name'] = $row['name'];
     } else {
         echo "<script>alert('無法確定您的角色或名稱，請重新登入。'); window.location.href = 'login.php';</script>";
         exit();
@@ -173,13 +182,32 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     $user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '未知角色';
     $name = isset($_SESSION['name']) ? $_SESSION['name'] : '未知姓名';
 
+    // 查詢隸屬的醫院和科別
+    $查詢隸屬 = "SELECT h.hospital, d.department 
+                  FROM user u
+                  LEFT JOIN hospital h ON h.user_id = u.user_id
+                  LEFT JOIN department d ON d.hospital_id = h.hospital_id
+                  WHERE u.account = ?";
+    $查詢準備 = mysqli_prepare($link, $查詢隸屬);
+    mysqli_stmt_bind_param($查詢準備, "s", $帳號);
+    mysqli_stmt_execute($查詢準備);
+    $隸屬結果 = mysqli_stmt_get_result($查詢準備);
 
-    // 顯示當前角色
+    if ($隸屬結果 && $隸屬資料 = mysqli_fetch_assoc($隸屬結果)) {
+        $hospital = $隸屬資料['hospital'] ? $隸屬資料['hospital'] : '未知醫院';
+        $department = $隸屬資料['department'] ? $隸屬資料['department'] : '未知科別';
+    } else {
+        $hospital = '未知醫院';
+        $department = '未知科別';
+    }
+
+    // 顯示使用者資料
     echo "~歡迎回來~ " . htmlspecialchars($name) . "<br/>";
-    echo "當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>"; // 顯示當前角色
-    echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"]) . "</p>";
-    ?>
-
+    echo "當前角色: " . htmlspecialchars($user_role) . "</p>"; // 顯示當前角色
+    echo "登入帳號: " . htmlspecialchars($帳號) . "</p>";
+    echo "隸屬醫院: " . htmlspecialchars($hospital) . "</p>";
+    echo "隸屬科別: " . htmlspecialchars($department) . "</p>";
+?> -->
 
 
     <!--醫生建議-->
