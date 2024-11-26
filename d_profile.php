@@ -1,43 +1,70 @@
 <?php
-session_start();
-include "db.php";
+session_start(); // 啟動 Session，讓伺服器能夠追蹤使用者的登入狀態
+include "db.php"; // 引入資料庫連線檔案
 
-// 確認是否登入
-if (!isset($_SESSION["登入狀態"])) {
-    header("Location: login.php");
-    exit;
+// 確認使用者是否已登入
+if (!isset($_SESSION["登入狀態"]) || $_SESSION["登入狀態"] !== true) {
+    header("Location: login.php"); // 跳轉到登入頁面
+    exit();
 }
 
-// 獲取使用者帳號
+// 從 Session 中獲取使用者的帳號
 $帳號 = $_SESSION["帳號"];
-$姓名 = $_SESSION["姓名"];
-$電子郵件 = $_SESSION["電子郵件"];
 
-// 查詢該帳號的使用者資料
-$SQL檢查 = "SELECT * FROM profession WHERE name = '$帳號'";
+// 使用 SQL 查詢語句，從資料庫中查詢該帳號對應的詳細資料
+$SQL檢查 = "
+    SELECT 
+        user.name AS username,
+        gender.gender,
+        profession.birthday,
+        profession.idcard,
+        profession.phone,
+        profession.email,
+        hospital.hospital,
+        department.department,
+        profession.image
+    FROM user
+    JOIN profession ON user.user_id = profession.user_id
+    LEFT JOIN hospital ON profession.hospital_id = hospital.hospital_id
+    LEFT JOIN department ON profession.department_id = department.department_id
+    LEFT JOIN gender ON profession.gender_id = gender.gender_id
+    WHERE user.account = '$帳號'
+";
+
 $result = mysqli_query($link, $SQL檢查);
+
+// 如果查詢失敗或沒有找到資料，提示錯誤並重新登入
+if (!$result || mysqli_num_rows($result) == 0) {
+    echo "<script>
+            alert('無法找到用戶資料，請重新登入。');
+            window.location.href = 'login.php';
+          </script>";
+    exit();
+}
+
 $userData = mysqli_fetch_assoc($result);
 
-// 將資料填入表單欄位
-// $姓名 = $userData['username'] ?? '';
+// 將查詢到的資料填入變數
+$姓名 = $userData['username'] ?? '';
+$性別 = $userData['gender'] ?? '';
 $出生年月日 = $userData['birthday'] ?? '';
 $身分證字號 = $userData['idcard'] ?? '';
 $電話 = $userData['phone'] ?? '';
-// $電子郵件 = $userData['email'] ?? '';
-// $緊急聯絡人 = $userData['ecname'] ?? '';
-// $緊急聯絡人電話 = $userData['ecphone'] ?? '';
+$電子郵件 = $userData['email'] ?? '';
+$隸屬醫院 = $userData['hospital'] ?? '';
+$隸屬科別 = $userData['department'] ?? '';
 
-// 頭像設置
+// 設置頭像的顯示路徑
 $profilePicture = !empty($userData['image'])
     ? 'data:image/jpeg;base64,' . base64_encode($userData['image'])
     : 'img/300.jpg';
 
-// 防止頁面被瀏覽器緩存
+// 設置 HTTP 標頭，防止頁面被瀏覽器緩存
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 header("Pragma: no-cache");
-
 ?>
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 
@@ -165,13 +192,13 @@ header("Pragma: no-cache");
             cursor: pointer;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             background-size: cover;
-            /* 讓图片完全覆蓋容器 */
+            /* 让图片完全覆盖容器 */
             background-position: center;
-            /* 確保圖片居中顯示 */
+            /* 确保图片居中显示 */
             background-repeat: no-repeat;
-            /* 防止背景重複 */
+            /* 防止背景重复 */
             overflow: hidden;
-            /* 隱藏藏溢出部分 */
+            /* 隐藏溢出部分 */
         }
 
         .profile-picture:hover {
@@ -244,7 +271,7 @@ header("Pragma: no-cache");
     <div class="container-fluid sticky-top bg-white shadow-sm mb-5">
         <div class="container">
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
-                <a href="index.php" class="navbar-brand">
+                <a href="index.html" class="navbar-brand">
                     <h1 class="m-0 text-uppercase text-primary"><i class="fa fa-clinic-medical me-2"></i>健康醫療網站</h1>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
@@ -259,7 +286,7 @@ header("Pragma: no-cache");
                         <a href="d_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
                         <a href="d_advicesee.php" class="nav-item nav-link">醫生建議</a>
                         <div class="nav-item">
-                            <a href="#" class="nav-link dropdown-toggle active active" data-bs-toggle="dropdown"
+                            <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a href="d_profile.php" class="dropdown-item active">關於我</a></li>
@@ -275,47 +302,10 @@ header("Pragma: no-cache");
                         </div>
                     </div>
                 </div>
+            </nav>
         </div>
-        </nav>
-    </div>
     </div>
     <!-- 頁首 End -->
-
-
-     <!-- <?php 
-//     include "db.php"; // 連接資料庫
-// // 查詢登入使用者的身份和姓名
-//     $查詢資料 = "SELECT grade, username FROM user WHERE name = '$帳號'";
-//     $結果 = mysqli_query($link, $查詢資料);
-
-//     if ($結果 && $row = mysqli_fetch_assoc($結果)) {
-//         // 設置角色
-//         if ($row['grade'] == 1) {
-//             $_SESSION['user_role'] = '醫生';
-//         } elseif ($row['grade'] == 2) {
-//             $_SESSION['user_role'] = '護士';
-//         } else {
-//             $_SESSION['user_role'] = '未知角色';
-//         }
-
-//         // 設置使用者姓名
-//         $_SESSION['name'] = $row['username'];
-//     } else {
-//         echo "<script>alert('無法確定您的角色或名稱，請重新登入。'); window.location.href = 'login.php';</script>";
-//         exit();
-//     }
-
-//     // 確保角色和姓名已設定
-//     $user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '未知角色';
-//     $name = isset($_SESSION['name']) ? $_SESSION['name'] : '未知姓名';
-
-
-//     // 顯示當前角色
-//     echo "~歡迎回來~ " . htmlspecialchars($name) . "<br/>";
-//     echo "當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>"; // 顯示當前角色
-//     echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"]) . "</p>";
-    // ?> -->
-
 
 
     <?php
@@ -335,12 +325,12 @@ header("Pragma: no-cache");
     <!-- 個人檔案表單 Start -->
     <div class="container-fluid">
         <div class="form-container">
-            <form id="userForm" action="所有使用者資料2.php" method="post" enctype="multipart/form-data">
+            <form action="所有使用者資料2.php" method="post" enctype="multipart/form-data">
 
                 <!-- 大頭貼上傳 -->
                 <div class="form-row text-center">
                     <label for="fileInput">
-                        <!-- 如果 $profilePicture 为空，則使用預設圖 img/300.jpg -->
+                        <!-- 如果 $profilePicture 为空，则使用預設圖 img/300.jpg -->
                         <div class="profile-picture" id="profilePicturePreview"
                             style="background-image: url('<?php echo $profilePicture ? $profilePicture : 'img/300.jpg'; ?>');">
                         </div>
@@ -350,52 +340,16 @@ header("Pragma: no-cache");
                         onchange="uploadImage(event)">
                 </div>
 
-
-                <?php
-                session_start();
-                include "db.php"; // 連接資料庫
-                
-                // 假設從 session 獲取目前登入的帳號
-                $帳號 = $_SESSION["帳號"];
-                if (!$帳號) {
-                    die("用戶未登入，請重新登入！");
-                }
-
-                // 預設值
-                $隸屬醫院 = $科別 = "無";
-
-
-                // 從 user 表抓取姓名和電子郵件
-                $SQL查詢使用者 = sprintf("SELECT name, email FROM user WHERE username = '%s'", mysqli_real_escape_string($link, $帳號));
-                $result = mysqli_query($link, $SQL查詢使用者);
-
-                if ($row = mysqli_fetch_assoc($result)) {
-                    $姓名 = $row['name'] ?? "無名氏"; // 如果資料不存在，設為預設值 "無名氏"
-                    $電子郵件 = $row['email'] ?? "無";
-                }
-
-                // 從 profession 表抓取其他資料
-                $SQL查詢資料 = sprintf("SELECT * FROM profession WHERE name = '%s'", mysqli_real_escape_string($link, $帳號));
-                $result = mysqli_query($link, $SQL查詢資料);
-
-                if ($row = mysqli_fetch_assoc($result)) {
-                    $姓名=$row['username'] ?? "";
-                    $出生年月日 = $row['birthday'] ?? "";
-                    $身分證字號 = $row['idcard'] ?? "";
-                    $電話 = $row['phone'] ?? "";
-                    $電子郵件= $row['email'] ?? "";
-                    $隸屬醫院 = $row['hospital'] ?? "";
-                    $科別 = $row['department'] ?? "";
-
-                }
-
-                mysqli_close($link);
-                ?>
-
-
+                <!-- 表單欄位 -->
                 <div class="form-row">
                     <label for="username">姓名 :</label>
                     <input id="username" type="text" name="username" value="<?php echo htmlspecialchars($姓名); ?>"
+                        disabled>
+                </div>
+
+                <div class="form-row">
+                    <label for="gender">性別 :</label>
+                    <input id="gender" type="text" name="gender" value="<?php echo htmlspecialchars($性別); ?>"
                         disabled>
                 </div>
 
@@ -423,6 +377,7 @@ header("Pragma: no-cache");
                         disabled>
                 </div>
 
+
                 <div class="form-row">
                     <label for="hospital">隸屬醫院 :</label>
                     <input id="hospital" type="text" name="hospital" value="<?php echo htmlspecialchars($隸屬醫院); ?>"
@@ -430,7 +385,7 @@ header("Pragma: no-cache");
                 </div>
 
                 <div class="form-row">
-                    <label for="department">科別 :</label>
+                    <label for="department">隸屬科別 :</label>
                     <input id="department" type="text" name="department" value="<?php echo htmlspecialchars($科別); ?>"
                         disabled>
                 </div>
@@ -440,13 +395,11 @@ header("Pragma: no-cache");
                     <button type="button" id="editButton">修改資料</button>
                     <button type="button" id="confirmButton" style="display:none;" onclick="confirmData()">確認資料</button>
                 </div>
-
             </form>
         </div>
     </div>
 
     <script>
-
         // 開啟欄位編輯功能
         document.getElementById('editButton').addEventListener('click', function () {
             document.querySelectorAll('input').forEach(function (input) {
@@ -467,7 +420,7 @@ header("Pragma: no-cache");
             };
             reader.readAsDataURL(file);
 
-            // 使用 AJAX 上傳頭像
+            // 使用 AJAX 上传头像
             const formData = new FormData();
             formData.append('profilePicture', file);
 
@@ -478,24 +431,22 @@ header("Pragma: no-cache");
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // 上傳成功後更新頁面上的頭像
+                        // 上传成功后更新页面上的头像
                         document.getElementById('profilePicturePreview').src = data.imageUrl;
                     } else {
-                        alert('頭像上傳失敗，請重試');
+                        alert('頭像上传失败，請重試');
                     }
                 })
                 .catch(error => console.error('上傳錯誤:', error));
         }
 
-
-
+        // 確認資料並顯示 alert
         function confirmData() {
-            const username = document.getElementById('username').value.trim();
-            const userdate = document.getElementById('userdate').value.trim();
-            const useridcard = document.getElementById('useridcard').value.trim();
-            const userphone = document.getElementById('userphone').value.trim();
-            const useremail = document.getElementById('useremail').value.trim();
-            const hospital = document.getElementById('hospital').value.trim();
+            const username = document.getElementById('username').value;
+            const userdate = document.getElementById('userdate').value;
+            const useridcard = document.getElementById('useridcard').value;
+            const userphone = document.getElementById('userphone').value;
+            const useremail = document.getElementById('useremail').value;
 
             // 驗證欄位格式
 
@@ -585,7 +536,6 @@ header("Pragma: no-cache");
             }
 
 
-
             // 聯絡電話驗證: 台灣手機號碼格式（09開頭，後面8位數字，且不允許後8位數出現6位或以上的重複數字）
             const phonePattern = /^09\d{8}$/;
             const repeatedPattern = /(\d)\1{5,}/; // 檢查是否有6個或更多相同的數字連續出現
@@ -601,6 +551,7 @@ header("Pragma: no-cache");
                 return;
             }
 
+
             // 電子郵件驗證: 空白檢查與格式檢查
             if (!useremail) {
                 alert('電子郵件欄位不能為空');
@@ -610,39 +561,24 @@ header("Pragma: no-cache");
                 return;
             }
 
-            // 隸屬醫院驗證: 空白檢查
-            if (!hospital) {
-                alert('隸屬醫院欄位不能為空');
-                return;
-            }
-
-            // 科別驗證: 空白檢查
-            if (!hospital) {
-                alert('科別欄位不能為空');
-                return;
-            }
-
-
+            // 組合要顯示在 alert 的訊息
             const confirmMessage =
                 `請確認您的資料:\n` +
                 `姓名: ${username}\n` +
+                `性別: ${gender}\n` +
                 `出生年月日: ${userdate}\n` +
                 `身分證字號: ${useridcard}\n` +
                 `聯絡電話: ${userphone}\n` +
                 `電子郵件: ${useremail}\n` +
                 `隸屬醫院: ${hospital}\n` +
-                `科別: ${hospital}\n` +
+                `隸屬科別: ${department}\n` +
                 `確定要提交資料嗎？`;
 
             // 顯示確認 alert
             if (confirm(confirmMessage)) {
-                document.getElementById('userForm').action = '所有使用者資料2.php';
-                document.getElementById('userForm').submit();
+                document.querySelector('form').submit(); // 確認後提交表單
             }
         }
-
-
-
 
         // 刪除頭像並顯示預設圖片
         function deleteAvatar() {
@@ -723,7 +659,6 @@ header("Pragma: no-cache");
             document.getElementById('deleteAccountForm').submit();
         }
     </script>
-
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>

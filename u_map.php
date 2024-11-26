@@ -23,58 +23,60 @@ flush();
 
 // 檢查是否為 POST 請求
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
+    $action = $_POST['action'] ?? ''; // 獲取操作類型
 
-    // 驗證操作類型
+    // 驗證操作類型是否為 'get_clinics'
     if ($action !== 'get_clinics') {
-        echo json_encode(["message" => "無效的操作類型。"]);
+        echo json_encode(["message" => "無效的操作類型。"]); // 返回錯誤訊息
         exit;
     }
 
     // 獲取請求參數
-    $county = trim($_POST['county'] ?? ''); // 縣市名稱
-    $district = trim($_POST['district'] ?? ''); // 地區名稱
+    $county = trim($_POST['county'] ?? ''); // 獲取縣市名稱
+    $district = trim($_POST['district'] ?? ''); // 獲取地區名稱
 
-    // 驗證請求參數
+    // 驗證請求參數是否齊全
     if (empty($county) || empty($district)) {
-        echo json_encode(["message" => "請選擇縣市和地區！"]);
+        echo json_encode(["message" => "請選擇縣市和地區！"]); // 返回錯誤訊息
         exit;
     }
 
     // 引入資料庫連線
     include 'db.php';
 
-    // 查詢資料庫
+    // 查詢資料庫，尋找符合條件的醫療機構
     $query = "SELECT DISTINCT `hospital` FROM `hospital` WHERE `city` = ? AND `area` = ?";
-    $stmt = $link->prepare($query);
+    $stmt = $link->prepare($query); // 準備 SQL 語句
 
     if (!$stmt) {
-        echo json_encode(["message" => "使服器內部錯誤，請稍後再試。"]);
+        echo json_encode(["message" => "伺服器內部錯誤，請稍後再試。"]); // 返回錯誤訊息
         exit;
     }
 
-    // 綁定參數並執行查詢
+    // 綁定參數（縣市與地區）並執行查詢
     $stmt->bind_param('ss', $county, $district);
     $stmt->execute();
-    $result = $stmt->get_result();
+    $result = $stmt->get_result(); // 獲取查詢結果
 
-    // 處理結果
+    // 處理查詢結果
     if ($result->num_rows > 0) {
-        $clinics = [];
+        $clinics = []; // 儲存診所名稱的陣列
         while ($row = $result->fetch_assoc()) {
+            // 將診所名稱加入陣列並進行 HTML 編碼，防止 XSS 攻擊
             $clinics[] = htmlspecialchars($row['hospital'], ENT_QUOTES, 'UTF-8');
         }
+        // 返回符合條件的診所列表
         echo json_encode(["clinics" => $clinics]);
     } else {
+        // 查無結果時返回提示訊息
         echo json_encode(["message" => "未找到符合條件的診所或醫院。"]);
     }
 
-    // 關閉連線
-    $stmt->close();
-    $link->close();
+    // 關閉資料庫連線
+    $stmt->close(); // 關閉預備語句
+    $link->close(); // 關閉資料庫連線
     exit;
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -270,7 +272,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="col-lg-6">
                     <div class="bg-white text-center rounded p-5">
                         <h1 class="mb-4">交通工具</h1>
-                        <form>
+                        <form action="u_selectclinic2.php" method="POST">
                             <div class="row g-3">
                                 <div class="mx-auto" style="width: 100%; max-width: 600px;">
                                     <div class="input-group">
@@ -308,102 +310,115 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </select>
                                 </div>
 
-                                <div class="col-12 col-sm-6" style="width: 100%; max-width: 600px;">
+                                <div class="col-12 col-sm-6">
                                     <!-- 診所下拉選單 -->
                                     <select class="form-select bg-light border-0" style="height: 55px;" id="clinic"
                                         name="clinic">
-                                        <option selected value="" disabled>選擇診所或醫院</option>
+                                        <option selected value="">選擇診所或醫院</option>
                                         <?php
-                                        if ($result->num_rows > 0) {
-                                            while ($row = $result->fetch_assoc()) {
+                                        // 使用 mysqli 查詢診所列表
+                                        $sql = "SELECT DISTINCT 醫事機構 FROM hospital";
+                                        $result = mysqli_query($conn, $sql);
+
+                                        if (mysqli_num_rows($result) > 0) {
+                                            while ($row = mysqli_fetch_assoc($result)) {
                                                 echo "<option value='" . htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($row['醫事機構'], ENT_QUOTES, 'UTF-8') . "</option>";
                                             }
-                                        } else {
-                                            echo "<option value='' disabled>無可用醫事機構</option>";
                                         }
                                         ?>
                                     </select>
                                 </div>
 
+                                <div class="col-12 col-sm-6">
+                                    <!-- 科別下拉選單 -->
+                                    <select class="form-select bg-light border-0" style="height: 55px;" id="department"
+                                        name="department">
+                                        <option selected value="">選擇看診科目</option>
+                                    </select>
+                                </div>
+
                                 <script>
-                                    // 診所選擇事件：修改 placeholder 並同步值
-                                    $('#clinic').on('change', function () {
-                                        const selectedClinic = $(this).val();
-                                        const locationInput = $('#location');
+                                    $(document).ready(function () {
+                                        // 當地區選項改變時，請求對應診所列表
+                                        $('#district_box').on('change', function () {
+                                            const county = $('#county_box').val();
+                                            const district = $(this).val();
 
-                                        if (selectedClinic) {
-                                            locationInput.val(selectedClinic);
-                                            locationInput.attr('placeholder', `目前選擇：${selectedClinic}`);
-                                        } else {
-                                            locationInput.val('');
-                                            locationInput.attr('placeholder', '搜尋醫院或診所');
-                                        }
-                                    });
+                                            if (!county || !district) {
+                                                alert("請先選擇縣市和地區！");
+                                                return;
+                                            }
 
+                                            $.ajax({
+                                                url: 'u_reserve.php', // 請替換為你的 PHP 文件路徑
+                                                type: 'POST',
+                                                data: {
+                                                    action: 'get_clinics',
+                                                    county: county,
+                                                    district: district
+                                                },
+                                                success: function (response) {
+                                                    try {
+                                                        const data = JSON.parse(response);
+                                                        $('#clinic').empty().append('<option value="" disabled selected>選擇診所或醫院</option>');
 
-
-                                    // 請求診所列表
-                                    $('#district_box').on('change', function () {
-                                        const county = $('#county_box').val();
-                                        const district = $(this).val();
-
-                                        if (!county || !district) {
-                                            alert("請先選擇縣市和地區！");
-                                            return;
-                                        }
-
-                                        $.ajax({
-                                            url: 'u_map.php',
-                                            type: 'POST',
-                                            data: {
-                                                action: 'get_clinics',
-                                                county: county,
-                                                district: district
-                                            },
-                                            success: function (response) {
-                                                const data = JSON.parse(response);
-                                                $('#clinic').empty().append('<option value="" disabled selected>選擇診所或醫院</option>');
-
-                                                if (data.clinics) {
-                                                    data.clinics.forEach(function (clinic) {
-                                                        $('#clinic').append(`<option value="${clinic}">${clinic}</option>`);
-                                                    });
-                                                } else if (data.message) {
-                                                    alert(data.message);
+                                                        if (data.clinics) {
+                                                            data.clinics.forEach(function (clinic) {
+                                                                $('#clinic').append(`<option value="${clinic}">${clinic}</option>`);
+                                                            });
+                                                        } else if (data.message) {
+                                                            alert(data.message);
+                                                        }
+                                                    } catch (e) {
+                                                        console.error("JSON 解析失敗:", e);
+                                                        alert("發生錯誤，無法載入診所列表！");
+                                                    }
+                                                },
+                                                error: function () {
+                                                    alert("發生錯誤，請稍後再試！");
                                                 }
-                                            },
-                                            error: function () {
-                                                alert("發生錯誤，請稍後再試！");
+                                            });
+                                        });
+
+                                        // 當選擇診所後請求科別
+                                        $('#clinic').on('change', function () {
+                                            const selectedClinic = $(this).val();
+                                            const departmentSelect = $('#department');
+
+                                            departmentSelect.empty().append('<option value="" selected disabled>選擇看診科目</option>');
+
+                                            if (selectedClinic) {
+                                                $.ajax({
+                                                    url: '選擇看診科目.php', // 請替換為你的 PHP 文件路徑
+                                                    type: 'POST',
+                                                    data: {
+                                                        clinic: selectedClinic
+                                                    },
+                                                    success: function (response) {
+                                                        departmentSelect.append(response);
+                                                    },
+                                                    error: function () {
+                                                        alert("發生錯誤，無法載入科別！");
+                                                    }
+                                                });
                                             }
                                         });
                                     });
 
-                                    // $(document).ready(function () {
-                                    //     // 當用戶更改縣市或地區時，觸發事件
-                                    //     $('#county_box, #district_box').on('change', function () {
-                                    //         // 獲取縣市和地區的選擇值
-                                    //         const county = $('#county_box').val();
-                                    //         const district = $('#district_box').val();
-
-                                    //         // 如果縣市和地區都有選擇，則顯示結果
-                                    //         if (county && district) {
-                                    //             alert(`您選擇的縣市是：${county}\n您選擇的地區是：${district}`);
-                                    //         }
-                                    //     });
-                                    // });
                                 </script>
 
                                 <div class="row">
                                     <p><br /></p>
                                     <div class="col-md-6 mb-3">
-                                        <button class="btn btn-primary  py-3" style="width: 100%"
-                                            type="submit">查看現場掛號人數</button>
+                                        <style>
+                                            .custom-button {
+                                                width: 220%;
+                                                height: 50px;
+                                            }
+                                        </style>
+                                        <button class="btn btn-primary custom-button" type="submit">查看現場掛號人數</button>
                                     </div>
 
-                                    <div class="col-md-6 mb-3">
-                                        <button class="btn btn-primary  py-3" style="width: 100%" type="submit"
-                                            onclick="sLocation()">搜尋路線/交通方式</button>
-                                    </div>
                                 </div>
 
                                 <script>
