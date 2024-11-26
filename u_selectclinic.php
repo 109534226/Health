@@ -31,101 +31,156 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     exit();
 }
 
-// 獲取目前的日期
-$currentDate = date('Y-m-d');
+include 'db.php'; // 引入資料庫連接
 
-// 查詢醫生班表的SQL語句
-$query = "SELECT * FROM doctorshift WHERE dateday >= '$currentDate' ORDER BY dateday ASC";
-$result = mysqli_query($link, $query);
+// 從前一個表單接收診所和科別的值
+$selectedClinic = isset($_POST['clinic']) ? mysqli_real_escape_string($link, $_POST['clinic']) : null;
+$selectedDepartment = isset($_POST['department']) ? mysqli_real_escape_string($link, $_POST['department']) : null;
 
-// 初始化陣列來儲存早、午、晚班的資料
-$morningShifts = [];
-$afternoonShifts = [];
-$eveningShifts = [];
+// 檢查診所和科別是否都已提供
+if ($selectedClinic && $selectedDepartment) {
+    // 獲取目前的日期
+    $currentDate = date('Y-m-d');
 
-// 根據不同的班次來分類資料
-while ($row = mysqli_fetch_assoc($result)) {
-    switch ($row['consultationperiod']) {
-        case '早':
-            $morningShifts[] = $row;
-            break;
-        case '午':
-            $afternoonShifts[] = $row;
-            break;
-        case '晚':
-            $eveningShifts[] = $row;
-            break;
+    $query = "
+        SELECT ds.*, ct.consultationT, cn.clinicnumber, u.name AS doctorname
+        FROM doctorshift ds
+        JOIN consultationt ct ON ds.consultationT_id = ct.consultationT_id
+        JOIN clinicnumber cn ON ds.clinicnumber_id = cn.clinicnumber_id
+        JOIN medical m ON ds.medical_id = m.medical_id
+        JOIN department d ON m.department_id = d.department_id
+        JOIN hospital h ON d.hospital_id = h.hospital_id
+        JOIN user u ON m.user_id = u.user_id
+        WHERE ds.consultationD >= '$currentDate'
+        AND h.hospital = '$selectedClinic'
+        AND d.department = '$selectedDepartment'
+        ORDER BY ds.consultationD ASC
+    ";
+
+    $result = mysqli_query($link, $query);
+
+    // 初始化陣列來儲存早、午、晚班的資料
+    $morningShifts = [];
+    $afternoonShifts = [];
+    $eveningShifts = [];
+
+    // 根據不同的班次來分類資料
+    while ($row = mysqli_fetch_assoc($result)) {
+        switch ($row['consultationT']) {
+            case '早':
+                $morningShifts[] = $row;
+                break;
+            case '午':
+                $afternoonShifts[] = $row;
+                break;
+            case '晚':
+                $eveningShifts[] = $row;
+                break;
+        }
     }
-}
 
-// 從 profession 資料表中獲取醫生名稱對應的使用者名稱
-$doctorUsernames = [];
-$professionQuery = "SELECT name, username FROM profession";
-$professionResult = mysqli_query($link, $professionQuery);
-while ($professionRow = mysqli_fetch_assoc($professionResult)) {
-    $doctorUsernames[$professionRow['name']] = $professionRow['username'];
-}
+    // 顯示排班資訊的函數
+    function displayShifts($shifts, $timePeriod)
+    {
+        global $selectedClinic, $selectedDepartment; // 使用全局变量，以便表单生成时可访问这些值
 
-// 顯示排班資訊的函數
-function displayShifts($shifts, $timePeriod)
-{
-    global $doctorUsernames;
-    echo "<div class='shift-section'>";
-    echo "<h2>$timePeriod:</h2>";
-    echo "<table class='table table-bordered'>";
-    echo "<thead><tr class='bg-success text-white' style='color: white;'><th style='text-align: center;'>診間號</th>";
-    for ($i = 0; $i < 7; $i++) {
-        // 顯示表格標頭，包含星期幾和日期
-        $dayOffset = "+$i day";
-        $date = date('Y-m-d', strtotime($dayOffset));
-        $dayName = date('l', strtotime($dayOffset));
-        $weekDaysCn = [
-            'Monday' => '星期一',
-            'Tuesday' => '星期二',
-            'Wednesday' => '星期三',
-            'Thursday' => '星期四',
-            'Friday' => '星期五',
-            'Saturday' => '星期六',
-            'Sunday' => '星期日'
-        ];
-        $dayNameCn = $weekDaysCn[$dayName];
-        echo "<th style='text-align: center;'>$dayNameCn<br>" . date('m-d', strtotime($date)) . "</th>";
-    }
-    echo "</tr></thead>";
-
-    // 顯示每一天的班次資訊
-    echo "<tbody>";
-    $clinicNumbers = array_unique(array_column($shifts, 'clinicnumber'));
-    foreach ($clinicNumbers as $clinicNumber) {
-        echo "<tr>";
-        echo "<td style='color: red; font-weight: bold; text-align: center;'>$clinicNumber</td>";
+        echo "<div class='shift-section'>";
+        echo "<h2>$timePeriod:</h2>";
+        echo "<table class='table table-bordered'>";
+        echo "<thead><tr class='bg-success text-white'><th style='text-align: center;'>診間號</th>";
         for ($i = 0; $i < 7; $i++) {
+            // 顯示表格標頭，包含星期幾和日期
             $dayOffset = "+$i day";
             $date = date('Y-m-d', strtotime($dayOffset));
-            $hasShift = false;
-            foreach ($shifts as $shift) {
-                if ($shift['clinicnumber'] == $clinicNumber && $shift['dateday'] == $date) {
-                    $doctorName = $shift['doctorname'];
-                    $username = isset($doctorUsernames[$doctorName]) ? $doctorUsernames[$doctorName] : $doctorName;
-                    $registeredCount = $shift['Nregistered'];
-                    echo "<td style='font-weight: bold; text-align: center;'>$username</br>目前預約人數為:$registeredCount</td>";
-                    $hasShift = true;
-                    break;
+            $dayName = date('l', strtotime($dayOffset));
+            $weekDaysCn = [
+                'Monday' => '星期一',
+                'Tuesday' => '星期二',
+                'Wednesday' => '星期三',
+                'Thursday' => '星期四',
+                'Friday' => '星期五',
+                'Saturday' => '星期六',
+                'Sunday' => '星期日'
+            ];
+            $dayNameCn = $weekDaysCn[$dayName];
+            echo "<th style='text-align: center;'>$dayNameCn<br>" . date('m-d', strtotime($date)) . "</th>";
+        }
+        echo "</tr></thead>";
+
+        // 顯示每一天的班次資訊
+        echo "<tbody>";
+        $clinicNumbers = array_unique(array_column($shifts, 'clinicnumber'));
+        foreach ($clinicNumbers as $clinicNumber) {
+            echo "<tr>";
+            echo "<td style='color: red; font-weight: bold; text-align: center;'>$clinicNumber</td>";
+            for ($i = 0; $i < 7; $i++) {
+                $dayOffset = "+$i day";
+                $date = date('Y-m-d', strtotime($dayOffset));
+                $hasShift = false;
+                foreach ($shifts as $shift) {
+                    if ($shift['clinicnumber'] == $clinicNumber && $shift['consultationD'] == $date) {
+                        $doctorName = $shift['doctorname'];
+                        $registeredCount = $shift['reserve'] ?? 0; // 預設為 0，如果為空則顯示 0
+
+                        // 顯示每個班次的資訊
+echo "<td style='font-weight: bold; text-align: center;'>
+$doctorName<br>目前預約人數: $registeredCount
+<form action='u_registration.php' method='POST' style='margin-top: 10px;'>
+
+    <!-- 診所名稱，從之前的表單中接收的值 -->
+    <input type='hidden' name='clinic' value='" . htmlspecialchars($selectedClinic, ENT_QUOTES, 'UTF-8') . "'>
+
+    <!-- 科別名稱，從之前的表單中接收的值 -->
+    <input type='hidden' name='department' value='" . htmlspecialchars($selectedDepartment, ENT_QUOTES, 'UTF-8') . "'>
+
+    <!-- 診間號，從班次資料中獲取的值 -->
+    <input type='hidden' name='clinicnumber' value='" . htmlspecialchars($clinicNumber, ENT_QUOTES, 'UTF-8') . "'>
+
+    <!-- 看診日期，從班次資料中獲取的值（對應當天日期） -->
+    <input type='hidden' name='date' value='" . htmlspecialchars($date, ENT_QUOTES, 'UTF-8') . "'>
+
+    <!-- 醫生姓名，從班次資料中獲取的值 -->
+    <input type='hidden' name='doctor' value='" . htmlspecialchars($doctorName, ENT_QUOTES, 'UTF-8') . "'>
+
+    <!-- 目前預約人數，從班次資料中獲取的值（預設為 0） -->
+    <input type='hidden' name='registeredCount' value='" . htmlspecialchars($registeredCount, ENT_QUOTES, 'UTF-8') . "'>
+
+    <!-- 看診時段（早/午/晚），根據不同班次顯示的時段 -->
+    <input type='hidden' name='timePeriod' value='" . htmlspecialchars($timePeriod, ENT_QUOTES, 'UTF-8') . "'>
+
+    <button type='submit' class='btn btn-primary btn-sm'>我要預約</button>
+</form>
+</td>";
+
+
+                        $hasShift = true;
+                        break;
+                    }
+                }
+                if (!$hasShift) {
+                    echo "<td style='font-weight: bold; text-align: center;'></td>";
                 }
             }
-            if (!$hasShift) {
-                echo "<td style='font-weight: bold; text-align: center;'></td>";
-            }
+            echo "</tr>";
         }
-        echo "</tr>";
+        echo "</tbody>";
+        echo "</table>";
+        echo "</div>";
     }
-    echo "</tbody>";
-    echo "</table>";
-    echo "</div>";
+
+    // 顯示早班、午班、晚班的資訊
+    // displayShifts($morningShifts, '上午診');
+    // displayShifts($afternoonShifts, '下午診');
+    // displayShifts($eveningShifts, '晚上診');
+
+} else {
+    echo "請選擇診所和看診科別。";
 }
 
-// 顯示早、午、晚班排班資訊
+mysqli_close($link);
+
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -341,6 +396,12 @@ function displayShifts($shifts, $timePeriod)
     <main>
         <div class="container">
             <?php
+
+            // 顯示診所和科別的值
+            echo "<p>選擇的診所: " . ($selectedClinic ? htmlspecialchars($selectedClinic, ENT_QUOTES, 'UTF-8') : "未選擇") . "</p>";
+            echo "<p>選擇的科別: " . ($selectedDepartment ? htmlspecialchars($selectedDepartment, ENT_QUOTES, 'UTF-8') : "未選擇") . "</p></br>";
+
+
             // 顯示各個時段的排班
             displayShifts($morningShifts, '上午診');
             displayShifts($afternoonShifts, '下午診');
@@ -348,18 +409,21 @@ function displayShifts($shifts, $timePeriod)
             ?>
         </div>
     </main>
+
     <!-- "我要預約" 按鈕 Start -->
-    <div class="container text-center mb-5">
+    <!-- <div class="container text-center mb-5">
         <button id="reserveButton" class="btn btn-primary btn-lg">我要預約</button>
-    </div>
+    </div> -->
     <!-- "我要預約" 按鈕 End -->
 
-    <script>
+    <!-- <script>
         document.getElementById('reserveButton').addEventListener('click', function () {
-            // 點擊“我要預約”按鈕後跳轉至預約頁面，修改為你的預約頁面 URL
-            window.location.href = 'u_registration.php';
+            // 點擊“我要預約”按鈕後跳轉至預約頁面，並傳遞科別和醫院資訊
+            let hospital = "<?php echo $row['hospital']; ?>";
+            let department = "<?php echo $row['department']; ?>";
+            window.location.href = 'u_registration.php?hospital=' + encodeURIComponent(hospital) + '&department=' + encodeURIComponent(department);
         });
-    </script>
+    </script> -->
 
     <!-- 頁尾 Start -->
     <div class="container-fluid bg-dark text-light mt-5 py-5">

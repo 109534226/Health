@@ -23,58 +23,60 @@ flush();
 
 // 檢查是否為 POST 請求
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
+    $action = $_POST['action'] ?? ''; // 獲取操作類型
 
-    // 驗證操作類型
+    // 驗證操作類型是否為 'get_clinics'
     if ($action !== 'get_clinics') {
-        echo json_encode(["message" => "無效的操作類型。"]);
+        echo json_encode(["message" => "無效的操作類型。"]); // 返回錯誤訊息
         exit;
     }
 
     // 獲取請求參數
-    $county = trim($_POST['county'] ?? ''); // 縣市名稱
-    $district = trim($_POST['district'] ?? ''); // 地區名稱
+    $county = trim($_POST['county'] ?? ''); // 獲取縣市名稱
+    $district = trim($_POST['district'] ?? ''); // 獲取地區名稱
 
-    // 驗證請求參數
+    // 驗證請求參數是否齊全
     if (empty($county) || empty($district)) {
-        echo json_encode(["message" => "請選擇縣市和地區！"]);
+        echo json_encode(["message" => "請選擇縣市和地區！"]); // 返回錯誤訊息
         exit;
     }
 
     // 引入資料庫連線
     include 'db.php';
 
-    // 查詢資料庫
+    // 查詢資料庫，尋找符合條件的醫療機構
     $query = "SELECT DISTINCT `hospital` FROM `hospital` WHERE `city` = ? AND `area` = ?";
-    $stmt = $link->prepare($query);
+    $stmt = $link->prepare($query); // 準備 SQL 語句
 
     if (!$stmt) {
-        echo json_encode(["message" => "使服器內部錯誤，請稍後再試。"]);
+        echo json_encode(["message" => "伺服器內部錯誤，請稍後再試。"]); // 返回錯誤訊息
         exit;
     }
 
-    // 綁定參數並執行查詢
+    // 綁定參數（縣市與地區）並執行查詢
     $stmt->bind_param('ss', $county, $district);
     $stmt->execute();
-    $result = $stmt->get_result();
+    $result = $stmt->get_result(); // 獲取查詢結果
 
-    // 處理結果
+    // 處理查詢結果
     if ($result->num_rows > 0) {
-        $clinics = [];
+        $clinics = []; // 儲存診所名稱的陣列
         while ($row = $result->fetch_assoc()) {
+            // 將診所名稱加入陣列並進行 HTML 編碼，防止 XSS 攻擊
             $clinics[] = htmlspecialchars($row['hospital'], ENT_QUOTES, 'UTF-8');
         }
+        // 返回符合條件的診所列表
         echo json_encode(["clinics" => $clinics]);
     } else {
+        // 查無結果時返回提示訊息
         echo json_encode(["message" => "未找到符合條件的診所或醫院。"]);
     }
 
-    // 關閉連線
-    $stmt->close();
-    $link->close();
+    // 關閉資料庫連線
+    $stmt->close(); // 關閉預備語句
+    $link->close(); // 關閉資料庫連線
     exit;
 }
-
 ?>
 
 <!DOCTYPE html>
