@@ -76,6 +76,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $updateStmt->bind_param('i', $doctorshift_id);
                 $updateStmt->execute();
                 echo "預約成功！";
+                header('Location: u_reserve.php');
+                exit();
             } else {
                 echo "更新看診預約人數失敗：" . $link->error;
             }
