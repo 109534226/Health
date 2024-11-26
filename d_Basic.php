@@ -1,33 +1,33 @@
 <?php
 session_start();
-include "db.php";
 
-$帳號 = mysqli_real_escape_string($link, $_POST['account']);
-$密碼 = mysqli_real_escape_string($link, $_POST['password']);
+// 禁止瀏覽器緩存頁面
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
 
-// 驗證帳號密碼
-$查詢 = "
-    SELECT user_id, name, grade_id 
-    FROM user 
-    WHERE account = '$帳號' AND password = '$密碼'
-";
+// 確保用戶已經登入，否則重定向到登入頁面
+if (!isset($_SESSION["登入狀態"]) || $_SESSION["登入狀態"] !== true) {
+    echo "<script>
+            alert('你還沒有登入，請先登入帳號。');
+            window.location.href = 'login.php';
+          </script>";
+    exit();
+}
 
-$結果 = mysqli_query($link, $查詢);
-
-if ($結果 && $row = mysqli_fetch_assoc($結果)) {
-    // 將用戶信息存入 Session
-    $_SESSION['user_id'] = $row['user_id'];
-    $_SESSION['name'] = $row['name'];
-    $_SESSION['grade_id'] = $row['grade_id'];
-    $_SESSION['登入狀態'] = true;
-
-    echo "<script>alert('登入成功'); window.location.href = 'user_dashboard.php';</script>";
+// 檢查 "帳號" 和 "姓名" 是否存在於 $_SESSION 中
+if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
+    // 獲取用戶帳號和姓名
+    $帳號 = $_SESSION['帳號'];
+    $姓名 = $_SESSION['姓名'];
 } else {
-    echo "<script>alert('帳號或密碼錯誤'); history.go(-1);</script>";
+    echo "<script>
+            alert('會話過期或資料遺失，請重新登入。');
+            window.location.href = 'login.php';
+          </script>";
+    exit();
 }
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -212,10 +212,39 @@ if ($結果 && $row = mysqli_fetch_assoc($結果)) {
     </div>
     <!-- 頁首 End -->
 
-    <h1>歡迎，<?php echo htmlspecialchars($user_name); ?></h1>
-    <p>角色：<?php echo htmlspecialchars($user_role); ?></p>
-    <p>所屬醫院：<?php echo htmlspecialchars($hospital_name); ?></p>
-    <p>科別：<?php echo htmlspecialchars($department_name); ?></p>
+    <?php
+    include "db.php"; // 連接資料庫
+// 查詢登入使用者的身份和姓名
+    $查詢資料 = "SELECT grade, username FROM user WHERE name = '$帳號'";
+    $結果 = mysqli_query($link, $查詢資料);
+
+    if ($結果 && $row = mysqli_fetch_assoc($結果)) {
+        // 設置角色
+        if ($row['grade'] == 1) {
+            $_SESSION['user_role'] = '醫生';
+        } elseif ($row['grade'] == 2) {
+            $_SESSION['user_role'] = '護士';
+        } else {
+            $_SESSION['user_role'] = '未知角色';
+        }
+
+        // 設置使用者姓名
+        $_SESSION['name'] = $row['username'];
+    } else {
+        echo "<script>alert('無法確定您的角色或名稱，請重新登入。'); window.location.href = 'login.php';</script>";
+        exit();
+    }
+
+    // 確保角色和姓名已設定
+    $user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '未知角色';
+    $name = isset($_SESSION['name']) ? $_SESSION['name'] : '未知姓名';
+
+
+    // 顯示當前角色
+    echo "~歡迎回來~ " . htmlspecialchars($name) . "<br/>";
+    echo "當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>"; // 顯示當前角色
+    echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"]) . "</p>";
+    ?>
 
 
     <!--患者資料-->
