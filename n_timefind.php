@@ -284,7 +284,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                     // 將看診時段的數字 ID 轉換為文字描述
                                     switch ($資料列['看診時段']) {
                                         case 1:
-                                            echo '上';
+                                            echo '早';
                                             break;
                                         case 2:
                                             echo '午';

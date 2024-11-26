@@ -267,12 +267,12 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             // 計算起始記錄
             $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
 
-            // 擷取醫生班表資料，並加入正確的文字描述
+            // 聯表查詢患者、科別、醫生和看診時間等資料，加入 `clinicnumber` 資料表以顯示診間號
             $查詢語句 = "
     SELECT 
         ds.doctorshift_id AS id, 
         ds.consultationD AS 日期,
-        ds.clinicnumber_id AS 診間號,
+        cn.clinicnumber AS 診間號,
         u.name AS 醫生姓名,
         d.department AS 科別,
         ds.created_at AS 紀錄創建時間,
@@ -280,6 +280,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     FROM doctorshift ds
     LEFT JOIN `user` u ON ds.user_id = u.user_id
     LEFT JOIN department d ON ds.medical_id = d.department_id
+    LEFT JOIN clinicnumber cn ON ds.clinicnumber_id = cn.clinicnumber_id
+    WHERE ds.medical_id = d.department_id
     ORDER BY ds.doctorshift_id ASC
     LIMIT ?, ?";
 
@@ -305,7 +307,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
             <!-- 顯示資料 -->
             <div class="form-container">
-                <!-- <p>總共 <?php echo $總記錄數; ?> 筆資料</p> -->
                 <table border="1">
                     <thead>
                         <tr>
@@ -330,7 +331,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                     // 顯示看診時段文字描述
                                     switch ($資料列['看診時段']) {
                                         case 1:
-                                            echo '上';
+                                            echo '早';
                                             break;
                                         case 2:
                                             echo '午';
@@ -350,6 +351,9 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     </tbody>
                 </table>
             </div>
+
+
+
 
             <!-- 分頁 -->
             <!-- <div class="pagination">
