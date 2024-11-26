@@ -145,7 +145,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     </div>
     <!-- 頁首 End -->
 
-    
+
     <!--醫生建議-->
     <div class="container-fluid"></div>
     <br />
@@ -191,40 +191,58 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             <?php
             include "db.php"; // 連接資料庫
             
-            // 擷取資料
-            $查詢語句 = "SELECT * FROM patients";
-            $查詢結果 = mysqli_query($link, $查詢語句);
-
-            if (!$查詢結果) {
-                die("查詢失敗: " . mysqli_error($link));
-            }
-
-            // 獲取總記錄數
-            $總記錄數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM patients");
-            if (!$總記錄數查詢) {
-                die("查詢失敗: " . mysqli_error($link));
-            }
-            $總記錄數結果 = mysqli_fetch_assoc($總記錄數查詢);
-            $總記錄數 = $總記錄數結果['總數'];
-
             // 設定每頁顯示的記錄數
             $每頁記錄數 = 15;
-            $總頁數 = ceil($總記錄數 / $每頁記錄數);
 
             // 獲取當前頁碼
             $當前頁碼 = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-            $當前頁碼 = max(1, min($總頁數, $當前頁碼)); // 確保當前頁碼在範圍內
+            $當前頁碼 = max(1, $當前頁碼); // 確保當前頁碼至少為 1
             
             // 計算起始記錄
             $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
 
-            // 查詢當前頁碼的資料
-            $查詢結果 = mysqli_query($link, "SELECT * FROM patients LIMIT $起始位置, $每頁記錄數");
+            // 聯表查詢患者、科別、醫生和看診時間等資料
+            $查詢語句 = "
+    SELECT 
+        p.patient_id AS id, 
+        ds.consultationD AS 看診日期,
+        ds.clinicnumber_id AS 診間號,
+        p.patientname AS 患者姓名,
+        p.birthday AS 出生日期,
+        g.gender AS 性別,
+        u.name AS 醫生姓名,
+        p.doctoradvice AS 醫生建議,
+        p.followup AS 是否回診,
+        p.created_at AS 紀錄創建時間,
+        ds.consultationT_id AS 看診時段
+    FROM patient p
+    LEFT JOIN gender g ON p.gender_id = g.gender_id
+    LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
+    LEFT JOIN `user` u ON ds.user_id = u.user_id
+    ORDER BY p.patient_id ASC
+    LIMIT ?, ?";
+
+            // 準備並執行查詢
+            $查詢準備 = $link->prepare($查詢語句);
+            $查詢準備->bind_param("ii", $起始位置, $每頁記錄數);
+            $查詢準備->execute();
+            $查詢結果 = $查詢準備->get_result();
+
             if (!$查詢結果) {
                 die("查詢失敗: " . mysqli_error($link));
             }
+
+            // 計算總記錄數
+            $總筆數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM patient");
+            if (!$總筆數查詢) {
+                die("查詢失敗: " . mysqli_error($link));
+            }
+            $總筆數結果 = mysqli_fetch_assoc($總筆數查詢);
+            $總記錄數 = $總筆數結果['總數'];
+            $總頁數 = ceil($總記錄數 / $每頁記錄數);
             ?>
 
+            <!-- 顯示資料 -->
             <div class="form-container">
                 <table border="1">
                     <thead>
@@ -235,9 +253,11 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <th>患者姓名</th>
                             <th>出生日期</th>
                             <th>性別</th>
+                            <th>看診科別</th>
                             <th>看診醫生</th>
                             <th>醫生建議</th>
                             <th>是否回診</th>
+                            <th>看診時段</th>
                             <th>紀錄創建時間</th>
                         </tr>
                     </thead>
@@ -245,65 +265,85 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <?php while ($資料列 = mysqli_fetch_assoc($查詢結果)): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($資料列['id']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['dateday']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['medicalnumber']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['patientname']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['birthdaydate']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['gender']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['doctorname']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['doctoradvice']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['followup']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['看診日期']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['診間號']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['患者姓名']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['出生日期']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['性別']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['醫生姓名']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['醫生建議']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['是否回診']); ?></td>
+                                <td>
+                                    <?php
+                                    // 將看診時段的數字 ID 轉換為文字描述
+                                    switch ($資料列['看診時段']) {
+                                        case 1:
+                                            echo '早';
+                                            break;
+                                        case 2:
+                                            echo '午';
+                                            break;
+                                        case 3:
+                                            echo '晚';
+                                            break;
+                                        default:
+                                            echo '未知時段';
+                                    }
+                                    ?>
+                                </td>
+                                <td><?php echo htmlspecialchars($資料列['紀錄創建時間']); ?></td>
                             </tr>
                         <?php endwhile; ?>
                     </tbody>
                 </table>
-
-                <div class="pagination">
-                    <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p> <!-- 顯示總資料筆數 -->
-
-                    <?php if ($當前頁碼 > 1): ?>
-                        <a href="?page=<?php echo $當前頁碼 - 1; ?>">上一頁</a>
-                    <?php endif; ?>
-
-                    <span>第 <?php echo $當前頁碼; ?> 頁 / 共 <?php echo $總頁數; ?> 頁</span>
-
-                    <?php if ($當前頁碼 < $總頁數): ?>
-                        <a href="?page=<?php echo $當前頁碼 + 1; ?>">下一頁</a>
-                    <?php endif; ?>
-                </div>
             </div>
 
-            <style>
-                /* 頁碼 上一頁 下一頁 */
-                .pagination {
-                    display: flex;
-                    flex-direction: column;
-                    /* 讓顯示的資料筆數與按鈕垂直排列 */
-                    justify-content: center;
-                    align-items: center;
-                    margin: 20px 0;
-                }
 
-                .pagination a {
-                    margin: 0 10px;
-                    text-decoration: none;
-                    color: #007BFF;
-                }
+            <div class="pagination">
+                <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p> <!-- 顯示總資料筆數 -->
 
-                .pagination a:hover {
-                    text-decoration: underline;
-                }
+                <?php if ($當前頁碼 > 1): ?>
+                    <a href="?page=<?php echo $當前頁碼 - 1; ?>">上一頁</a>
+                <?php endif; ?>
 
-                .pagination span {
-                    margin: 0 10px;
-                }
+                <span>第 <?php echo $當前頁碼; ?> 頁 / 共 <?php echo $總頁數; ?> 頁</span>
 
-                .pagination p {
-                    margin-bottom: 10px;
-                    /* 與分頁按鈕之間留些距離 */
-                }
-            </style>
+                <?php if ($當前頁碼 < $總頁數): ?>
+                    <a href="?page=<?php echo $當前頁碼 + 1; ?>">下一頁</a>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <style>
+            /* 頁碼 上一頁 下一頁 */
+            .pagination {
+                display: flex;
+                flex-direction: column;
+                /* 讓顯示的資料筆數與按鈕垂直排列 */
+                justify-content: center;
+                align-items: center;
+                margin: 20px 0;
+            }
+
+            .pagination a {
+                margin: 0 10px;
+                text-decoration: none;
+                color: #007BFF;
+            }
+
+            .pagination a:hover {
+                text-decoration: underline;
+            }
+
+            .pagination span {
+                margin: 0 10px;
+            }
+
+            .pagination p {
+                margin-bottom: 10px;
+                /* 與分頁按鈕之間留些距離 */
+            }
+        </style>
         </div>
         </div>
     </section>

@@ -119,50 +119,10 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     <div class="navbar-nav ms-auto py-0">
                         <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
                             class="nav-item nav-link">留言</a>
-                        <a href="n_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
+                        <a href="n_Basicsee.php" class="nav-item nav-link active">患者基本資訊</a>
                         <a href="n_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
                         <a href="n_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
-                        <a href="n_advicesee.php" class="nav-item nav-link active">醫生建議</a>
-                        <div class="nav-item">
-                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
-                                aria-expanded="false">個人檔案</a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="n_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="n_change.php" class="dropdown-item">忘記密碼</a></li>
-                                <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
-                                <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
-                                <!-- 隱藏表單，用於提交刪除帳號請求 -->
-                                <form id="deleteAccountForm" action="刪除.php" method="POST" style="display:none;">
-                                    <input type="hidden" name="帳號" value="<?php echo $帳號; ?>">
-                                    <input type="hidden" name="姓名" value="<?php echo $姓名; ?>">
-                                </form>
-                            </ul>
-                        </div><a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
-                            class="nav-item nav-link">留言</a>
-                        <a href="n_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
-                        <a href="n_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
-                        <a href="n_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
-                        <a href="n_advicesee.php" class="nav-item nav-link active">醫生建議</a>
-                        <div class="nav-item">
-                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
-                                aria-expanded="false">個人檔案</a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="n_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="n_change.php" class="dropdown-item">忘記密碼</a></li>
-                                <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
-                                <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
-                                <!-- 隱藏表單，用於提交刪除帳號請求 -->
-                                <form id="deleteAccountForm" action="刪除.php" method="POST" style="display:none;">
-                                    <input type="hidden" name="帳號" value="<?php echo $帳號; ?>">
-                                    <input type="hidden" name="姓名" value="<?php echo $姓名; ?>">
-                                </form>
-                            </ul>
-                        </div><a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
-                            class="nav-item nav-link">留言</a>
-                        <a href="n_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
-                        <a href="n_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
-                        <a href="n_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
-                        <a href="n_advicesee.php" class="nav-item nav-link active">醫生建議</a>
+                        <a href="n_advicesee.php" class="nav-item nav-link">醫生建議</a>
                         <div class="nav-item">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
@@ -178,6 +138,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 </form>
                             </ul>
                         </div>
+
                     </div>
                 </div>
             </nav>
@@ -185,7 +146,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     </div>
     <!-- 頁首 End -->
 
-    
+
     <!--患者資料-->
     <div class="container-fluid"></div>
     <br />
@@ -230,80 +191,111 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         <br />
 
         <?php
-        include "db.php"; // 連接資料庫
-        
-        // 擷取資料
-        $查詢語句 = "SELECT * FROM patients";
-        $查詢結果 = mysqli_query($link, $查詢語句);
+include "db.php"; // 連接資料庫
 
-        if (!$查詢結果) {
-            die("查詢失敗: " . mysqli_error($link));
-        }
+// 設定每頁顯示的記錄數
+$每頁記錄數 = 15;
 
-        // 獲取總記錄數
-        $總記錄數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM patients");
-        if (!$總記錄數查詢) {
-            die("查詢失敗: " . mysqli_error($link));
-        }
-        $總記錄數結果 = mysqli_fetch_assoc($總記錄數查詢);
-        $總記錄數 = $總記錄數結果['總數'];
+// 獲取當前頁碼
+$當前頁碼 = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+$當前頁碼 = max(1, $當前頁碼); // 確保當前頁碼至少為 1
 
-        // 設定每頁顯示的記錄數
-        $每頁記錄數 = 15;
-        $總頁數 = ceil($總記錄數 / $每頁記錄數);
+// 計算起始記錄
+$起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
 
-        // 獲取當前頁碼
-        $當前頁碼 = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-        $當前頁碼 = max(1, min($總頁數, $當前頁碼)); // 確保當前頁碼在範圍內
-        
-        // 計算起始記錄
-        $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
+// 聯表查詢患者、看診日期、看診時段等資料
+$查詢語句 = "
+    SELECT 
+        p.patient_id AS id,
+        p.medicalnumber AS 病歷號,
+        p.patientname AS 患者姓名,
+        g.gender AS 性別,
+        p.birthday AS 出生日期,
+        p.currentsymptoms AS 當前狀況,
+        p.allergies AS 過敏藥物,
+        p.medicalhistory AS 歷史重大疾病,
+        p.created_at AS 紀錄創建時間,
+        ds.consultationD AS 看診日期,
+        ds.consultationT_id AS 看診時段
+    FROM patient p
+    LEFT JOIN gender g ON p.gender_id = g.gender_id
+    LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
+    ORDER BY p.patient_id ASC
+    LIMIT ?, ?";
 
-        // 查詢當前頁碼的資料
-        $查詢結果 = mysqli_query($link, "SELECT * FROM patients LIMIT $起始位置, $每頁記錄數");
-        if (!$查詢結果) {
-            die("查詢失敗: " . mysqli_error($link));
-        }
-        ?>
+// 準備並執行查詢
+$查詢準備 = $link->prepare($查詢語句);
+$查詢準備->bind_param("ii", $起始位置, $每頁記錄數);
+$查詢準備->execute();
+$查詢結果 = $查詢準備->get_result();
 
-        <div class="form-container">
-            <table border="1">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>病歷號</th>
-                        <th>患者姓名</th>
-                        <th>性別</th>
-                        <th>出生日期</th>
-                        <th>當前狀況</th>
-                        <th>過敏藥物</th>
-                        <th>歷史重大疾病</th>
-                        <th>紀錄創建時間</th>
-                        <!-- <th>功能選項</th> -->
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while ($資料列 = mysqli_fetch_assoc($查詢結果)): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($資料列['id']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['medicalnumber']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['patientname']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['gender']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['birthdaydate']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['currentsymptoms']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['allergies']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['medicalhistory']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
-                            <!-- <td>
-                                <form method="POST" action="留言頁面d.php" style="display:inline;">
-                                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($patient_id); ?>">
-                                    <button type="submit">留言</button>
-                                </form>
-                            </td> -->
-                        </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
+if (!$查詢結果) {
+    die("查詢失敗: " . $link->error);
+}
+
+// 計算總記錄數
+$總筆數查詢 = $link->query("SELECT COUNT(*) as 總數 FROM patient");
+if (!$總筆數查詢) {
+    die("查詢失敗: " . $link->error);
+}
+$總筆數結果 = $總筆數查詢->fetch_assoc();
+$總記錄數 = $總筆數結果['總數'];
+$總頁數 = ceil($總記錄數 / $每頁記錄數);
+?>
+
+<div class="form-container">
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>病歷號</th>
+                <th>患者姓名</th>
+                <th>性別</th>
+                <th>出生日期</th>
+                <th>當前狀況</th>
+                <th>過敏藥物</th>
+                <th>歷史重大疾病</th>
+                <th>看診日期</th>
+                <th>看診時段</th>
+                <th>紀錄創建時間</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php while ($資料列 = $查詢結果->fetch_assoc()): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($資料列['id']); ?></td>
+                    <td><?php echo htmlspecialchars($資料列['病歷號']); ?></td>
+                    <td><?php echo htmlspecialchars($資料列['患者姓名']); ?></td>
+                    <td><?php echo htmlspecialchars($資料列['性別']); ?></td>
+                    <td><?php echo htmlspecialchars($資料列['出生日期']); ?></td>
+                    <td><?php echo htmlspecialchars($資料列['當前狀況']); ?></td>
+                    <td><?php echo htmlspecialchars($資料列['過敏藥物']); ?></td>
+                    <td><?php echo htmlspecialchars($資料列['歷史重大疾病']); ?></td>
+                    <td><?php echo htmlspecialchars($資料列['看診日期']); ?></td>
+                    <td>
+                        <?php
+                        // 將看診時段的數字 ID 轉換為文字描述
+                        switch ($資料列['看診時段']) {
+                            case 1:
+                                echo '早';
+                                break;
+                            case 2:
+                                echo '午';
+                                break;
+                            case 3:
+                                echo '晚';
+                                break;
+                            default:
+                                echo '未知時段';
+                        }
+                        ?>
+                    </td>
+                    <td><?php echo htmlspecialchars($資料列['紀錄創建時間']); ?></td>
+                </tr>
+            <?php endwhile; ?>
+        </tbody>
+    </table>
+</div>
 
             <div class="pagination">
                 <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p> <!-- 顯示總資料筆數 -->

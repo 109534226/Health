@@ -305,7 +305,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
             <!-- 顯示資料 -->
             <div class="form-container">
-                <p>總共 <?php echo $總記錄數; ?> 筆資料</p>
+                <!-- <p>總共 <?php echo $總記錄數; ?> 筆資料</p> -->
                 <table border="1">
                     <thead>
                         <tr>

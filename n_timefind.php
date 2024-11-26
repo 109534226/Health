@@ -181,6 +181,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </div>
             </div>
             <br />
+
+
             <?php
             include "db.php"; // 連接資料庫
             
@@ -190,14 +192,28 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             // 如果沒有輸入，顯示請輸入搜尋資料
             if (empty($搜尋詞)) {
                 echo "<script>
-        alert('請輸入搜尋資料');
-        window.location.href = 'n_timesee.php';
+    alert('請輸入搜尋資料');
+    window.location.href = 'n_timesee.php';
     </script>";
                 exit;
             }
 
             // 準備查詢
-            $查詢語句 = "SELECT * FROM doctorshift WHERE doctorname = ?";
+            $查詢語句 = "
+    SELECT 
+        ds.doctorshift_id AS id,
+        ds.consultationD AS 日期,
+        ds.clinicnumber_id AS 診間號,
+        u.name AS 醫生姓名,
+        d.department AS 科別,
+        ds.created_at AS 紀錄創建時間,
+        ds.consultationT_id AS 看診時段
+    FROM doctorshift ds
+    LEFT JOIN `user` u ON ds.user_id = u.user_id
+    LEFT JOIN department d ON ds.medical_id = d.department_id
+    WHERE u.name = ?
+    ORDER BY ds.doctorshift_id ASC";
+
             $查詢準備 = $link->prepare($查詢語句);
             $查詢準備->bind_param("s", $搜尋詞); // 綁定參數
             $查詢準備->execute();
@@ -222,7 +238,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
 
             // 查詢當前頁碼的資料
-            $查詢語句 = "SELECT * FROM doctorshift WHERE doctorname = ? LIMIT ?, ?";
+            $查詢語句 .= " LIMIT ?, ?";
             $查詢準備 = $link->prepare($查詢語句);
             $查詢準備->bind_param("sii", $搜尋詞, $起始位置, $每頁記錄數);
             $查詢準備->execute();
@@ -235,13 +251,14 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             // 如果沒有找到任何記錄，顯示「查無此人資料」
             if ($總記錄數 == 0) {
                 echo "<script>
-        alert('查無此人');
-        window.location.href = 'n_timesee.php';
+    alert('查無此人');
+    window.location.href = 'n_timesee.php';
     </script>";
                 exit;
             }
             ?>
 
+            <!-- 顯示資料 -->
             <div class="form-container">
                 <table border="1">
                     <thead>
@@ -259,17 +276,42 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <?php while ($資料列 = mysqli_fetch_assoc($查詢結果)): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($資料列['id']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['dateday']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['clinicnumber']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['doctorname']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['consultationperiod']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['department']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['日期']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['診間號']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['醫生姓名']); ?></td>
+                                <td>
+                                    <?php
+                                    // 將看診時段的數字 ID 轉換為文字描述
+                                    switch ($資料列['看診時段']) {
+                                        case 1:
+                                            echo '上';
+                                            break;
+                                        case 2:
+                                            echo '午';
+                                            break;
+                                        case 3:
+                                            echo '晚';
+                                            break;
+                                        default:
+                                            echo '未知時段';
+                                    }
+                                    ?>
+                                </td>
+                                <td><?php echo htmlspecialchars($資料列['科別']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['紀錄創建時間']); ?></td>
                             </tr>
                         <?php endwhile; ?>
                     </tbody>
                 </table>
             </div>
+
+            <!-- 分頁 -->
+            <!-- <div class="pagination">
+                <?php for ($i = 1; $i <= $總頁數; $i++): ?>
+                    <a href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                <?php endfor; ?>
+            </div> -->
+
 
             <div class="pagination">
                 <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p> <!-- 顯示總資料筆數 -->
