@@ -208,7 +208,7 @@ if (!$result) {
                 <h2><?= htmlspecialchars($row['title']) ?></h2>
                 <p><?= htmlspecialchars($row['subtitle']) ?></p>
                 <form method="POST">
-                    <input type="hidden" name="article_id" value="<?= $row['id'] ?>">
+                    <input type="hidden" name="article_id" value="<?= $row['article_id'] ?>">
                     <input type="button" onclick="location.href='刪除.php'" name="publish" value="刪除">
                 </form>
             </li>

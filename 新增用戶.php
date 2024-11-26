@@ -182,7 +182,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             密碼: <input type="text" name="password" required><br>
             電子郵件: <input type="email" name="email" required><br>
             角色:
-            <select name="grade">
+            <select name="grade_id">
                 <option value="3">管理員</option>
                 <option value="1">醫生</option>
                 <option value="2">護士</option>

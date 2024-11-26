@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ids'])) {
     $ids = implode(',', array_map('intval', $_POST['ids']));
 
     // 刪除選中的文章
-    $query = "DELETE FROM articles WHERE id IN ($ids)";
+    $query = "DELETE FROM articles WHERE article_id IN ($ids)";
     if ($link->query($query) === TRUE) {
         echo "成功刪除選中的文章。";
     } else {
