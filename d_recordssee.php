@@ -1,125 +1,32 @@
 <?php
-
-include("db.php");
-
 session_start();
 
+// 禁止瀏覽器緩存頁面
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+
 // 確保用戶已經登入，否則重定向到登入頁面
-if (!isset($_SESSION["account"]) || empty($_SESSION["account"])) {
-    echo "<script>alert('Invalid account, please log in again.'); window.location.href = 'login.php';</script>";
+if (!isset($_SESSION["登入狀態"]) || $_SESSION["登入狀態"] !== true) {
+    echo "<script>
+            alert('你還沒有登入，請先登入帳號。');
+            window.location.href = 'login.php';
+          </script>";
     exit();
 }
 
-// 檢查資料庫連接是否成功
-if (!$link) {
-    die("Database connection failed: " . mysqli_connect_error());
-}
-
-// 查詢登入使用者的身份和姓名
-$account = $_SESSION['account'];
-$sql = "SELECT user_id, grade_id, name FROM user WHERE account = ?";
-$stmt = mysqli_prepare($link, $sql);
-if (!$stmt) {
-    die("Query preparation failed: " . mysqli_error($link));
-}
-mysqli_stmt_bind_param($stmt, "s", $account);
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
-
-if ($result && $row = mysqli_fetch_assoc($result)) {
-    // 設置角色
-    if ($row['grade_id'] == 1) {
-        $_SESSION['user_role'] = 'Doctor';
-    } elseif ($row['grade_id'] == 2) {
-        $_SESSION['user_role'] = 'Nurse';
-    } else {
-        $_SESSION['user_role'] = 'Unknown role';
-    }
-
-    // 設置使用者姓名
-    $_SESSION['name'] = $row['name'];
-    $_SESSION['user_id'] = $row['user_id'];
+// 檢查 "帳號" 和 "姓名" 是否存在於 $_SESSION 中
+if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
+    // 獲取用戶帳號和姓名
+    $帳號 = $_SESSION['帳號'];
+    $姓名 = $_SESSION['姓名'];
 } else {
-    echo "<script>alert('Unable to determine your role or name, please log in again.'); window.location.href = 'login.php';</script>";
+    echo "<script>
+            alert('會話過期或資料遺失，請重新登入。');
+            window.location.href = 'login.php';
+          </script>";
     exit();
 }
-
-// 確保角色和姓名已設定
-$user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'Unknown role';
-$name = isset($_SESSION['name']) ? $_SESSION['name'] : 'Unknown name';
-$user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
-
-// 取得所有醫院資料
-$city = isset($_POST["city"]) ? $_POST["city"] : '';
-$area = isset($_POST["area"]) ? $_POST["area"] : '';
-$hospital = isset($_POST["hospital"]) ? $_POST["hospital"] : '';
-$department = isset($_POST["department"]) ? $_POST["department"] : '';
-
-// 建立 SQL 語句
-if (!empty($hospital)) {
-    $sql = "SELECT * FROM hospital h 
-            JOIN department d ON h.hospital_id = d.hospital_id
-            JOIN medical m ON d.department_id = m.department_id
-            WHERE h.city = ? AND h.area = ? AND h.hospital = ? AND d.department = ?";
-    $stmt = mysqli_prepare($link, $sql);
-    if (!$stmt) {
-        die("Query preparation failed: " . mysqli_error($link));
-    }
-    mysqli_stmt_bind_param($stmt, "ssss", $city, $area, $hospital, $department);
-} else {
-    $sql = "SELECT * FROM hospital h 
-            JOIN department d ON h.hospital_id = d.hospital_id
-            JOIN medical m ON d.department_id = m.department_id
-            WHERE h.city = ? AND h.area = ? AND d.department = ?";
-    $stmt = mysqli_prepare($link, $sql);
-    if (!$stmt) {
-        die("Query preparation failed: " . mysqli_error($link));
-    }
-    mysqli_stmt_bind_param($stmt, "sss", $city, $area, $department);
-}
-
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
-
-// 顯示搜尋結果
-if (mysqli_num_rows($result) > 0) {
-    while ($row = mysqli_fetch_assoc($result)) {
-        echo "<option value='" . htmlspecialchars($row['hospital_id'], ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($row['hospital'], ENT_QUOTES, 'UTF-8') . "</option>";
-    }
-} else {
-    echo "<option value=''>No data found</option>";
-}
-
-// 顯示當前角色
-echo "~Welcome back~ " . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . "<br/>";
-echo "Current role: " . htmlspecialchars($_SESSION['user_role'], ENT_QUOTES, 'UTF-8') . "</p>";
-echo "Account: " . htmlspecialchars($_SESSION["account"], ENT_QUOTES, 'UTF-8') . "</p>";
-
-// 查詢隸屬醫院和科別資料
-$hospital_query = "SELECT h.hospital, d.department FROM hospital h 
-                   JOIN department d ON h.hospital_id = d.hospital_id 
-                   JOIN medical m ON d.department_id = m.department_id
-                   WHERE m.user_id = ?";
-$hospital_stmt = mysqli_prepare($link, $hospital_query);
-if ($hospital_stmt) {
-    mysqli_stmt_bind_param($hospital_stmt, "i", $user_id);
-    mysqli_stmt_execute($hospital_stmt);
-    $hospital_result = mysqli_stmt_get_result($hospital_stmt);
-    if ($hospital_result && $hospital_row = mysqli_fetch_assoc($hospital_result)) {
-        echo "Hospital: " . htmlspecialchars($hospital_row['hospital'], ENT_QUOTES, 'UTF-8') . "</p>";
-        echo "Department: " . htmlspecialchars($hospital_row['department'], ENT_QUOTES, 'UTF-8') . "</p><br/>";
-    } else {
-        echo "Hospital: No data found</p>";
-        echo "Department: No data found</p><br/>";
-    }
-    mysqli_stmt_close($hospital_stmt);
-} else {
-    echo "Hospital: Query failed</p>";
-    echo "Department: Query failed</p><br/>";
-}
-
-mysqli_stmt_close($stmt);
-mysqli_close($link);
 
 ?>
 
@@ -286,17 +193,31 @@ mysqli_close($link);
 
             if ($是否刪除成功) {
                 // 刪除成功後顯示所有資料
-                $查詢語句 = "SELECT patient.*, consultationt.consultationT 
-                  FROM patient
-                  LEFT JOIN consultationt ON patient.consultationT_id = consultationt.consultationT_id";
-                $查詢結果 = mysqli_query($link, $查詢語句);
+                $查詢語句 = "SELECT patient.*, department.department AS 科別, user.name AS 醫生姓名, 
+                      doctorshift.consultationD AS 看診日期, 
+                      CASE doctorshift.consultationT_id 
+                          WHEN 1 THEN '早' 
+                          WHEN 2 THEN '午' 
+                          WHEN 3 THEN '晚' 
+                          ELSE '未知' 
+                      END AS 看診時段,
+                      CASE patient.gender_id 
+                          WHEN 1 THEN '男' 
+                          WHEN 2 THEN '女' 
+                          ELSE '未知' 
+                      END AS 性別
+                      FROM patient
+                      LEFT JOIN department ON patient.department_id = department.department_id
+                      LEFT JOIN user ON patient.doctorshift_id = user.user_id
+                      LEFT JOIN doctorshift ON patient.doctorshift_id = doctorshift.doctorshift_id";
+                $查詢結果 = $link->query($查詢語句);
             } else {
                 // 查詢總記錄數
-                $總記錄數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM patient");
+                $總記錄數查詢 = $link->query("SELECT COUNT(*) as 總數 FROM patient");
                 if (!$總記錄數查詢) {
-                    die("查詢失敗: " . mysqli_error($link));
+                    die("查詢失敗: " . $link->error);
                 }
-                $總記錄數結果 = mysqli_fetch_assoc($總記錄數查詢);
+                $總記錄數結果 = $總記錄數查詢->fetch_assoc();
                 $總記錄數 = $總記錄數結果['總數'];
 
                 // 設定每頁顯示的記錄數
@@ -311,60 +232,81 @@ mysqli_close($link);
                 $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
 
                 // 查詢當前頁碼的資料，並使用 LEFT JOIN 來抓取看診時間
-                $查詢語句 = "SELECT patient.*, consultationt.consultationT 
-                  FROM patient
-                  LEFT JOIN consultationt ON patient.consultationT_id = consultationt.consultationT_id
-                  LIMIT $起始位置, $每頁記錄數";
-                $查詢結果 = mysqli_query($link, $查詢語句);
+                $查詢語句 = "SELECT patient.*, department.department AS 科別, user.name AS 醫生姓名, 
+                      doctorshift.consultationD AS 看診日期, 
+                      CASE doctorshift.consultationT_id 
+                          WHEN 1 THEN '早' 
+                          WHEN 2 THEN '午' 
+                          WHEN 3 THEN '晚' 
+                          ELSE '未知' 
+                      END AS 看診時段,
+                      CASE patient.gender_id 
+                          WHEN 1 THEN '男' 
+                          WHEN 2 THEN '女' 
+                          ELSE '未知' 
+                      END AS 性別
+                      FROM patient
+                      LEFT JOIN department ON patient.department_id = department.department_id
+                      LEFT JOIN user ON patient.doctorshift_id = user.user_id
+                      LEFT JOIN doctorshift ON patient.doctorshift_id = doctorshift.doctorshift_id
+                      LIMIT $起始位置, $每頁記錄數";
+                $查詢結果 = $link->query($查詢語句);
             }
 
             if (!$查詢結果) {
-                die("查詢失敗: " . mysqli_error($link));
+                die("查詢失敗: " . $link->error);
             }
-            ?>
 
-            <table border="1">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>病例號</th>
-                        <th>患者姓名</th>
-                        <th>性別</th>
-                        <th>出生日期</th>
-                        <th>科別</th>
-                        <th>看診醫生</th>
-                        <th>看診時間</th>
-                        <th>紀錄創建時間</th>
-                        <th>功能選項</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while ($資料列 = mysqli_fetch_assoc($查詢結果)): ?>
+            // 確認查詢結果是否有資料
+            if ($查詢結果->num_rows > 0): ?>
+                <table border="1">
+                    <thead>
                         <tr>
-                            <td><?php echo htmlspecialchars($資料列['patient_id']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['medicalnumber']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['patientname']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['gender_id']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['birthday']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['hospital_id']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['doctorshift_id']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['consultationT'] ?: '未提供'); ?></td>
-                            <!-- 顯示看診時間，如果為空顯示'未提供' -->
-                            <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
-                            <td>
-                                <form action="看診紀錄修改000.php" method="post" style="display:inline;">
-                                    <input type="hidden" name="id" value="<?php echo $資料列['patient_id']; ?>">
-                                    <button type="submit">修改</button>
-                                </form>
-                                <form method="POST" action="看診紀錄刪除ns.php" style="display:inline;">
-                                    <input type="hidden"     name="id" value="<?php echo $資料列['patient_id']; ?>">
-                                    <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
-                                </form>
-                            </td>
+                            <th>ID</th>
+                            <th>看診日期</th>
+                            <th>病例號</th>
+                            <th>患者姓名</th>
+                            <th>性別</th>
+                            <th>出生日期</th>
+                            <th>科別</th>
+                            <th>看診醫生</th>
+                            <th>看診時段</th>
+                            <th>紀錄創建時間</th>
+                            <th>功能選項</th>
                         </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <?php while ($資料列 = $查詢結果->fetch_assoc()): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($資料列['patient_id']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['看診日期']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['medicalnumber']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['patientname']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['性別']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['birthday']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['科別']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['醫生姓名']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['看診時段']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
+                                <td>
+                                    <form action="看診紀錄修改000.php" method="post" style="display:inline;">
+                                        <input type="hidden" name="id" value="<?php echo $資料列['patient_id']; ?>">
+                                        <button type="submit">修改</button>
+                                    </form>
+                                    <form method="POST" action="看診紀錄刪除ns.php" style="display:inline;">
+                                        <input type="hidden" name="id" value="<?php echo $資料列['patient_id']; ?>">
+                                        <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <p>目前沒有可顯示的看診紀錄。</p>
+            <?php endif; ?>
+
+
 
 
             <div class="pagination">

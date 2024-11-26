@@ -27,6 +27,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
           </script>";
     exit();
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">

@@ -175,6 +175,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 ----<看診紀錄修改>----
             </h1>
             <br />
+
             <?php
             include "db.php";
 
@@ -182,29 +183,29 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 $id = intval($_POST['id']);
 
                 // 從資料庫取得資料
-                $sql = "SELECT * FROM patients WHERE id = $id";
+                $sql = "SELECT * FROM patient WHERE patient_id = $id";
                 $result = mysqli_query($link, $sql);
 
                 if ($result && mysqli_num_rows($result) > 0) {
                     $row = mysqli_fetch_assoc($result);
                 } else {
                     echo "<script>
-            alert('無法找到指定ID的資料。');
-            window.location.href = 'n_Basicsee.php';
+        alert('無法找到指定ID的資料。');
+        window.location.href = 'n_Basicsee.php';
         </script>";
                     exit;
                 }
             } else {
                 echo "<script>
-        alert('未提供有效的ID。');
-        window.location.href = 'n_Basicsee.php';
-        </script>";
+    alert('未提供有效的ID。');
+    window.location.href = 'n_Basicsee.php';
+    </script>";
                 exit;
             }
             ?>
             <div class="form-container">
                 <form id="updateForm" action="看診紀錄修改2.php" method="post">
-                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($row['id']); ?>">
+                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($row['patient_id']); ?>">
 
                     <label for="appointment_date">日期(星期)</label>
                     <input id="appointment_date" type="date" name="appointment_date"
@@ -221,21 +222,21 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     <label for="gender">性別</label>
                     <select id="gender" name="gender" required>
                         <option value="">選擇性別</option>
-                        <option value="男" <?php echo $row['gender'] == '男' ? 'selected' : ''; ?>>男</option>
-                        <option value="女" <?php echo $row['gender'] == '女' ? 'selected' : ''; ?>>女</option>
+                        <option value="男" <?php echo $row['gender_id'] == 1 ? 'selected' : ''; ?>>男</option>
+                        <option value="女" <?php echo $row['gender_id'] == 2 ? 'selected' : ''; ?>>女</option>
                     </select>
 
                     <label for="birth_date">出生年月日</label>
                     <input id="birth_date" type="date" name="birth_date"
-                        value="<?php echo htmlspecialchars($row['birthdaydate']); ?>" required />
+                        value="<?php echo htmlspecialchars($row['birthday']); ?>" required />
 
                     <label for="department">看診科別</label>
                     <input id="department" type="text" name="department"
-                        value="<?php echo htmlspecialchars($row['department']); ?>" required />
+                        value="<?php echo htmlspecialchars($row['department_id']); ?>" required />
 
                     <label for="doctor_name">看診醫生</label>
                     <input id="doctor_name" type="text" name="doctor_name"
-                        value="<?php echo htmlspecialchars($row['doctorname']); ?>" required />
+                        value="<?php echo htmlspecialchars($row['doctorshift_id']); ?>" required />
 
                     <label for="consultation_period">看診時段</label>
                     <select id="consultation_period" name="consultation_period" required>
@@ -243,7 +244,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <option value="早" <?php echo $row['consultationperiod'] == '早' ? 'selected' : ''; ?>>早</option>
                         <option value="午" <?php echo $row['consultationperiod'] == '午' ? 'selected' : ''; ?>>午</option>
                         <option value="晚" <?php echo $row['consultationperiod'] == '晚' ? 'selected' : ''; ?>>晚</option>
-                        <option value="夜間" <?php echo $row['consultationperiod'] == '夜間' ? 'selected' : ''; ?>>夜間</option>
                     </select>
 
                     <br>
@@ -275,6 +275,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     }
                 }
             </script>
+
 
 
             <style>
