@@ -5,48 +5,48 @@ include("db.php");
 session_start();
 
 // 確保用戶已經登入，否則重定向到登入頁面
-if (!isset($_SESSION["帳號"]) || empty($_SESSION["帳號"])) {
-    echo "<script>alert('無效的帳號，請重新登入。'); window.location.href = 'login.php';</script>";
+if (!isset($_SESSION["account"]) || empty($_SESSION["account"])) {
+    echo "<script>alert('Invalid account, please log in again.'); window.location.href = 'login.php';</script>";
     exit();
 }
 
 // 檢查資料庫連接是否成功
 if (!$link) {
-    die("資料庫連接失敗：" . mysqli_connect_error());
+    die("Database connection failed: " . mysqli_connect_error());
 }
 
 // 查詢登入使用者的身份和姓名
-$帳號 = $_SESSION['帳號'];
+$account = $_SESSION['account'];
 $sql = "SELECT user_id, grade_id, name FROM user WHERE account = ?";
 $stmt = mysqli_prepare($link, $sql);
 if (!$stmt) {
-    die("查詢準備失敗：" . mysqli_error($link));
+    die("Query preparation failed: " . mysqli_error($link));
 }
-mysqli_stmt_bind_param($stmt, "s", $帳號);
+mysqli_stmt_bind_param($stmt, "s", $account);
 mysqli_stmt_execute($stmt);
-$結果 = mysqli_stmt_get_result($stmt);
+$result = mysqli_stmt_get_result($stmt);
 
-if ($結果 && $row = mysqli_fetch_assoc($結果)) {
+if ($result && $row = mysqli_fetch_assoc($result)) {
     // 設置角色
-    if ($row['grade_id'] == 2) {
-        $_SESSION['user_role'] = '醫生';
-    } elseif ($row['grade_id'] == 3) {
-        $_SESSION['user_role'] = '護士';
+    if ($row['grade_id'] == 1) {
+        $_SESSION['user_role'] = 'Doctor';
+    } elseif ($row['grade_id'] == 2) {
+        $_SESSION['user_role'] = 'Nurse';
     } else {
-        $_SESSION['user_role'] = '未知角色';
+        $_SESSION['user_role'] = 'Unknown role';
     }
 
     // 設置使用者姓名
     $_SESSION['name'] = $row['name'];
     $_SESSION['user_id'] = $row['user_id'];
 } else {
-    echo "<script>alert('無法確定您的角色或名稱，請重新登入。'); window.location.href = 'login.php';</script>";
+    echo "<script>alert('Unable to determine your role or name, please log in again.'); window.location.href = 'login.php';</script>";
     exit();
 }
 
 // 確保角色和姓名已設定
-$user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '未知角色';
-$name = isset($_SESSION['name']) ? $_SESSION['name'] : '未知姓名';
+$user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'Unknown role';
+$name = isset($_SESSION['name']) ? $_SESSION['name'] : 'Unknown name';
 $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
 
 // 取得所有醫院資料
@@ -58,24 +58,22 @@ $department = isset($_POST["department"]) ? $_POST["department"] : '';
 // 建立 SQL 語句
 if (!empty($hospital)) {
     $sql = "SELECT * FROM hospital h 
-            JOIN medical m ON h.hospital_id = m.hospitalH_id
-            JOIN user uA ON m.userA_id = uA.user_id
-            JOIN user uN ON m.userN_id = uN.user_id
-            WHERE h.city = ? AND h.area = ? AND h.hospital = ? AND h.department = ?";
+            JOIN department d ON h.hospital_id = d.hospital_id
+            JOIN medical m ON d.department_id = m.department_id
+            WHERE h.city = ? AND h.area = ? AND h.hospital = ? AND d.department = ?";
     $stmt = mysqli_prepare($link, $sql);
     if (!$stmt) {
-        die("查詢準備失敗：" . mysqli_error($link));
+        die("Query preparation failed: " . mysqli_error($link));
     }
     mysqli_stmt_bind_param($stmt, "ssss", $city, $area, $hospital, $department);
 } else {
     $sql = "SELECT * FROM hospital h 
-            JOIN medical m ON h.hospital_id = m.hospitalH_id
-            JOIN user uA ON m.userA_id = uA.user_id
-            JOIN user uN ON m.userN_id = uN.user_id
-            WHERE h.city = ? AND h.area = ? AND h.department = ?";
+            JOIN department d ON h.hospital_id = d.hospital_id
+            JOIN medical m ON d.department_id = m.department_id
+            WHERE h.city = ? AND h.area = ? AND d.department = ?";
     $stmt = mysqli_prepare($link, $sql);
     if (!$stmt) {
-        die("查詢準備失敗：" . mysqli_error($link));
+        die("Query preparation failed: " . mysqli_error($link));
     }
     mysqli_stmt_bind_param($stmt, "sss", $city, $area, $department);
 }
@@ -89,43 +87,42 @@ if (mysqli_num_rows($result) > 0) {
         echo "<option value='" . htmlspecialchars($row['hospital_id'], ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($row['hospital'], ENT_QUOTES, 'UTF-8') . "</option>";
     }
 } else {
-    echo "<option value=''>查無資料</option>";
+    echo "<option value=''>No data found</option>";
 }
 
 // 顯示當前角色
-echo "~歡迎回來~ " . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . "<br/>";
-echo "當前角色: " . htmlspecialchars($_SESSION['user_role'], ENT_QUOTES, 'UTF-8') . "</p>";
-echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"], ENT_QUOTES, 'UTF-8') . "</p>";
-echo "隸屬醫院: " . htmlspecialchars($, ENT_QUOTES, 'UTF-8') . "</p>";
-echo "隸屬科別: " . htmlspecialchars($, ENT_QUOTES, 'UTF-8') . "</p>";
+echo "~Welcome back~ " . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . "<br/>";
+echo "Current role: " . htmlspecialchars($_SESSION['user_role'], ENT_QUOTES, 'UTF-8') . "</p>";
+echo "Account: " . htmlspecialchars($_SESSION["account"], ENT_QUOTES, 'UTF-8') . "</p>";
 
 // 查詢隸屬醫院和科別資料
-$hospital_query = "SELECT h.hospital, h.department FROM hospital h 
-                   JOIN medical m ON h.hospital_id = m.hospitalH_id 
-                   WHERE m.userA_id = ? OR m.userN_id = ?";
+$hospital_query = "SELECT h.hospital, d.department FROM hospital h 
+                   JOIN department d ON h.hospital_id = d.hospital_id 
+                   JOIN medical m ON d.department_id = m.department_id
+                   WHERE m.user_id = ?";
 $hospital_stmt = mysqli_prepare($link, $hospital_query);
 if ($hospital_stmt) {
-    mysqli_stmt_bind_param($hospital_stmt, "ii", $user_id, $user_id);
+    mysqli_stmt_bind_param($hospital_stmt, "i", $user_id);
     mysqli_stmt_execute($hospital_stmt);
     $hospital_result = mysqli_stmt_get_result($hospital_stmt);
     if ($hospital_result && $hospital_row = mysqli_fetch_assoc($hospital_result)) {
-        $departments = explode('、', $hospital_row['department']);
-        echo "隸屬醫院: " . htmlspecialchars($hospital_row['hospital'], ENT_QUOTES, 'UTF-8') . "</p>";
-        echo "科別: " . htmlspecialchars($departments[0], ENT_QUOTES, 'UTF-8') . "</p><br/>";
+        echo "Hospital: " . htmlspecialchars($hospital_row['hospital'], ENT_QUOTES, 'UTF-8') . "</p>";
+        echo "Department: " . htmlspecialchars($hospital_row['department'], ENT_QUOTES, 'UTF-8') . "</p><br/>";
     } else {
-        echo "隸屬醫院: 查無資料</p>";
-        echo "科別: 查無資料</p><br/>";
+        echo "Hospital: No data found</p>";
+        echo "Department: No data found</p><br/>";
     }
     mysqli_stmt_close($hospital_stmt);
 } else {
-    echo "隸屬醫院: 查詢失敗</p>";
-    echo "科別: 查詢失敗</p><br/>";
+    echo "Hospital: Query failed</p>";
+    echo "Department: Query failed</p><br/>";
 }
 
 mysqli_stmt_close($stmt);
 mysqli_close($link);
 
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

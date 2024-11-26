@@ -1,17 +1,20 @@
 <?php
-session_start(); // 啟動 Session，讓伺服器能夠追蹤使用者的登入狀態
-include "db.php"; // 引入資料庫連線檔案
+session_start(); // 启动 Session，追踪用户的登录状态
+include "db.php"; // 引入数据库连接文件
 
-// 確認使用者是否已登入
+// 确认用户是否已登录
 if (!isset($_SESSION["登入狀態"]) || $_SESSION["登入狀態"] !== true) {
-    header("Location: login.php"); // 跳轉到登入頁面
+    header("Location: login.php"); // 跳转到登录页面
     exit();
 }
 
-// 從 Session 中獲取使用者的帳號
+// 从 Session 中获取用户的账号
 $帳號 = $_SESSION["帳號"];
 
-// 使用 SQL 查詢語句，從資料庫中查詢該帳號對應的詳細資料
+// 调试输出账号，确保获取到正确的账号
+// var_dump($帳號);
+
+// 使用 SQL 查询语句，从数据库中查询该账号对应的详细资料
 $SQL檢查 = "
     SELECT 
         user.name AS username,
@@ -24,7 +27,7 @@ $SQL檢查 = "
         department.department,
         profession.image
     FROM user
-    JOIN profession ON user.user_id = profession.user_id
+    LEFT JOIN profession ON user.user_id = profession.user_id
     LEFT JOIN hospital ON profession.hospital_id = hospital.hospital_id
     LEFT JOIN department ON profession.department_id = department.department_id
     LEFT JOIN gender ON profession.gender_id = gender.gender_id
@@ -33,18 +36,20 @@ $SQL檢查 = "
 
 $result = mysqli_query($link, $SQL檢查);
 
-// 如果查詢失敗或沒有找到資料，提示錯誤並重新登入
-if (!$result || mysqli_num_rows($result) == 0) {
-    echo "<script>
-            alert('無法找到用戶資料，請重新登入。');
-            window.location.href = 'login.php';
-          </script>";
-    exit();
+// 检查数据库连接和查询结果
+if (!$result) {
+    die('Query Failed: ' . mysqli_error($link)); // 输出查询失败的原因
 }
 
 $userData = mysqli_fetch_assoc($result);
 
-// 將查詢到的資料填入變數
+// 如果查无结果，提示用户资料不完整
+if (!$userData) {
+    echo "<script>alert('未找到匹配的資料，請確認您是否已經填寫個人資料。'); window.location.href = 'n_profile.php';</script>";
+    exit();
+}
+
+// 将查询到的数据填入变量
 $姓名 = $userData['username'] ?? '';
 $性別 = $userData['gender'] ?? '';
 $出生年月日 = $userData['birthday'] ?? '';
@@ -54,12 +59,12 @@ $電子郵件 = $userData['email'] ?? '';
 $隸屬醫院 = $userData['hospital'] ?? '';
 $隸屬科別 = $userData['department'] ?? '';
 
-// 設置頭像的顯示路徑
+// 设置头像的显示路径
 $profilePicture = !empty($userData['image'])
     ? 'data:image/jpeg;base64,' . base64_encode($userData['image'])
     : 'img/300.jpg';
 
-// 設置 HTTP 標頭，防止頁面被瀏覽器緩存
+// 设置 HTTP 头部，防止页面被浏览器缓存
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
 header("Pragma: no-cache");
@@ -349,8 +354,7 @@ header("Pragma: no-cache");
 
                 <div class="form-row">
                     <label for="gender">性別 :</label>
-                    <input id="gender" type="text" name="gender" value="<?php echo htmlspecialchars($性別); ?>"
-                        disabled>
+                    <input id="gender" type="text" name="gender" value="<?php echo htmlspecialchars($性別); ?>" disabled>
                 </div>
 
                 <div class="form-row">
@@ -386,10 +390,9 @@ header("Pragma: no-cache");
 
                 <div class="form-row">
                     <label for="department">隸屬科別 :</label>
-                    <input id="department" type="text" name="department" value="<?php echo htmlspecialchars($科別); ?>"
+                    <input id="department" type="text" name="department" value="<?php echo htmlspecialchars($隸屬科別); ?>"
                         disabled>
                 </div>
-
                 <!-- 操作按鈕 -->
                 <div class="form-buttons">
                     <button type="button" id="editButton">修改資料</button>
@@ -400,185 +403,200 @@ header("Pragma: no-cache");
     </div>
 
     <script>
-        // 開啟欄位編輯功能
-        document.getElementById('editButton').addEventListener('click', function () {
-            document.querySelectorAll('input').forEach(function (input) {
-                input.disabled = false;
+        document.addEventListener('DOMContentLoaded', function () {
+            // 開啟欄位編輯功能
+            document.getElementById('editButton').addEventListener('click', function () {
+                document.querySelectorAll('input[type="text"], input[type="date"], input[type="email"], input[type="tel"]').forEach(function (input) {
+                    input.disabled = false;  // 啟用欄位編輯功能
+                });
+                document.getElementById('editButton').style.display = 'none';
+                document.getElementById('confirmButton').style.display = 'inline';
             });
-            document.getElementById('editButton').style.display = 'none'; // 隱藏“修改資料”按鈕
-            document.getElementById('confirmButton').style.display = 'inline'; // 顯示“確認資料”按鈕
-        });
 
-        // 上傳並預覽圖片
-        function uploadImage(event) {
-            const file = event.target.files[0];
-            if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                document.getElementById('profilePicturePreview').style.backgroundImage = `url(${e.target.result})`;
-            };
-            reader.readAsDataURL(file);
+            // 上傳並預覽圖片
+            function uploadImage(event) {
+                const file = event.target.files[0];
+                if (!file) return;
 
-            // 使用 AJAX 上传头像
-            const formData = new FormData();
-            formData.append('profilePicture', file);
-
-            fetch('頭像上傳.php', {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // 上传成功后更新页面上的头像
-                        document.getElementById('profilePicturePreview').src = data.imageUrl;
-                    } else {
-                        alert('頭像上传失败，請重試');
-                    }
-                })
-                .catch(error => console.error('上傳錯誤:', error));
-        }
-
-        // 確認資料並顯示 alert
-        function confirmData() {
-            const username = document.getElementById('username').value;
-            const userdate = document.getElementById('userdate').value;
-            const useridcard = document.getElementById('useridcard').value;
-            const userphone = document.getElementById('userphone').value;
-            const useremail = document.getElementById('useremail').value;
-
-            // 驗證欄位格式
-
-            // 姓名驗證: 空白檢查與格式檢查（只允許中文、英文和數字）
-            if (!username) {
-                alert('姓名欄位不能為空');
-                return;
-            } else if (!/^[\u4E00-\u9FA5a-zA-Z0-9]+$/.test(username)) {
-                alert('姓名格式錯誤，只能包含中文、英文和數字，不能包含特殊符號');
-                return;
-            }
-
-            // 出生年月日驗證: 空白檢查
-            if (!userdate) {
-                alert('出生年月日欄位不能為空');
-                return;
-            }
-
-            // 台灣身分證字號驗證函數
-            function validateTaiwanID(identityNumber) {
-                // 檢查身分證字號是否符合正則格式
-                const identityFormat = /^[A-Z][1-2]\d{8}$/;
-                if (!identityFormat.test(identityNumber)) {
-                    alert("身分證字號格式錯誤，請確認格式是否正確！");
-                    return false;
-                }
-
-                // 首字母對應的數字範圍
-                const letterToNumberMap = {
-                    "A": 10, "B": 11, "C": 12, "D": 13, "E": 14, "F": 15, "G": 16,
-                    "H": 17, "J": 18, "K": 19, "L": 20, "M": 21, "N": 22, "P": 23,
-                    "Q": 24, "R": 25, "S": 26, "T": 27, "U": 28, "V": 29, "X": 30,
-                    "W": 31, "Y": 32, "Z": 33, "I": 34, "O": 35
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('profilePicturePreview').style.backgroundImage = `url(${e.target.result})`;
                 };
+                reader.readAsDataURL(file);
 
-                // 取得字母部分
-                const firstLetter = identityNumber[0];
+                // 使用 AJAX 上传头像
+                const formData = new FormData();
+                formData.append('profilePicture', file);
 
-                // 檢查字母是否合法
-                if (!letterToNumberMap.hasOwnProperty(firstLetter)) {
-                    alert("身分證字號的首字母無效！");
-                    return false;
+                fetch('頭像上傳.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // 上传成功后更新页面上的头像
+                            document.getElementById('profilePicturePreview').src = data.imageUrl;
+                        } else {
+                            alert('頭像上传失败，請重試');
+                        }
+                    })
+                    .catch(error => console.error('上傳錯誤:', error));
+            }
+
+            // 確認資料並顯示 alert
+            function confirmData() {
+                const username = document.getElementById('username').value;
+                const userdate = document.getElementById('userdate').value;
+                const useridcard = document.getElementById('useridcard').value;
+                const userphone = document.getElementById('userphone').value;
+                const useremail = document.getElementById('useremail').value;
+
+                // 驗證欄位格式
+
+                // 姓名驗證: 空白檢查與格式檢查（只允許中文、英文和數字）
+                if (!username) {
+                    alert('姓名欄位不能為空');
+                    return;
+                } else if (!/^[\u4E00-\u9FA5a-zA-Z0-9]+$/.test(username)) {
+                    alert('姓名格式錯誤，只能包含中文、英文和數字，不能包含特殊符號');
+                    return;
                 }
 
-                // 轉換字母為數字
-                const firstLetterNumber = letterToNumberMap[firstLetter];
+                // 出生年月日驗證: 空白檢查
+                if (!userdate) {
+                    alert('出生年月日欄位不能為空');
+                    return;
+                }
 
-                // 拆解身分證字號，取得每個數字
-                const digits = identityNumber.slice(1).split("").map(Number);
+                // 台灣身分證字號驗證函數
+                function validateTaiwanID(identityNumber) {
+                    // 檢查身分證字號是否符合正則格式
+                    const identityFormat = /^[A-Z][1-2]\d{8}$/;
+                    if (!identityFormat.test(identityNumber)) {
+                        alert("身分證字號格式錯誤，請確認格式是否正確！");
+                        return false;
+                    }
 
-                // 以身分證字號的第一個字母轉換成兩位數，並與後續數字結合
-                const firstDigit = Math.floor(firstLetterNumber / 10); // 取得字母數字的十位數
-                const secondDigit = firstLetterNumber % 10;           // 取得字母數字的個位數
+                    // 首字母對應的數字範圍
+                    const letterToNumberMap = {
+                        "A": 10, "B": 11, "C": 12, "D": 13, "E": 14, "F": 15, "G": 16,
+                        "H": 17, "J": 18, "K": 19, "L": 20, "M": 21, "N": 22, "P": 23,
+                        "Q": 24, "R": 25, "S": 26, "T": 27, "U": 28, "V": 29, "X": 30,
+                        "W": 31, "Y": 32, "Z": 33, "I": 34, "O": 35
+                    };
 
-                // 將所有數字組成一個陣列
-                const fullDigits = [firstDigit, secondDigit, ...digits];
+                    // 取得字母部分
+                    const firstLetter = identityNumber[0];
 
-                // 計算加權總和：每一位數字與對應的權重值相乘，然後求和
-                const weights = [1, 9, 8, 7, 6, 5, 4, 3, 2, 1, 1];  // 權重值
-                let weightedSum = 0;
-                for (let i = 0; i < fullDigits.length; i++) {
-                    // console.log(fullDigits[i]);
+                    // 檢查字母是否合法
+                    if (!letterToNumberMap.hasOwnProperty(firstLetter)) {
+                        alert("身分證字號的首字母無效！");
+                        return false;
+                    }
+
+                    // 轉換字母為數字
+                    const firstLetterNumber = letterToNumberMap[firstLetter];
+
+                    // 拆解身分證字號，取得每個數字
+                    const digits = identityNumber.slice(1).split("").map(Number);
+
+                    // 以身分證字號的第一個字母轉換成兩位數，並與後續數字結合
+                    const firstDigit = Math.floor(firstLetterNumber / 10); // 取得字母數字的十位數
+                    const secondDigit = firstLetterNumber % 10;           // 取得字母數字的個位數
+
+                    // 將所有數字組成一個陣列
+                    const fullDigits = [firstDigit, secondDigit, ...digits];
+
+                    // 計算加權總和：每一位數字與對應的權重值相乘，然後求和
+                    const weights = [1, 9, 8, 7, 6, 5, 4, 3, 2, 1, 1];  // 權重值
+                    let weightedSum = 0;
+                    for (let i = 0; i < fullDigits.length; i++) {
+                        // console.log(fullDigits[i]);
+
+                        // // 顯示在提示框中
+                        // alert(fullDigits[i]);
+                        weightedSum += fullDigits[i] * weights[i];
+                    }
+                    // console.log(weightedSum);
 
                     // // 顯示在提示框中
-                    // alert(fullDigits[i]);
-                    weightedSum += fullDigits[i] * weights[i];
-                }
-                // console.log(weightedSum);
+                    // alert(weightedSum);
 
-                // // 顯示在提示框中
-                // alert(weightedSum);
+                    // 檢查加權總和是否能被 10 整除
+                    if (weightedSum % 10 !== 0) {
+                        alert("身分證字號無效，請確認輸入的字號！");
+                        return false;
+                    }
 
-                // 檢查加權總和是否能被 10 整除
-                if (weightedSum % 10 !== 0) {
-                    alert("身分證字號無效，請確認輸入的字號！");
-                    return false;
+                    // 如果檢查通過，返回 true
+                    return true;
                 }
 
-                // 如果檢查通過，返回 true
-                return true;
-            }
-
-            // 用法範例
-            const identityNumber = document.getElementById("useridcard").value;  // 假設身分證欄位的ID是 useridcard
-            if (!validateTaiwanID(identityNumber)) {
-                return; // 若驗證失敗，則不繼續提交表單
-            }
+                // 用法範例
+                const identityNumber = document.getElementById("useridcard").value;  // 假設身分證欄位的ID是 useridcard
+                if (!validateTaiwanID(identityNumber)) {
+                    return; // 若驗證失敗，則不繼續提交表單
+                }
 
 
-            // 聯絡電話驗證: 台灣手機號碼格式（09開頭，後面8位數字，且不允許後8位數出現6位或以上的重複數字）
-            const phonePattern = /^09\d{8}$/;
-            const repeatedPattern = /(\d)\1{5,}/; // 檢查是否有6個或更多相同的數字連續出現
+                // 聯絡電話驗證: 台灣手機號碼格式（09開頭，後面8位數字，且不允許後8位數出現6位或以上的重複數字）
+                const phonePattern = /^09\d{8}$/;
+                const repeatedPattern = /(\d)\1{5,}/; // 檢查是否有6個或更多相同的數字連續出現
 
-            if (!userphone) {
-                alert('聯絡電話欄位不能為空');
-                return;
-            } else if (!phonePattern.test(userphone)) {
-                alert('聯絡電話格式錯誤，台灣手機號碼需為09開頭並有8位數字');
-                return;
-            } else if (repeatedPattern.test(userphone.slice(2))) {
-                alert('聯絡電話格式錯誤，後面8位數字不可出現6位或以上重複的數字');
-                return;
-            }
+                if (!userphone) {
+                    alert('聯絡電話欄位不能為空');
+                    return;
+                } else if (!phonePattern.test(userphone)) {
+                    alert('聯絡電話格式錯誤，台灣手機號碼需為09開頭並有8位數字');
+                    return;
+                } else if (repeatedPattern.test(userphone.slice(2))) {
+                    alert('聯絡電話格式錯誤，後面8位數字不可出現6位或以上重複的數字');
+                    return;
+                }
 
 
-            // 電子郵件驗證: 空白檢查與格式檢查
-            if (!useremail) {
-                alert('電子郵件欄位不能為空');
-                return;
-            } else if (!/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/.test(useremail)) {
-                alert('電子郵件格式錯誤，請輸入有效的電子郵件');
-                return;
-            }
+                // 電子郵件驗證: 空白檢查與格式檢查
+                if (!useremail) {
+                    alert('電子郵件欄位不能為空');
+                    return;
+                } else if (!/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/.test(useremail)) {
+                    alert('電子郵件格式錯誤，請輸入有效的電子郵件');
+                    return;
+                }
 
-            // 組合要顯示在 alert 的訊息
-            const confirmMessage =
-                `請確認您的資料:\n` +
-                `姓名: ${username}\n` +
-                `性別: ${gender}\n` +
-                `出生年月日: ${userdate}\n` +
-                `身分證字號: ${useridcard}\n` +
-                `聯絡電話: ${userphone}\n` +
-                `電子郵件: ${useremail}\n` +
-                `隸屬醫院: ${hospital}\n` +
-                `隸屬科別: ${department}\n` +
-                `確定要提交資料嗎？`;
+                // 確認資料函數
+                document.getElementById('confirmButton').addEventListener('click', function () {
+                    // 抓取每個輸入框的值
+                    const username = document.getElementById('username').value;
+                    const gender = document.getElementById('gender').value;
+                    const userdate = document.getElementById('userdate').value;
+                    const useridcard = document.getElementById('useridcard').value;
+                    const userphone = document.getElementById('userphone').value;
+                    const useremail = document.getElementById('useremail').value;
+                    const hospital = document.getElementById('hospital').value;
+                    const department = document.getElementById('department').value;
 
-            // 顯示確認 alert
-            if (confirm(confirmMessage)) {
-                document.querySelector('form').submit(); // 確認後提交表單
-            }
-        }
+                    // 組合要顯示在 alert 的訊息
+                    const confirmMessage =
+                        `請確認您的資料:\n` +
+                        `姓名: ${username}\n` +
+                        `性別: ${gender}\n` +
+                        `出生年月日: ${userdate}\n` +
+                        `身分證字號: ${useridcard}\n` +
+                        `聯絡電話: ${userphone}\n` +
+                        `電子郵件: ${useremail}\n` +
+                        `隸屬醫院: ${hospital}\n` +
+                        `隸屬科別: ${department}\n` +
+                        `確定要提交資料嗎？`;
+
+                    // 顯示確認 alert
+                    if (confirm(confirmMessage)) {
+                        document.querySelector('form').submit(); // 確認後提交表單
+                    }
+                });
+            });
 
         // 刪除頭像並顯示預設圖片
         function deleteAvatar() {
