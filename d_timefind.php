@@ -145,7 +145,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     </div>
     <!-- 頁首 End -->
 
-   
+
     <div class="container-fluid"></div>
     <section class="resume-section p-0" id="about"> <!-- 將內邊距設為 0 -->
         <div class="my-auto">
@@ -192,8 +192,27 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             $最小搜尋長度 = 1;
 
             if (!empty($搜尋詞) && strlen($搜尋詞) >= $最小搜尋長度) {
-                // 進行精確比對查詢
-                $查詢語句 = "SELECT * FROM doctorshift WHERE doctorname = ?";
+                // 進行精確比對查詢，並通過聯表查詢來顯示正確的文字描述
+                $查詢語句 = "
+        SELECT 
+            ds.doctorshift_id AS id,
+            ds.consultationD AS 日期,
+            ds.clinicnumber_id AS 診間號,
+            u.name AS 醫生姓名,
+            CASE 
+                WHEN ds.consultationT_id = 1 THEN '上'
+                WHEN ds.consultationT_id = 2 THEN '午'
+                WHEN ds.consultationT_id = 3 THEN '晚'
+                ELSE '未知時段'
+            END AS 看診時間,
+            d.department AS 科別,
+            ds.created_at AS 紀錄創建時間
+        FROM doctorshift ds
+        LEFT JOIN `user` u ON ds.user_id = u.user_id
+        LEFT JOIN department d ON ds.medical_id = d.department_id
+        WHERE u.name = ?
+        ORDER BY ds.doctorshift_id ASC";
+
                 $查詢準備 = mysqli_prepare($link, $查詢語句);
                 mysqli_stmt_bind_param($查詢準備, "s", $搜尋詞);
                 mysqli_stmt_execute($查詢準備);
@@ -215,7 +234,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     $起始位置 = ($當前頁碼 - 1) * $每頁筆數;
 
                     // 查詢當前頁碼的資料
-                    $查詢語句 = "SELECT * FROM doctorshift WHERE doctorname = ? LIMIT ?, ?";
+                    $查詢語句 .= " LIMIT ?, ?";
                     $查詢準備 = mysqli_prepare($link, $查詢語句);
                     mysqli_stmt_bind_param($查詢準備, "sii", $搜尋詞, $起始位置, $每頁筆數);
                     mysqli_stmt_execute($查詢準備);
@@ -223,17 +242,17 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 } else {
                     // 如果查無資料，顯示提示訊息並返回
                     echo "<script>
-            alert('查無此人');
-            window.location.href = 'd_timesee.php';
-        </script>";
+                alert('查無此人');
+                window.location.href = 'd_timesee.php';
+              </script>";
                     exit;
                 }
             } else {
                 // 如果搜尋條件為空或長度不足，顯示提示訊息
                 echo "<script>
-        alert('請輸入搜尋資料');
-        window.location.href = 'd_timesee.php';
-    </script>";
+            alert('請輸入搜尋資料');
+            window.location.href = 'd_timesee.php';
+          </script>";
                 exit;
             }
             ?>
@@ -258,12 +277,12 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <?php while ($資料列 = mysqli_fetch_assoc($查詢結果)): ?>
                                 <tr>
                                     <td><?php echo htmlspecialchars($資料列['id']); ?></td>
-                                    <td><?php echo htmlspecialchars($資料列['dateday']); ?></td>
-                                    <td><?php echo htmlspecialchars($資料列['clinicnumber']); ?></td>
-                                    <td><?php echo htmlspecialchars($資料列['doctorname']); ?></td>
-                                    <td><?php echo htmlspecialchars($資料列['consultationperiod']); ?></td>
-                                    <td><?php echo htmlspecialchars($資料列['department']); ?></td>
-                                    <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['日期']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['診間號']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['醫生姓名']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['看診時間']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['科別']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['紀錄創建時間']); ?></td>
                                     <td>
                                         <form action="醫生班表修改00.php" method="post" style="display:inline;">
                                             <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
@@ -281,6 +300,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     </table>
                 <?php endif; ?>
             </div>
+
 
             <!-- 顯示分頁 -->
             <div class="pagination">

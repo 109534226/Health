@@ -284,19 +284,11 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             </div>
 
             <!-- 分頁 -->
-            <div class="pagination">
+            <!-- <div class="pagination">
                 <?php for ($i = 1; $i <= $總頁數; $i++): ?>
                     <a href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
                 <?php endfor; ?>
-            </div>
-
-
-            <!-- 分頁 -->
-            <div class="pagination">
-                <?php for ($i = 1; $i <= $總頁數; $i++): ?>
-                    <a href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
-                <?php endfor; ?>
-            </div>
+            </div> -->
 
             <div class="pagination">
                 <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p> <!-- 顯示總資料筆數 -->
