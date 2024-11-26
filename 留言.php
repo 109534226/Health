@@ -159,126 +159,43 @@ if (!$result) {
                     </div>
                 </div>
             </nav>
-        </div>
+        </div>       
     </div>
-    <!-- 頁首區塊結束 -->
-
-    <!-- 顯示待審核文章列表 -->
-    <?php
-    include "db.php"; // 連接資料庫
-    $sql = "SELECT * FROM article WHERE title = 'draft'"; // 查詢所有狀態為草稿的文章
-    $result = $link->query($sql); // 執行查詢
-    
-    // 處理發布請求
-    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['publish'])) {
-        $article_id = $_POST['article_id'];
-
-        // 更新文章狀態為草稿
-        $sql = "UPDATE article SET status='draft' WHERE id=?";
-        $stmt = $link->prepare($sql);
-        $stmt->bind_param("i", $article_id);
-        $stmt->execute();
-
-        echo "文章已成功發布！";
-    }
-    ?>
-
-    <!-- 文章發布 -->
-    <h1>文章發布</h1>
-    <ul>
-        <input type="submit" onclick="location.href='新增.php'" name="publish" value="新增">
-        <?php while ($row = $result->fetch_assoc()): ?>
-            <li>
-                <h2><?= htmlspecialchars($row['title']) ?></h2>
-                <p><?= htmlspecialchars($row['subtitle']) ?></p>
-                <form method="POST">
-                    <input type="hidden" name="article_id" value="<?= $row['id'] ?>">
-                    <input type="button" onclick="location.href='編輯.php'" name="publish" value="編輯">
-                </form>
-            </li>
-        <?php endwhile; ?>
-    </ul>
-    <h1>留言管理</h1>
-    <ul>
-        <input type="submit" onclick="location.href='留言.php'" name="publish" value="查看留言">
-        <?php while ($row = $result->fetch_assoc()): ?>
-            <li>
-                <h2><?= htmlspecialchars($row['title']) ?></h2>
-                <p><?= htmlspecialchars($row['subtitle']) ?></p>
-                <form method="POST">
-                    <input type="hidden" name="article_id" value="<?= $row['id'] ?>">
-                    <input type="button" onclick="location.href='留言.php'" name="publish" value="查看留言">
-                </form>
-            </li>
-        <?php endwhile; ?>
-    </ul>
+    <div class="container mt-5">
+    <h2 class="text-center mb-4">留言管理</h2>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>留言者</th>
+                    <th>內容</th>
+                    <th class="text-center">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php while ($留言 = mysqli_fetch_assoc($留言結果)) { ?>
+                    <tr>
+                        <td><?php echo $留言['id']; ?></td>
+                        <td><?php echo htmlspecialchars($留言['author']); ?></td>
+                        <td><?php echo htmlspecialchars($留言['content']); ?></td>
+                        <td class="text-center">
+                            <form method="POST" style="display: inline-block;">
+                                <input type="hidden" name="message_id" value="<?php echo $留言['id']; ?>">
+                                <button type="submit" name="delete_message" 
+                                        class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash-alt"></i> 刪除
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php } ?>
+            </tbody>
+        </table>
+    </div>
+</div>
 
 
-    <!-- 顯示刪除文章區塊 -->
-    <h1>刪除文章</h1>
-    <ul>
-        <input type="submit" onclick="location.href='刪除文章.php'" name="publish" value="刪除">
-        <?php while ($row = $result->fetch_assoc()): ?>
-            <li>
-                <h2><?= htmlspecialchars($row['title']) ?></h2>
-                <p><?= htmlspecialchars($row['subtitle']) ?></p>
-                <form method="POST">
-                    <input type="hidden" name="article_id" value="<?= $row['article_id'] ?>">
-                    <input type="button" onclick="location.href='刪除.php'" name="publish" value="刪除">
-                </form>
-            </li>
-        <?php endwhile; ?>
-    </ul>
 
-    <?php $link->close(); // 關閉資料庫連線 ?>
 
-    <!-- JavaScript 功能函數 -->
-    <script>
-        // 顯示登出彈出框
-        function showLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'flex';
-        }
 
-        // 隱藏登出彈出框
-        function hideLogoutBox() {
-            document.getElementById('logoutBox').style.display = 'none';
-        }
-
-        // 執行登出操作
-        function logout() {
-            alert('你已經登出！');
-            hideLogoutBox();
-            window.location.href = 'login.php'; // 替換為登出後的頁面
-        }
-
-        // 顯示刪除帳號彈出框
-        function showDeleteAccountBox() {
-            document.getElementById('deleteAccountBox').style.display = 'flex';
-        }
-
-        // 隱藏刪除帳號彈出框
-        function hideDeleteAccountBox() {
-            document.getElementById('deleteAccountBox').style.display = 'none';
-        }
-
-        // 提交刪除帳號表單
-        function deleteAccount() {
-            document.getElementById('deleteAccountForm').submit();
-        }
-    </script>
-
-    <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="lib/easing/easing.min.js"></script>
-    <script src="lib/waypoints/waypoints.min.js"></script>
-    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
-    <script src="lib/tempusdominus/js/moment.min.js"></script>
-    <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
-    <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
-
-    <!-- Template Javascript -->
-    <script src="js/main.js"></script>
-</body>
-
-</html>

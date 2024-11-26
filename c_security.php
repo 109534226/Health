@@ -160,43 +160,29 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     </div>
   </div>
   <!-- 頁首區塊結束 -->
+<!-- 登入時間顯示 -->
+<div class="container mt-4">
+    <h3>管理者資訊</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>帳號</th>
+                <th>姓名</th>
+                <th>登入時間</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><?php echo htmlspecialchars($帳號); ?></td>
+                <td><?php echo htmlspecialchars($姓名); ?></td>
+                <td><?php echo isset($_SESSION['登入時間']) ? htmlspecialchars($_SESSION['登入時間']) : '無記錄'; ?></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 
-
-  <!-- <h2>安全管理系統</h2>
-
-  <table>
-    <thead>
-      <tr>
-        <th>使用者類型</th>
-        <th>帳號</th>
-        <th>登入時間</th>
-      </tr>
-    </thead>
-    <tbody id="userTable">
-      使用JavaScript動態新增資料
-    </tbody>
-  </table> -->
 
   <script>
-    // // 模擬一些登入的使用者數據，包括帳號
-    // const users = [
-    //   { type: "醫生", account: "doctor123", loginTime: "2024-11-14 08:15:00" },
-    //   { type: "護士", account: "nurse456", loginTime: "2024-11-14 09:05:00" },
-    //   { type: "管理者", account: "admin789", loginTime: "2024-11-14 10:25:00" },
-    //   { type: "醫生", account: "doctor999", loginTime: "2024-11-14 11:30:00" }
-    // ];
-
-    // // 動態生成表格內容   
-    // const userTable = document.getElementById("userTable");
-    // users.forEach(user => {
-    //   const row = document.createElement("tr");
-    //   const userTypeCell = document.createElement("td");
-    //   const accountCell = document.createElement("td");
-    //   const loginTimeCell = document.createElement("td");
-    // });
-
-    // JavaScript 功能函數
-    // 顯示登出彈出框
     function showLogoutBox() {
       document.getElementById('logoutBox').style.display = 'flex';
     }
