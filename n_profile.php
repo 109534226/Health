@@ -278,12 +278,12 @@ header("Pragma: no-cache"); // HTTP/1.0 的緩存控制，強制不緩存
                     <div class="navbar-nav ms-auto py-0">
                         <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
                             class="nav-item nav-link">留言</a>
-                        <a href="n_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
-                        <a href="n_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
-                        <a href="n_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
-                        <a href="n_advicesee.php" class="nav-item nav-link">醫生建議</a>
+                        <a href="d_Basicsee.php" class="nav-item nav-link">患者資料</a>
+                        <a href="d_recordssee.php" class="nav-item nav-link">看診紀錄</a>
+                        <a href="d_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
+                        <a href="d_advicesee.php" class="nav-item nav-link">醫生建議</a>
                         <div class="nav-item">
-                            <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown"
+                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a href="n_profile.php" class="dropdown-item">關於我</a></li>
