@@ -1,17 +1,30 @@
 <?php
-require_once 'db_connection.php'; // 確保已經連接到資料庫
+session_start();
+include "db.php"; // 確保已經連接到資料庫
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // 獲取使用者帳號
     $帳號 = $_SESSION["帳號"];
-    
+
+    if (empty($帳號)) {
+        echo "無法獲取使用者帳號，請確認是否已正確登入";
+        exit;
+    }
+
     // 透過帳號查詢 user_id
-    $userQuery = "SELECT `user_id` FROM `user` WHERE `username` = ?";
+    $userQuery = "SELECT `user_id` FROM `user` WHERE `account` = ?";
     if ($userStmt = $link->prepare($userQuery)) {
         $userStmt->bind_param('s', $帳號);
         $userStmt->execute();
+        $userStmt->store_result(); // 確保結果被保存
         $userStmt->bind_result($user_id);
         $userStmt->fetch();
+
+        if (empty($user_id)) {
+            echo "找不到對應的使用者帳號";
+            exit;
+        }
+
         $userStmt->close();
     } else {
         echo "查詢使用者資料失敗：" . $link->error;
@@ -21,30 +34,64 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // 獲取醫療診所和科別以查找 department_id
     $selectedClinic = $_POST['hospital'];
     $selectedDepartment = $_POST['department'];
-    
+
     $departmentQuery = "SELECT `department_id` FROM `department` d JOIN `hospital` h ON d.`hospital_id` = h.`hospital_id` WHERE h.`hospital` = ? AND d.`department` = ?";
     if ($deptStmt = $link->prepare($departmentQuery)) {
         $deptStmt->bind_param('ss', $selectedClinic, $selectedDepartment);
         $deptStmt->execute();
+        $deptStmt->store_result();
         $deptStmt->bind_result($department_id);
         $deptStmt->fetch();
+
+        if (empty($department_id)) {
+            echo "找不到對應的醫療診所和科別";
+            exit;
+        }
+
         $deptStmt->close();
     } else {
         echo "查詢科別資料失敗：" . $link->error;
         exit;
     }
 
-    // 獲取看診日期、看診時間和醫生帳號以查找 doctorshift_id
-    $consultationDate = $_POST['date'];
-    $consultationTime = $_POST['time'];
-    $doctorAccount = $_POST['doctor'];
+    // 獲取看診日期和看診時間以查找 doctorshift_id
+    $consultationDate = isset($_POST['date']) ? htmlspecialchars($_POST['date'], ENT_QUOTES, 'UTF-8') : '';
+    // 將看診時間文字轉換為對應的 consultationT_id
+    switch ($consultationTime) {
+        case '上午診':
+            $consultationTime = "早";
+            break;
+        case '下午診':
+            $consultationTime = "午";
+            break;
+        case '晚上診':
+            $consultationTime = "晚";
+            break;
+        default:
+            echo "無效的看診時間";
+            exit;
+    }
+    echo "日期: " . $consultationDate . "<br>";
+    echo "時間: " . $consultationTime . "<br>";
+    
+    if (empty($consultationDate) || empty($consultationTime)) {
+        echo "無法獲取看診日期或時間，請確認是否已正確填寫";
+        exit;
+    }
 
-    $doctorshiftQuery = "SELECT `doctorshift_id` FROM `doctorshift` ds JOIN `user` u ON ds.`user_id` = u.`user_id` WHERE ds.`consultationD` = ? AND ds.`consultationT_id` = ? AND u.`account` = ?";
+    $doctorshiftQuery = "SELECT `doctorshift_id` FROM `doctorshift` WHERE `consultationD` = ? AND `consultationT_id` = ?";
     if ($doctorshiftStmt = $link->prepare($doctorshiftQuery)) {
-        $doctorshiftStmt->bind_param('sis', $consultationDate, $consultationTime, $doctorAccount);
+        $doctorshiftStmt->bind_param('si', $consultationDate, $consultationTime);
         $doctorshiftStmt->execute();
+        $doctorshiftStmt->store_result();
         $doctorshiftStmt->bind_result($doctorshift_id);
         $doctorshiftStmt->fetch();
+
+        if (empty($doctorshift_id)) {
+            echo "找不到對應的看診資料";
+            exit;
+        }
+
         $doctorshiftStmt->close();
     } else {
         echo "查詢看診資料失敗：" . $link->error;

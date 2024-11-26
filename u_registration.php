@@ -256,119 +256,124 @@ header("Pragma: no-cache");
     <div class="container mt-5">
         <div class="card p-4">
             <div class="form-title">預約資料填寫</div>
-            <form action="預約.php" method="post">
-                <div class="form-group">
-                    <?php
-                    // 假設從之前的表單中已經通過 POST 方法接收到這些值
-                    $date = isset($_POST['date']) ? htmlspecialchars($_POST['date'], ENT_QUOTES, 'UTF-8') : '';
-                    $doctorName = isset($_POST['doctor']) ? htmlspecialchars($_POST['doctor'], ENT_QUOTES, 'UTF-8') : '';
-                    $registeredCount = isset($_POST['registeredCount']) ? htmlspecialchars($_POST['registeredCount'], ENT_QUOTES, 'UTF-8') : '';
-                    $timePeriod = isset($_POST['timePeriod']) ? htmlspecialchars($_POST['timePeriod'], ENT_QUOTES, 'UTF-8') : '';
-                    $selectedClinic = isset($_POST['clinic']) ? htmlspecialchars($_POST['clinic'], ENT_QUOTES, 'UTF-8') : '';
-                    $selectedDepartment = isset($_POST['department']) ? htmlspecialchars($_POST['department'], ENT_QUOTES, 'UTF-8') : '';
+            <div class="form-group">
+                <?php
+                // 假設從之前的表單中已經通過 POST 方法接收到這些值
+                $date = isset($_POST['date']) ? htmlspecialchars($_POST['date'], ENT_QUOTES, 'UTF-8') : '';
+                $doctorName = isset($_POST['doctor']) ? htmlspecialchars($_POST['doctor'], ENT_QUOTES, 'UTF-8') : '';
+                $registeredCount = isset($_POST['registeredCount']) ? htmlspecialchars($_POST['registeredCount'], ENT_QUOTES, 'UTF-8') : '';
+                $timePeriod = isset($_POST['timePeriod']) ? htmlspecialchars($_POST['timePeriod'], ENT_QUOTES, 'UTF-8') : '';
+                $selectedClinic = isset($_POST['clinic']) ? htmlspecialchars($_POST['clinic'], ENT_QUOTES, 'UTF-8') : '';
+                $selectedDepartment = isset($_POST['department']) ? htmlspecialchars($_POST['department'], ENT_QUOTES, 'UTF-8') : '';
 
-                    // if (empty($selectedClinic) || empty($selectedDepartment)) {
-                    //     echo "<script>alert('醫療診所或科別的值沒有正確傳遞。請重新選擇！');</script>";
-                    // } else {
-                    //     echo "<p>診所: $selectedClinic</p>";
-                    //     echo "<p>科別: $selectedDepartment</p>";
-                    // }
-                    ?>
+                // if (empty($selectedClinic) || empty($selectedDepartment)) {
+                //     echo "<script>alert('醫療診所或科別的值沒有正確傳遞。請重新選擇！');</script>";
+                // } else {
+                //     echo "<p>診所: $selectedClinic</p>";
+                //     echo "<p>科別: $selectedDepartment</p>";
+                // }
+                ?>
 
-                    <form action="預約.php" method="POST">
-                        <!-- 醫療診所欄位，預設為傳遞過來的診所名稱 -->
-                        <div class="form-group">
-                            <label for="hospital">醫療診所</label>
-                            <input type="text" class="form-control" id="hospital" name="hospital"
-                                value="<?php echo $selectedClinic; ?>" disabled>
-                        </div>
+                <form action="預約.php" method="POST">
 
-                        <!-- 科別欄位，預設為傳遞過來的科別名稱 -->
-                        <div class="form-group">
-                            <label for="department">科別</label>
-                            <input type="text" class="form-control" id="department" name="department"
-                                value="<?php echo $selectedDepartment; ?>" disabled>
-                        </div>
+                    <!-- 顯示用的醫療診所欄位 -->
+                    <div class="form-group">
+                        <label for="hospital_display">醫療診所</label>
+                        <input type="text" class="form-control" id="hospital_display"
+                            value="<?php echo $selectedClinic; ?>" disabled>
+                        <input type="hidden" name="hospital" id="hospital" value="<?php echo $selectedClinic; ?>">
+                    </div>
 
-                        <!-- 看診時段欄位，預設為傳遞過來的時段（早/午/晚） -->
-                        <div class="form-group">
-                            <label for="consultationtime">看診時段</label>
-                            <input type="text" class="form-control" id="consultationtime" name="consultationtime"
-                                value="<?php echo $timePeriod; ?>" disabled>
-                        </div>
-
-                        <!-- 看診日期欄位，預設為傳遞過來的看診日期 -->
-                        <div class="form-group">
-                            <label for="date">看診日期</label>
-                            <input type="text" class="form-control" id="date" name="date" value="<?php echo $date; ?>"
-                                disabled>
-                        </div>
-
-                        <!-- 醫生欄位，預設為傳遞過來的醫生名稱 -->
-                        <div class="form-group">
-                            <label for="doctor">醫生</label>
-                            <input type="text" class="form-control" id="doctor" name="doctor"
-                                value="<?php echo $doctorName; ?>" disabled>
-                        </div>
-
-                        <!-- 目前預約人數欄位，預設為傳遞過來的目前預約人數 -->
-                        <div class="form-group">
-                            <label for="registeredCount">目前預約人數</label>
-                            <input type="text" class="form-control" id="registeredCount" name="registeredCount"
-                                value="<?php echo $registeredCount; ?>" disabled>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="patientname">姓名</label>
-                            <input type="text" class="form-control" id="patientname" name="patientname" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="gender">性別</label>
-                            <select class="form-control" id="gender" name="gender" required>
-                                <option value="">請選擇性別</option>
-                                <option value="男">男</option>
-                                <option value="女">女</option>
-                            </select>
-                        </div>
+                    <!-- 顯示用的科別欄位 -->
+                    <div class="form-group">
+                        <label for="department_display">科別</label>
+                        <input type="text" class="form-control" id="department_display"
+                            value="<?php echo $selectedDepartment; ?>" disabled>
+                        <input type="hidden" name="department" id="department"
+                            value="<?php echo $selectedDepartment; ?>">
+                    </div>
 
 
-                        <div class="form-group">
-                            <label for="idcard">身分證字號</label>
-                            <input type="text" class="form-control" id="idcard" name="idcard" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="birthday">出生年月日</label>
-                            <input type="date" class="form-control" id="birthday" name="birthday" required
-                                max="<?php echo date('Y-m-d'); ?>"
-                                min="<?php echo date('Y-m-d', strtotime('-120 years')); ?>">
-                        </div>
-                        <div class="form-group">
-                            <label for="phone">行動電話</label>
-                            <input type="text" class="form-control" id="phone" name="phone" required>
-                        </div>
+                    <!-- 看診時段欄位，顯示用的禁用框加上隱藏字段 -->
+                    <div class="form-group">
+                        <label for="consultationtime">看診時段</label>
+                        <input type="text" class="form-control" id="consultationtime_display"
+                            value="<?php echo $timePeriod; ?>" disabled>
+                        <input type="hidden" name="consultationtime" id="consultationtime" value="<?php echo $timePeriod; ?>">
+                    </div>
 
-                        <div class="form-group">
-                            <label for="address">地址</label>
-                            <input type="text" class="form-control" id="address" name="address" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="current">目前症狀</label>
-                            <textarea class="form-control" id="current" name="current" rows="2"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="allergies">過敏藥物</label>
-                            <textarea class="form-control" id="allergies" name="allergies" rows="2"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="medicalhistory">歷史重大疾病</label>
-                            <textarea class="form-control" id="medicalhistory" name="medicalhistory"
-                                rows="2"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary" onclick="confirmData()">確認送出</button>
-                        <button type="button" class="btn btn-secondary" onclick="window.history.back()">返回</button>
-                    </form>
-                </div>
+                    <!-- 看診日期欄位，顯示用的禁用框加上隱藏字段 -->
+                    <div class="form-group">
+                        <label for="date">看診日期</label>
+                        <input type="text" class="form-control" id="date_display" value="<?php echo $date; ?>" disabled>
+                        <input type="hidden" name="date" id="date" value="<?php echo $date; ?>">
+                    </div>
+
+
+                    <!-- 醫生欄位，預設為傳遞過來的醫生名稱 -->
+                    <div class="form-group">
+                        <label for="doctor">醫生</label>
+                        <input type="text" class="form-control" id="doctor" name="doctor"
+                            value="<?php echo $doctorName; ?>" disabled>
+                    </div>
+
+                    <!-- 目前預約人數欄位，預設為傳遞過來的目前預約人數 -->
+                    <div class="form-group">
+                        <label for="registeredCount">目前預約人數</label>
+                        <input type="text" class="form-control" id="registeredCount" name="registeredCount"
+                            value="<?php echo $registeredCount; ?>" disabled>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="patientname">姓名</label>
+                        <input type="text" class="form-control" id="patientname" name="patientname" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gender">性別</label>
+                        <select class="form-control" id="gender" name="gender" required>
+                            <option value="">請選擇性別</option>
+                            <option value="男">男</option>
+                            <option value="女">女</option>
+                        </select>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="idcard">身分證字號</label>
+                        <input type="text" class="form-control" id="idcard" name="idcard" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="birthday">出生年月日</label>
+                        <input type="date" class="form-control" id="birthday" name="birthday" required
+                            max="<?php echo date('Y-m-d'); ?>"
+                            min="<?php echo date('Y-m-d', strtotime('-120 years')); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">行動電話</label>
+                        <input type="text" class="form-control" id="phone" name="phone" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">地址</label>
+                        <input type="text" class="form-control" id="address" name="address" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="current">目前症狀</label>
+                        <textarea class="form-control" id="current" name="current" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="allergies">過敏藥物</label>
+                        <textarea class="form-control" id="allergies" name="allergies" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="medicalhistory">歷史重大疾病</label>
+                        <textarea class="form-control" id="medicalhistory" name="medicalhistory" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" onclick="confirmData()">確認送出</button>
+                    <button type="button" class="btn btn-secondary" onclick="window.history.back()">返回</button>
+                </form>
+            </div>
         </div>
         <script>
             // 確認資料並顯示 alert
@@ -400,7 +405,7 @@ header("Pragma: no-cache");
                     return;
                 }
                 if (!gender) {
-                    alert('出生年月日欄位不能為空');
+                    alert('性別欄位不能為空');
                     return;
                 }
                 if (!idcard) {
