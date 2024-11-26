@@ -194,22 +194,24 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             if ($是否刪除成功) {
                 // 刪除成功後顯示所有資料
                 $查詢語句 = "SELECT patient.*, department.department AS 科別, user.name AS 醫生姓名, 
-                      doctorshift.consultationD AS 看診日期, 
-                      CASE doctorshift.consultationT_id 
-                          WHEN 1 THEN '早' 
-                          WHEN 2 THEN '午' 
-                          WHEN 3 THEN '晚' 
-                          ELSE '未知' 
-                      END AS 看診時段,
-                      CASE patient.gender_id 
-                          WHEN 1 THEN '男' 
-                          WHEN 2 THEN '女' 
-                          ELSE '未知' 
-                      END AS 性別
-                      FROM patient
-                      LEFT JOIN department ON patient.department_id = department.department_id
-                      LEFT JOIN user ON patient.doctorshift_id = user.user_id
-                      LEFT JOIN doctorshift ON patient.doctorshift_id = doctorshift.doctorshift_id";
+                  doctorshift.consultationD AS 看診日期, 
+                  cn.clinicnumber AS 診間號,
+                  CASE doctorshift.consultationT_id 
+                      WHEN 1 THEN '早' 
+                      WHEN 2 THEN '午' 
+                      WHEN 3 THEN '晚' 
+                      ELSE '未知' 
+                  END AS 看診時段,
+                  CASE patient.gender_id 
+                      WHEN 1 THEN '男' 
+                      WHEN 2 THEN '女' 
+                      ELSE '未知' 
+                  END AS 性別
+                  FROM patient
+                  LEFT JOIN department ON patient.department_id = department.department_id
+                  LEFT JOIN user ON patient.doctorshift_id = user.user_id
+                  LEFT JOIN doctorshift ON patient.doctorshift_id = doctorshift.doctorshift_id
+                  LEFT JOIN clinicnumber cn ON doctorshift.clinicnumber_id = cn.clinicnumber_id";
                 $查詢結果 = $link->query($查詢語句);
             } else {
                 // 查詢總記錄數
@@ -233,23 +235,25 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
                 // 查詢當前頁碼的資料，並使用 LEFT JOIN 來抓取看診時間
                 $查詢語句 = "SELECT patient.*, department.department AS 科別, user.name AS 醫生姓名, 
-                      doctorshift.consultationD AS 看診日期, 
-                      CASE doctorshift.consultationT_id 
-                          WHEN 1 THEN '早' 
-                          WHEN 2 THEN '午' 
-                          WHEN 3 THEN '晚' 
-                          ELSE '未知' 
-                      END AS 看診時段,
-                      CASE patient.gender_id 
-                          WHEN 1 THEN '男' 
-                          WHEN 2 THEN '女' 
-                          ELSE '未知' 
-                      END AS 性別
-                      FROM patient
-                      LEFT JOIN department ON patient.department_id = department.department_id
-                      LEFT JOIN user ON patient.doctorshift_id = user.user_id
-                      LEFT JOIN doctorshift ON patient.doctorshift_id = doctorshift.doctorshift_id
-                      LIMIT $起始位置, $每頁記錄數";
+                  doctorshift.consultationD AS 看診日期, 
+                  cn.clinicnumber AS 診間號,
+                  CASE doctorshift.consultationT_id 
+                      WHEN 1 THEN '早' 
+                      WHEN 2 THEN '午' 
+                      WHEN 3 THEN '晚' 
+                      ELSE '未知' 
+                  END AS 看診時段,
+                  CASE patient.gender_id 
+                      WHEN 1 THEN '男' 
+                      WHEN 2 THEN '女' 
+                      ELSE '未知' 
+                  END AS 性別
+                  FROM patient
+                  LEFT JOIN department ON patient.department_id = department.department_id
+                  LEFT JOIN user ON patient.doctorshift_id = user.user_id
+                  LEFT JOIN doctorshift ON patient.doctorshift_id = doctorshift.doctorshift_id
+                  LEFT JOIN clinicnumber cn ON doctorshift.clinicnumber_id = cn.clinicnumber_id
+                  LIMIT $起始位置, $每頁記錄數";
                 $查詢結果 = $link->query($查詢語句);
             }
 
@@ -268,6 +272,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <th>患者姓名</th>
                             <th>性別</th>
                             <th>出生日期</th>
+                            <th>診間號</th>
                             <th>科別</th>
                             <th>看診醫生</th>
                             <th>看診時段</th>
@@ -284,6 +289,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 <td><?php echo htmlspecialchars($資料列['patientname']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['性別']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['birthday']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['診間號']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['科別']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['醫生姓名']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['看診時段']); ?></td>
