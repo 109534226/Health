@@ -324,12 +324,12 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                             <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
                                             <button type="submit">修改</button>
                                         </form>
-                                        <form method="POST" action="醫生建議刪除nd.php" style="display:inline;">
+                                        <!-- <form method="POST" action="醫生建議刪除nd.php" style="display:inline;">
                                             <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
                                             <input type="hidden" name="searchTerm"
                                                 value="<?php echo htmlspecialchars($搜尋詞); ?>">
                                             <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
-                                        </form>
+                                        </form> -->
                                     </td>
                                 </tr>
                             <?php endwhile; ?>
