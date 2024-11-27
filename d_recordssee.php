@@ -182,7 +182,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <button class="btn btn-primary px-3" type="submit"><i class="fa fa-search"></i></button>
                     </form>
                 </div>
-                <a href="d_records.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a>
+                <!-- <a href="d_records.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a> -->
             </div>
 
             <?php
@@ -266,7 +266,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <th>看診醫生</th>
                             <th>看診時段</th>
                             <th>紀錄創建時間</th>
-                            <th>功能選項</th>
+                            <!-- <th>功能選項</th> -->
                         </tr>
                     </thead>
                     <tbody>
@@ -301,21 +301,41 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                         ?>
                                     </td>
                                     <td><?php echo htmlspecialchars($資料列['紀錄創建時間']); ?></td>
-                                    <td>
-                                        <form action="看診紀錄修改000.php" method="post" style="display:inline;">
-                                            <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
-                                            <button type="submit">修改</button>
-                                        </form>
-                                        <form method="POST" action="看診紀錄刪除ns.php" style="display:inline;">
-                                            <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
-                                            <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
-                                        </form>
-                                    </td>
+                                    <!--
+                        <td>
+                            <form action="看診紀錄修改000.php" method="post" style="display:inline;">
+                                <input type="hidden" name="id" value="<?php echo htmlspecialchars($資料列['id']); ?>">
+                                <input type="hidden" name="看診日期"
+                                    value="<?php echo htmlspecialchars($資料列['看診日期']); ?>">
+                                <input type="hidden" name="病例號"
+                                    value="<?php echo htmlspecialchars($資料列['病例號']); ?>">
+                                <input type="hidden" name="患者姓名"
+                                    value="<?php echo htmlspecialchars($資料列['患者姓名']); ?>">
+                                <input type="hidden" name="出生日期"
+                                    value="<?php echo htmlspecialchars($資料列['出生日期']); ?>">
+                                <input type="hidden" name="性別" value="<?php echo htmlspecialchars($資料列['性別']); ?>">
+                                <input type="hidden" name="診間號"
+                                    value="<?php echo htmlspecialchars($資料列['診間號']); ?>">
+                                <input type="hidden" name="科別" value="<?php echo htmlspecialchars($資料列['科別']); ?>">
+                                <input type="hidden" name="醫生姓名"
+                                    value="<?php echo htmlspecialchars($資料列['醫生姓名']); ?>">
+                                <input type="hidden" name="看診時段"
+                                    value="<?php echo htmlspecialchars($資料列['看診時段']); ?>">
+                                <input type="hidden" name="紀錄創建時間"
+                                    value="<?php echo htmlspecialchars($資料列['紀錄創建時間']); ?>">
+                                <button type="submit">修改</button>
+                            </form>
+                            <form method="POST" action="看診紀錄刪除ns.php" style="display:inline;">
+                                <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
+                                <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
+                            </form>
+                        </td>
+                        -->
                                 </tr>
                             <?php endwhile; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="12">查無資料。</td>
+                                <td colspan="11">查無資料。</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
