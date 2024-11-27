@@ -176,35 +176,31 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             </h1>
             <br />
 
-
             <?php
-            include "db.php";
-
-            if (isset($_GET['id']) && !empty($_GET['id'])) {
-                $id = $_GET['id'];
-
-                // 日誌來確認 ID 的值是否接收到
-                error_log("Received ID: " . $id);
-
-                // 根據 ID 獲取患者資料
+            // 檢查是否有提供 POST 請求中的 "id"，且 "id" 不為空
+            if (isset($_POST['id']) && !empty($_POST['id'])) {
+                $id = $_POST['id']; // 獲取並存儲提交的 "id"
+            
+                // 構建查詢語句，從 "patient" 表中查找對應的 "patient_id"
                 $query = "SELECT * FROM patient WHERE patient_id = ?";
-                $stmt = mysqli_prepare($link, $query);
-                mysqli_stmt_bind_param($stmt, "i", $id);
-                mysqli_stmt_execute($stmt);
-                $result = mysqli_stmt_get_result($stmt);
-
+                $stmt = mysqli_prepare($link, $query); // 使用準備語句來避免 SQL 注入攻擊
+                mysqli_stmt_bind_param($stmt, "i", $id); // 綁定參數 "id"，類型為整數 (i)
+            
+                mysqli_stmt_execute($stmt); // 執行準備語句
+                $result = mysqli_stmt_get_result($stmt); // 獲取查詢結果
+            
+                // 如果查詢結果存在且至少有一行數據
                 if ($result && mysqli_num_rows($result) > 0) {
-                    $row = mysqli_fetch_assoc($result);
+                    $row = mysqli_fetch_assoc($result); // 將結果行作為關聯數組返回
                 } else {
-                    echo "找不到此 ID 對應的患者資料。";
-                    exit;
+                    echo "找不到此 ID 對應的患者資料。"; // 查詢不到記錄時顯示錯誤消息
+                    exit; // 終止腳本執行
                 }
             } else {
-                echo "未提供 ID。";
-                exit;
+                echo "未提供 ID。"; // 如果未提供 "id"，則顯示錯誤消息
+                exit; // 終止腳本執行
             }
             ?>
-
 
             <div class="form-container">
                 <form id="updateForm" action="患者資料修改2.php" method="post" onsubmit="return confirmUpdate()">
