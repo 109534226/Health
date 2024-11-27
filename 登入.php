@@ -51,6 +51,7 @@ $ret = mysqli_query($link, $SQL指令) or die(mysqli_error($link)); // 執行查
 // 檢查查詢是否有返回結果
 if ($row = mysqli_fetch_assoc($ret)) {
     // 如果用戶存在，設定Session變數以記錄用戶狀態
+    
     $_SESSION["帳號"] = $row["account"]; // 儲存用戶帳號
     $_SESSION["姓名"] = $row["user_name"]; // 儲存用戶姓名
     $_SESSION["登入狀態"] = true; // 紀錄用戶已登入
