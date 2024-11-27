@@ -287,7 +287,11 @@ header("Pragma: no-cache"); // HTTP/1.0 的緩存控制，強制不緩存
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a href="n_profile.php" class="dropdown-item">關於我</a></li>
+<<<<<<< HEAD
+                                <li><a href="n_change.php" class="dropdown-item">變更密碼</a></li>
+=======
                                 <li><a href="n_change.php" class="dropdown-item active">忘記密碼</a></li>
+>>>>>>> 75f3c2eee97010b826d7a8b8deff64a3a2830219
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
