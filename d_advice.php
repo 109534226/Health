@@ -188,7 +188,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 }
             </style>
             <div class="d-flex justify-content-end mb-5">
-                <a href="n_advicesee.php" class="btn btn-primary">查看資料</a>
+                <a href="d_advicesee.php" class="btn btn-primary">查看資料</a>
             </div>
             <h1>
                 <<<<<醫生建議>>>>>

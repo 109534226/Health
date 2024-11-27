@@ -200,30 +200,28 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             // 計算SQL查詢的起始位置
             $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
 
-            // 編寫SQL查詢語句，抓取醫生班表資料及其關聯表資料
+            // 擷取醫生班表資料與相關聯的表格資料，並將看診時間轉換為文字描述
             $查詢語句 = "
     SELECT 
-        ds.doctorshift_id AS id, -- 醫生班表的主鍵ID
-        ds.consultationD AS 日期, -- 班表的日期
-        cn.clinicnumber AS 診間號, -- 從診間號表中獲取診間號碼
+        ds.doctorshift_id AS id, 
+        ds.consultationD AS 日期,
+        ds.clinicnumber_id AS 診間號,
         CASE 
-            WHEN ds.consultationT_id = 1 THEN '早' -- 如果 consultationT_id 為1，顯示'早'
-            WHEN ds.consultationT_id = 2 THEN '午' -- 如果 consultationT_id 為2，顯示'午'
-            WHEN ds.consultationT_id = 3 THEN '晚' -- 如果 consultationT_id 為3，顯示'晚'
-            ELSE '未知時段' -- 如果 consultationT_id 不匹配以上值，顯示'未知時段'
-        END AS 看診時間, -- 根據時段ID轉換為文字描述
-        d.department AS 科別, -- 從科別表中抓取科別名稱
-        u.name AS 醫生姓名, -- 從user表中獲取醫生的名稱
-        ds.created_at AS 紀錄創建時間 -- 醫生班表紀錄的創建時間
-    FROM doctorshift ds -- 醫生班表作為主表
-    LEFT JOIN `user` u ON ds.user_id = u.user_id -- 關聯user表，用user_id匹配
-    LEFT JOIN medical m ON ds.medical_id = m.medical_id -- 關聯medical表，用medical_id匹配
-    LEFT JOIN department d ON m.department_id = d.department_id -- 關聯department表，用department_id匹配
-    LEFT JOIN clinicnumber cn ON ds.clinicnumber_id = cn.clinicnumber_id -- 關聯clinicnumber表，用clinicnumber_id匹配診間號
-    ORDER BY ds.doctorshift_id ASC -- 按照doctorshift_id升序排列
-    LIMIT ?, ?"; // 使用LIMIT進行分頁，只抓取當前頁所需的記錄數
-            
-            // 準備SQL查詢，避免SQL注入
+            WHEN ds.consultationT_id = 1 THEN '早'
+            WHEN ds.consultationT_id = 2 THEN '午'
+            WHEN ds.consultationT_id = 3 THEN '晚'
+            ELSE '未知時段'
+        END AS 看診時間,
+        d.department AS 科別,
+        u.name AS 醫生姓名,
+        ds.created_at AS 紀錄創建時間
+    FROM doctorshift ds
+    LEFT JOIN `user` u ON ds.user_id = u.user_id
+    LEFT JOIN department d ON ds.medical_id = d.department_id
+    ORDER BY ds.doctorshift_id ASC
+    LIMIT ?, ?";
+
+            // 準備並執行查詢
             $查詢準備 = mysqli_prepare($link, $查詢語句);
             // 將參數綁定到SQL語句中，"ii"表示兩個整數類型參數
             mysqli_stmt_bind_param($查詢準備, "ii", $起始位置, $每頁記錄數);
@@ -250,18 +248,17 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
             <!-- 顯示資料 -->
             <div class="form-container">
-                <!-- <p>總共 <?php echo $總記錄數; ?> 筆資料</p> -->
+                <p>總共 <?php echo $總記錄數; ?> 筆資料</p>
                 <table border="1">
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>日期</th>
+                            <th>看診日期</th>
                             <th>診間號</th>
                             <th>醫生姓名</th>
                             <th>看診時間</th>
                             <th>看診科別</th>
                             <th>紀錄創建時間</th>
-                            <th>功能選項</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -271,19 +268,26 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 <td><?php echo htmlspecialchars($資料列['日期']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['診間號']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['醫生姓名']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['看診時間']); ?></td>
+                                <td>
+                                    <?php
+                                    // 顯示看診時段文字描述
+                                    switch ($資料列['看診時段']) {
+                                        case 1:
+                                            echo '早';
+                                            break;
+                                        case 2:
+                                            echo '午';
+                                            break;
+                                        case 3:
+                                            echo '晚';
+                                            break;
+                                        default:
+                                            echo '未知時段';
+                                    }
+                                    ?>
+                                </td>
                                 <td><?php echo htmlspecialchars($資料列['科別']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['紀錄創建時間']); ?></td>
-                                <td>
-                                    <form action="醫生班表修改000.php" method="post" style="display:inline;">
-                                        <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
-                                        <button type="submit">修改</button>
-                                    </form>
-                                    <form method="POST" action="醫生班表刪除ns.php" style="display:inline;">
-                                        <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
-                                        <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
-                                    </form>
-                                </td>
                             </tr>
                         <?php endwhile; ?>
                     </tbody>
