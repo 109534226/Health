@@ -350,7 +350,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             }
 
                                             $.ajax({
-                                                url: 'u_reserve.php', // 請替換為你的 PHP 文件路徑
+                                                url: 'u_map.php', // 請替換為你的 PHP 文件路徑
                                                 type: 'POST',
                                                 data: {
                                                     action: 'get_clinics',
@@ -410,15 +410,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <div class="row">
                                     <p><br /></p>
                                     <div class="col-md-6 mb-3">
-                                        <style>
-                                            .custom-button {
-                                                width: 220%;
-                                                height: 50px;
-                                            }
-                                        </style>
-                                        <button class="btn btn-primary custom-button" type="submit">查看現場掛號人數</button>
+                                        <button class="btn btn-primary  py-3" style="width: 100%"
+                                            type="submit">查看現場掛號人數</button>
                                     </div>
 
+                                    <div class="col-md-6 mb-3">
+                                        <button class="btn btn-primary  py-3" style="width: 100%"
+                                            onclick="sLocation()">搜尋路線/交通方式</button>
+                                    </div>
                                 </div>
 
                                 <script>
@@ -432,7 +431,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         }
                                     }
                                 </script>
-
                             </div>
                         </form>
                     </div>
