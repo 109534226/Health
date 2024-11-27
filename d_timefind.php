@@ -121,7 +121,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <a href="d_Basicsee.php" class="nav-item nav-link">患者資料</a>
                         <a href="d_recordssee.php" class="nav-item nav-link">看診紀錄</a>
                         <a href="d_timesee.php" class="nav-item nav-link active">醫生的班表時段</a>
-                        <a href="d_advicesee.php" class="nav-item nav-link active">醫生建議</a>
+                        <a href="d_advicesee.php" class="nav-item nav-link">醫生建議</a>
                         <div class="nav-item">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
@@ -185,77 +185,77 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             <?php
             include "db.php"; // 連接資料庫
             
-            // 擷取搜尋的資料
+            // 獲取搜尋詞，從 POST 或 GET 中接收 "search" 參數
             $搜尋詞 = isset($_POST['search']) ? trim($_POST['search']) : (isset($_GET['search']) ? trim($_GET['search']) : '');
 
-            // 設定名稱查詢的最小字元長度（例如 1）
+            // 設定搜尋字串的最小長度，避免搜尋過短的內容
             $最小搜尋長度 = 1;
 
+            // 預設總筆數為 0，當查無結果時保持為空
+            $總筆數 = 0;
+
+            // 預設查詢結果為空，方便後續處理
+            $查詢結果 = null;
+
             if (!empty($搜尋詞) && strlen($搜尋詞) >= $最小搜尋長度) {
-                // 進行精確比對查詢，並通過聯表查詢來顯示正確的文字描述
-                $查詢語句 = "
-        SELECT 
-            ds.doctorshift_id AS id,
-            ds.consultationD AS 日期,
-            ds.clinicnumber_id AS 診間號,
-            u.name AS 醫生姓名,
-            CASE 
-                WHEN ds.consultationT_id = 1 THEN '上'
-                WHEN ds.consultationT_id = 2 THEN '午'
-                WHEN ds.consultationT_id = 3 THEN '晚'
-                ELSE '未知時段'
-            END AS 看診時間,
-            d.department AS 科別,
-            ds.created_at AS 紀錄創建時間
-        FROM doctorshift ds
-        LEFT JOIN `user` u ON ds.user_id = u.user_id
-        LEFT JOIN department d ON ds.medical_id = d.department_id
-        WHERE u.name = ?
-        ORDER BY ds.doctorshift_id ASC";
-
-                $查詢準備 = mysqli_prepare($link, $查詢語句);
-                mysqli_stmt_bind_param($查詢準備, "s", $搜尋詞);
-                mysqli_stmt_execute($查詢準備);
-                $查詢結果 = mysqli_stmt_get_result($查詢準備);
-
-                // 計算總筆數
-                $總筆數 = mysqli_num_rows($查詢結果);
-
-                if ($總筆數 > 0) {
-                    // 設定分頁
-                    $每頁筆數 = 15;
-                    $總頁數 = ceil($總筆數 / $每頁筆數);
-
-                    // 獲取當前頁碼
-                    $當前頁碼 = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-                    $當前頁碼 = max(1, min($總頁數, $當前頁碼));
-
-                    // 計算起始記錄
-                    $起始位置 = ($當前頁碼 - 1) * $每頁筆數;
-
-                    // 查詢當前頁碼的資料
-                    $查詢語句 .= " LIMIT ?, ?";
-                    $查詢準備 = mysqli_prepare($link, $查詢語句);
-                    mysqli_stmt_bind_param($查詢準備, "sii", $搜尋詞, $起始位置, $每頁筆數);
-                    mysqli_stmt_execute($查詢準備);
-                    $查詢結果 = mysqli_stmt_get_result($查詢準備);
+                // 用搜尋詞（醫生姓名）在 user 表中找到對應的帳號
+                $帳號查詢語句 = "SELECT account FROM `user` WHERE name = ?"; // 查詢語句：依據醫生姓名搜尋帳號
+                $帳號查詢準備 = mysqli_prepare($link, $帳號查詢語句); // 預備查詢以防止 SQL 注入
+                mysqli_stmt_bind_param($帳號查詢準備, "s", $搜尋詞); // 綁定搜尋詞作為參數
+                mysqli_stmt_execute($帳號查詢準備); // 執行查詢
+                $帳號結果 = mysqli_stmt_get_result($帳號查詢準備); // 獲取查詢結果
+            
+                if (mysqli_num_rows($帳號結果) > 0) { // 如果找到至少一個帳號
+                    $帳號資料 = mysqli_fetch_assoc($帳號結果); // 獲取結果資料
+                    $帳號 = $帳號資料['account']; // 提取帳號值
+            
+                    // 用找到的帳號進行進一步資料查詢，包括診間號的關聯
+                    $查詢語句 = "
+            SELECT 
+                ds.doctorshift_id AS id, -- 醫生班表的主鍵 ID
+                ds.consultationD AS 日期, -- 醫生看診的日期
+                cn.clinicnumber AS 診間號, -- 從診間號表中獲取診間號
+                u.name AS 醫生姓名, -- 醫生的姓名
+                CASE 
+                    WHEN ds.consultationT_id = 1 THEN '上' -- 將 consultationT_id 轉換為時間描述
+                    WHEN ds.consultationT_id = 2 THEN '午'
+                    WHEN ds.consultationT_id = 3 THEN '晚'
+                    ELSE '未知時段' -- 若不匹配，顯示未知時段
+                END AS 看診時間,
+                d.department AS 科別, -- 從科別表中獲取看診科別
+                ds.created_at AS 紀錄創建時間 -- 醫生班表記錄創建時間
+            FROM doctorshift ds -- 主表：醫生班表
+            LEFT JOIN `user` u ON ds.user_id = u.user_id -- 關聯 user 表，通過 user_id 匹配
+            LEFT JOIN medical m ON ds.medical_id = m.medical_id -- 關聯 medical 表，通過 medical_id 匹配
+            LEFT JOIN department d ON m.department_id = d.department_id -- 關聯 department 表，通過 department_id 匹配
+            LEFT JOIN clinicnumber cn ON ds.clinicnumber_id = cn.clinicnumber_id -- 關聯診間號表，通過 clinicnumber_id 匹配
+            WHERE u.account = ? -- 查詢條件：帳號匹配
+            ORDER BY ds.doctorshift_id ASC"; // 結果按照 doctorshift_id 升序排列
+            
+                    $查詢準備 = mysqli_prepare($link, $查詢語句); // 預備查詢語句
+                    mysqli_stmt_bind_param($查詢準備, "s", $帳號); // 綁定帳號作為參數
+                    mysqli_stmt_execute($查詢準備); // 執行查詢
+                    $查詢結果 = mysqli_stmt_get_result($查詢準備); // 獲取查詢結果
+            
+                    $總筆數 = mysqli_num_rows($查詢結果); // 計算查詢結果的總筆數
                 } else {
-                    // 如果查無資料，顯示提示訊息並返回
+                    // 如果查無該醫生的帳號，顯示提示並返回
                     echo "<script>
-                alert('查無此人');
-                window.location.href = 'd_timesee.php';
-              </script>";
-                    exit;
-                }
-            } else {
-                // 如果搜尋條件為空或長度不足，顯示提示訊息
-                echo "<script>
-            alert('請輸入搜尋資料');
+            alert('查無此醫生');
             window.location.href = 'd_timesee.php';
-          </script>";
-                exit;
+        </script>";
+                    exit; // 終止程式執行
+                }
+            } else if (isset($_POST['search']) || isset($_GET['search'])) {
+                // 如果搜尋條件為空或過短，顯示提示並返回
+                echo "<script>
+        alert('請輸入有效的搜尋條件');
+        window.location.href = 'd_timesee.php';
+    </script>";
+                exit; // 終止程式執行
             }
             ?>
+
 
             <!-- 顯示資料 -->
             <div class="form-container">
@@ -298,6 +298,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <?php endwhile; ?>
                         </tbody>
                     </table>
+                <?php else: ?>
+                    <p>目前沒有相關資料。</p>
                 <?php endif; ?>
             </div>
 

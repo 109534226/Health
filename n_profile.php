@@ -264,11 +264,11 @@ header("Pragma: no-cache"); // HTTP/1.0 的緩存控制，強制不緩存
 </head>
 
 <body>
-    <!-- 頁首 Start -->
-    <div class="container-fluid sticky-top bg-white shadow-sm mb-5">
+ <!-- 頁首 Start -->
+ <div class="container-fluid sticky-top bg-white shadow-sm">
         <div class="container">
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
-                <a href="n_profile.php" class="navbar-brand">
+                <a href="u_index.php" class="navbar-brand">
                     <h1 class="m-0 text-uppercase text-primary"><i class="fa fa-clinic-medical me-2"></i>健康醫療網站</h1>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
@@ -278,16 +278,20 @@ header("Pragma: no-cache"); // HTTP/1.0 的緩存控制，強制不緩存
                     <div class="navbar-nav ms-auto py-0">
                         <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
                             class="nav-item nav-link">留言</a>
-                        <a href="d_Basicsee.php" class="nav-item nav-link">患者資料</a>
-                        <a href="d_recordssee.php" class="nav-item nav-link">看診紀錄</a>
-                        <a href="d_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
-                        <a href="d_advicesee.php" class="nav-item nav-link">醫生建議</a>
+                        <a href="n_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
+                        <a href="n_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
+                        <a href="n_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
+                        <a href="n_advicesee.php" class="nav-item nav-link">醫生建議</a>
                         <div class="nav-item">
-                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
+                            <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a href="n_profile.php" class="dropdown-item">關於我</a></li>
+<<<<<<< HEAD
                                 <li><a href="n_change.php" class="dropdown-item">變更密碼</a></li>
+=======
+                                <li><a href="n_change.php" class="dropdown-item active">忘記密碼</a></li>
+>>>>>>> 75f3c2eee97010b826d7a8b8deff64a3a2830219
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -303,6 +307,7 @@ header("Pragma: no-cache"); // HTTP/1.0 的緩存控制，強制不緩存
         </div>
     </div>
     <!-- 頁首 End -->
+
     <!-- 回到頁首(Top 箭頭 -->
     <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
 

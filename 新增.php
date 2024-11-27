@@ -111,11 +111,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     <div class="container-fluid sticky-top bg-white shadow-sm">
         <div class="container">
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
-            <form method="POST" action="c_content.php">
-            <div class="button-container">
-                    <button type="submit" class="submit-button">返回</button>
-                </div>
-                </form>
                 <a href="n_profile.php" class="navbar-brand">
                     <h1 class="m-0 text-uppercase text-primary"><i class="fa fa-clinic-medical me-2"></i>健康醫療網站</h1>
                 </a>
@@ -150,7 +145,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         </div>
     </div>
     <!-- 頁首 End -->
-    <!-- 頁首 End -->
 
     </form>
     </div>
@@ -178,117 +172,119 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     </div>
     <!-- 刪除帳號對話框 End -->
 
-        <!DOCTYPE html>
-        <html lang="zh">
+    <form method="POST" action="c_content.php">
+        <div class="button-container">
+            <button type="submit" class="submit-button">返回</button>
+        </div>
+    </form>
+    <style>
+        /* 調整文字框樣式 */
+        .text-box {
+            width: 100%;
+            /* 自適應寬度 */
+            height: 40px;
+            /* 固定高度 */
+            border: 1px solid black;
+            padding: 5px;
+            /* 增加邊距使文字不貼著邊框 */
+            font-size: 16px;
+            /* 調整字體大小 */
+            font-family: Arial, sans-serif;
+            /* 設定字體 */
+            box-sizing: border-box;
+            /* 包括內邊距和邊框在寬度內 */
+        }
 
-        <head>
-            <style>
-                /* 調整文字框樣式 */
-                .text-box {
-                    width: 100%;
-                    /* 自適應寬度 */
-                    height: 40px;
-                    /* 固定高度 */
-                    border: 1px solid black;
-                    padding: 5px;
-                    /* 增加邊距使文字不貼著邊框 */
-                    font-size: 16px;
-                    /* 調整字體大小 */
-                    font-family: Arial, sans-serif;
-                    /* 設定字體 */
-                    box-sizing: border-box;
-                    /* 包括內邊距和邊框在寬度內 */
-                }
+        /* 特別設計內容框的樣式 */
+        .content-box {
+            width: 100%;
+            /* 自適應寬度 */
+            height: 150px;
+            /* 初始高度 */
+            border: 1px solid black;
+            padding: 10px;
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            /* 調整行距 */
+            resize: both;
+            /* 允許手動調整大小 */
+            overflow: auto;
+            /* 顯示滾動條 */
+            box-sizing: border-box;
+        }
 
-                /* 特別設計內容框的樣式 */
-                .content-box {
-                    width: 100%;
-                    /* 自適應寬度 */
-                    height: 150px;
-                    /* 初始高度 */
-                    border: 1px solid black;
-                    padding: 10px;
-                    font-size: 16px;
-                    font-family: Arial, sans-serif;
-                    line-height: 1.5;
-                    /* 調整行距 */
-                    resize: both;
-                    /* 允許手動調整大小 */
-                    overflow: auto;
-                    /* 顯示滾動條 */
-                    box-sizing: border-box;
-                }
+        /* 表單標籤樣式 */
+        label {
+            display: block;
+            margin-top: 10px;
+            /* 與上方元素保持距離 */
+            font-weight: bold;
+        }
 
-                /* 表單標籤樣式 */
-                label {
-                    display: block;
-                    margin-top: 10px;
-                    /* 與上方元素保持距離 */
-                    font-weight: bold;
-                }
+        /* 置中按鈕容器 */
+        .button-container {
+            display: flex;
+            justify-content: center;
+            /* 水平置中 */
+            margin-top: 20px;
+            /* 與上方表單元素保持距離 */
+        }
 
-                /* 置中按鈕容器 */
-                .button-container {
-                    display: flex;
-                    justify-content: center;
-                    /* 水平置中 */
-                    margin-top: 20px;
-                    /* 與上方表單元素保持距離 */
-                }
+        /* 提交按鈕樣式 */
+        .submit-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            cursor: pointer;
+            border: 1px solid #000;
+            background-color: #f0f0f0;
+            transition: background-color 0.3s;
+        }
 
-                /* 提交按鈕樣式 */
-                .submit-button {
-                    padding: 10px 20px;
-                    font-size: 16px;
-                    font-family: Arial, sans-serif;
-                    cursor: pointer;
-                    border: 1px solid #000;
-                    background-color: #f0f0f0;
-                    transition: background-color 0.3s;
-                }
+        .submit-button:hover {
+            background-color: #ddd;
+        }
+    </style>
+    </head>
 
-                .submit-button:hover {
-                    background-color: #ddd;
-                }
-            </style>
-        </head>
+    <body>
 
-        <body>
-            <!-- 資料表是關聯性資料庫要注意！！ -->
-                <!-- 內容表單 -->
-    <div class="container mt-4">
-        <form method="POST" action="新增文章的後端.php">
-            <label for="title">標題:</label>
-            <input type="text" id="title" name="title" class="text-box" placeholder="請輸入標題" required>
+        <!-- 資料表是關聯性資料庫要注意！！ -->
+        <!-- 內容表單 -->
+        <div class="container mt-4">
+            <form method="POST" action="新增文章的後端.php">
+                <label for="title">標題:</label>
+                <input type="text" id="title" name="title" class="text-box" placeholder="請輸入標題" required>
 
-            <label for="subtitle">內容:</label>
-            <textarea id="subtitle" name="subtitle" class="content-box" placeholder="請輸入內容" required></textarea>
+                <label for="subtitle">內容:</label>
+                <textarea id="subtitle" name="subtitle" class="content-box" placeholder="請輸入內容" required></textarea>
 
-            <label for="source">資料來源:</label>
-            <select id="source" name="source" class="dropdown" required>
-                <option value="">請選擇資料來源</option>
-                <option value="1">天下雜誌</option>
-                <option value="2">銀天下</option>
-            </select>
+                <label for="source">資料來源:</label>
+                <select id="source" name="source" class="dropdown" required>
+                    <option value="">請選擇資料來源</option>
+                    <option value="1">天下雜誌</option>
+                    <option value="2">銀天下</option>
+                </select>
 
-            <label for="url">連結:</label>
-            <input type="url" id="url" name="url" class="text-box" placeholder="請輸入連結" required>
+                <label for="url">連結:</label>
+                <input type="url" id="url" name="url" class="text-box" placeholder="請輸入連結" required>
 
-            <label for="image">圖片路徑:</label>
-            <input type="text" id="image" name="image" class="text-box" placeholder="請輸入圖片路徑" required>
+                <label for="image">圖片路徑:</label>
+                <input type="text" id="image" name="image" class="text-box" placeholder="請輸入圖片路徑" required>
 
-            <label for="review">審核結果:</label>
-            <select id="review" name="review" class="dropdown" required>
-                <option value="">未選擇</option>
-                <option value="1">已審核</option>
-                <option value="2">未審核</option>
-            </select>
+                <label for="review">審核結果:</label>
+                <select id="review" name="review" class="dropdown" required>
+                    <option value="">未選擇</option>
+                    <option value="1">已審核</option>
+                    <option value="2">未審核</option>
+                </select>
                 <!-- 新增文章類型欄位 資料表是 type -->
 
                 <div class="button-container">
                     <button type="submit" class="submit-button">提交</button>
                 </div>
             </form>
-        </body>
+    </body>
 
-        </html>
+</html>

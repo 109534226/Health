@@ -190,55 +190,65 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             <?php
             include "db.php"; // 連接資料庫
             
-            // 設定每頁顯示的記錄數
+            // 設定每頁顯示的記錄數，預設為15筆
             $每頁記錄數 = 15;
 
-            // 獲取當前頁碼
+            // 獲取當前頁碼，如果沒有提供頁碼，預設為第1頁
             $當前頁碼 = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-            $當前頁碼 = max(1, $當前頁碼); // 確保當前頁碼至少為 1
+            $當前頁碼 = max(1, $當前頁碼); // 確保當前頁碼至少為1，避免負數頁碼
             
-            // 計算起始記錄
+            // 計算SQL查詢的起始位置
             $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
 
-            // 聯表查詢醫生班表資料，加入 `clinicnumber` 和 `department` 資料表以顯示診間號和科別
+            // 擷取醫生班表資料與相關聯的表格資料，並將看診時間轉換為文字描述
             $查詢語句 = "
     SELECT 
         ds.doctorshift_id AS id, 
         ds.consultationD AS 日期,
-        cn.clinicnumber AS 診間號,
-        u.name AS 醫生姓名,
+        ds.clinicnumber_id AS 診間號,
+        CASE 
+            WHEN ds.consultationT_id = 1 THEN '早'
+            WHEN ds.consultationT_id = 2 THEN '午'
+            WHEN ds.consultationT_id = 3 THEN '晚'
+            ELSE '未知時段'
+        END AS 看診時間,
         d.department AS 科別,
-        ds.created_at AS 紀錄創建時間,
-        ds.consultationT_id AS 看診時段
+        u.name AS 醫生姓名,
+        ds.created_at AS 紀錄創建時間
     FROM doctorshift ds
     LEFT JOIN `user` u ON ds.user_id = u.user_id
     LEFT JOIN department d ON ds.medical_id = d.department_id
-    LEFT JOIN clinicnumber cn ON ds.clinicnumber_id = cn.clinicnumber_id
     ORDER BY ds.doctorshift_id ASC
     LIMIT ?, ?";
 
             // 準備並執行查詢
             $查詢準備 = mysqli_prepare($link, $查詢語句);
+            // 將參數綁定到SQL語句中，"ii"表示兩個整數類型參數
             mysqli_stmt_bind_param($查詢準備, "ii", $起始位置, $每頁記錄數);
+            // 執行查詢
             mysqli_stmt_execute($查詢準備);
+            // 獲取查詢結果
             $查詢結果 = mysqli_stmt_get_result($查詢準備);
 
+            // 如果查詢失敗，終止程式並顯示錯誤訊息
             if (!$查詢結果) {
-                die("查詢失敗: " . mysqli_error($link));
+                die("查詢失敗: " . mysqli_error($link)); // 顯示資料庫的錯誤信息
             }
 
             // 計算總記錄數
-            $總筆數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM doctorshift");
+            $總筆數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM doctorshift"); // 計算doctorshift表的總筆數
             if (!$總筆數查詢) {
-                die("查詢失敗: " . mysqli_error($link));
+                die("查詢失敗: " . mysqli_error($link)); // 如果查詢失敗，顯示錯誤訊息
             }
-            $總筆數結果 = mysqli_fetch_assoc($總筆數查詢);
-            $總記錄數 = $總筆數結果['總數'];
-            $總頁數 = ceil($總記錄數 / $每頁記錄數);
+            $總筆數結果 = mysqli_fetch_assoc($總筆數查詢); // 將查詢結果轉換為關聯陣列
+            $總記錄數 = $總筆數結果['總數']; // 提取總筆數
+            $總頁數 = ceil($總記錄數 / $每頁記錄數); // 計算總頁數，向上取整
+            
             ?>
 
             <!-- 顯示資料 -->
             <div class="form-container">
+                <p>總共 <?php echo $總記錄數; ?> 筆資料</p>
                 <table border="1">
                     <thead>
                         <tr>
