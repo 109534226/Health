@@ -229,6 +229,7 @@ if (!$result) {
             </li>
         <?php endwhile; ?>
     </ul>
+    
 
     <?php $link->close(); // 關閉資料庫連線 ?>
 
