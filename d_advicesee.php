@@ -285,15 +285,23 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 <td><?php echo htmlspecialchars($資料列['doctoradvice']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
                                 <td>
-                                    <form action="醫生建議修改000.php" method="post" style="display:inline;">
+                                    <form action="醫生建議修改000.php" method="POST" style="display:inline;">
                                         <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
+                                        <input type="hidden" name="consultationD"
+                                            value="<?php echo $資料列['consultationD']; ?>">
+                                        <input type="hidden" name="consultationT"
+                                            value="<?php echo $資料列['consultationT']; ?>">
+                                        <input type="hidden" name="medicalnumber"
+                                            value="<?php echo $資料列['medicalnumber']; ?>">
+                                        <input type="hidden" name="patientname" value="<?php echo $資料列['patientname']; ?>">
+                                        <input type="hidden" name="birthday" value="<?php echo $資料列['birthday']; ?>">
+                                        <input type="hidden" name="gender" value="<?php echo $資料列['gender']; ?>">
+                                        <input type="hidden" name="department" value="<?php echo $資料列['department']; ?>">
+                                        <input type="hidden" name="doctorname" value="<?php echo $資料列['doctorname']; ?>">
+                                        <input type="hidden" name="doctoradvice"
+                                            value="<?php echo $資料列['doctoradvice']; ?>">
                                         <button type="submit">修改</button>
                                     </form>
-                                    <!-- <form method="POST" action="醫生建議刪除ns.php" style="display:inline;">
-                                        <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
-                                        <input type="hidden" name="source" value="d_advicesee">
-                                        <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
-                                    </form> -->
                                 </td>
                             </tr>
                         <?php endwhile; ?>
