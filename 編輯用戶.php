@@ -207,8 +207,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         <label for="name">姓名:</label> <!-- 顯示用戶姓名的輸入欄位 -->
         <input type="text" name="name" value="<?php echo htmlspecialchars($user['name']); ?>"><br>
 
-        <label for="password">密碼:</label> <!-- 顯示用戶密碼的輸入欄位 -->
-        <input type="password" name="password" value=""><br> <!-- 密碼欄位留空，要求用戶輸入新密碼 -->
+            密碼: <input type="text" name="password" required><br>
 
         <label for="grade_id">使用者等級:</label> <!-- 顯示用戶等級的輸入欄位 -->
         <select name="grade_id">

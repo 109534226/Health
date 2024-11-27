@@ -9,37 +9,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
-    $sender_id = $_SESSION['user_id']; // 發送者 ID
-    $receiver_account = mysqli_real_escape_string($link, $_POST['receiver_account']);
-    $message = mysqli_real_escape_string($link, trim($_POST['message']));
+    // 接收表單資料
+    $sender_account = $_SESSION['帳號']; // 傳送者帳號
+    $receiver_account = trim($_POST['receiver_name']); // 接收者帳號
+    echo $receiver_account;
+    $message = trim($_POST['message']); // 訊息內容
+    // 防止 SQL 注入
+    $receiver_account = mysqli_real_escape_string($link, $receiver_account);
+    $message = mysqli_real_escape_string($link, $message);
 
-    // 驗證訊息是否為空
-    if (empty($message)) {
-        echo "<script>alert('訊息不可為空'); history.go(-1);</script>";
+    // 檢查是否有空值
+    $errors = [];
+    if ($receiver_account === "" || $receiver_account === null) {
+        $errors[] = '請選擇接收者帳號';
+    }
+    if ($message === "" || $message === null) {
+        $errors[] = '訊息不可為空';
+    }
+
+    if (!empty($errors)) {
+        echo "<script>
+                alert('" . implode("\\n", $errors) . "');
+                window.history.back();
+              </script>";
         exit();
     }
 
-    // 查找接收者 ID
-    $查詢接收者 = "
-        SELECT user_id FROM user WHERE account = '$receiver_account'
-    ";
-    $接收者結果 = mysqli_query($link, $查詢接收者);
+    // 查找傳送者 ID
+    $查詢傳送者 = "SELECT medical_id FROM medical WHERE user_id = (SELECT user_id FROM user WHERE account = '$sender_account')";
+    $傳送者結果 = mysqli_query($link, $查詢傳送者);
 
-    if ($接收者結果 && $row = mysqli_fetch_assoc($接收者結果)) {
-        $receiver_id = $row['user_id'];
+    if ($傳送者結果 && mysqli_num_rows($傳送者結果) > 0) {
+        $傳送者行 = mysqli_fetch_assoc($傳送者結果);
+        $sender_medical_id = $傳送者行['medical_id'];
+
+        // 查找接收者 ID
+        $查詢接收者 = "SELECT medical_id FROM medical WHERE user_id = (SELECT user_id FROM user WHERE account = '$receiver_account')";
+        $接收者結果 = mysqli_query($link, $查詢接收者);
+    }
+    if ($接收者結果 && mysqli_num_rows($接收者結果) > 0) {
+        $接收者行 = mysqli_fetch_assoc($接收者結果);
+        $receiver_medical_id = $接收者行['medical_id'];
 
         // 插入留言
-        $插入留言 = "
-            INSERT INTO messenger (medicalS_id, medicalP_id, messenger) 
-            VALUES ($sender_id, $receiver_id, '$message')
-        ";
+        $插入留言 = "INSERT INTO messenger (medicalS_id, medicalP_id, messenger) VALUES ($sender_medical_id, $receiver_medical_id, '$message')";
+
         if (mysqli_query($link, $插入留言)) {
-            echo "<script>alert('留言成功'); window.location.href = '留言頁面d.php';</script>";
+            echo "<script>
+                        alert('留言成功');
+                        window.location.href = '留言頁面d.php';
+                      </script>";
         } else {
-            echo "<script>alert('留言失敗'); history.go(-1);</script>";
+            $error_message = mysqli_error($link);
+            echo "<script>
+                        alert('留言失敗，錯誤訊息: $error_message');
+                        window.history.back();
+                      </script>";
         }
     } else {
-        echo "<script>alert('接收者不存在'); history.go(-1);</script>";
+        echo "<script>
+                    alert('接收者不存在，請檢查接收者帳號。');
+                    window.history.back();
+                  </script>";
     }
+} else {
+    echo "<script>
+                alert('傳送者不存在，請檢查傳送者帳號。');
+                window.history.back();
+              </script>";
 }
+
+// 關閉資料庫連線
+mysqli_close($link);
 ?>
