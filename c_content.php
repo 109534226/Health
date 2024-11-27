@@ -222,13 +222,14 @@ if (!$result) {
             <li>
                 <h2><?= htmlspecialchars($row['title']) ?></h2>
                 <p><?= htmlspecialchars($row['subtitle']) ?></p>
-                <form method="POST">
+                <form method="POST">    
                     <input type="hidden" name="article_id" value="<?= $row['article_id'] ?>">
                     <input type="button" onclick="location.href='刪除.php'" name="publish" value="刪除">
                 </form>
             </li>
         <?php endwhile; ?>
     </ul>
+    
 
     <?php $link->close(); // 關閉資料庫連線 ?>
 
