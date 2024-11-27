@@ -108,7 +108,7 @@ header("Pragma: no-cache"); // HTTP/1.0 的緩存控制，強制不緩存
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="" class="nav-item nav-link">編輯用戶權限</a>
+                        <a href="h_edituser.php" class="nav-item nav-link">編輯用戶權限</a>
                         <a href="" class="nav-item nav-link">新增預約</a>
                         <a href="" class="nav-item nav-link">各科別報告</a>
                         <a href="" class="nav-item nav-link">滿意度分析</a>
@@ -186,19 +186,7 @@ header("Pragma: no-cache"); // HTTP/1.0 的緩存控制，強制不緩存
             document.getElementById('deleteAccountForm').submit();
         }
     </script>
-    <?php
-    // 檢查是否有錯誤訊息
-    if (isset($_GET['error'])) {
-        echo "<script>alert('" . $_GET['error'] . "');</script>";
-        echo "<script>enableFields();</script>"; // 保持欄位開啟
-    }
 
-    // 檢查是否有成功訊息
-    if (isset($_GET['success'])) {
-        echo "<script>alert('" . $_GET['success'] . "');</script>";
-        echo "<script>disableFields();</script>"; // 保持欄位鎖定
-    }
-    ?>
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>

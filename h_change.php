@@ -118,7 +118,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 				</button>
 				<div class="collapse navbar-collapse" id="navbarCollapse">
 					<div class="navbar-nav ms-auto py-0">
-						<a href="" class="nav-item nav-link">編輯用戶權限</a>
+						<a href="h_edituser.php" class="nav-item nav-link">編輯用戶權限</a>
 						<a href="" class="nav-item nav-link">新增預約</a>
 						<a href="" class="nav-item nav-link">各科別報告</a>
 						<a href="" class="nav-item nav-link">滿意度分析</a>
