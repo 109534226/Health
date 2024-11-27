@@ -175,18 +175,28 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 ----<患者資料修改>----
             </h1>
             <br />
-
+                
             <?php
             include "db.php";
 
-            if (isset($_GET['id']) && !empty($_GET['id'])) {
-                $id = $_GET['id'];
+            if (isset($_POST['id']) && !empty($_POST['id'])) {
+                $id = $_POST['id'];
 
-                // 日誌來確認 ID 的值是否接收到
-                error_log("Received ID: " . $id);
+                // 使用聯結查詢來獲取完整患者資料
+                $query = "SELECT 
+                  p.*, 
+                  g.gender, 
+                  d.department, 
+                  ct.consultationT, 
+                  u.name AS doctorname
+              FROM patient p
+              LEFT JOIN gender g ON p.gender_id = g.gender_id
+              LEFT JOIN department d ON p.department_id = d.department_id
+              LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
+              LEFT JOIN consultationt ct ON ds.consultationT_id = ct.consultationT_id
+              LEFT JOIN `user` u ON ds.user_id = u.user_id
+              WHERE p.patient_id = ?";
 
-                // 根據 ID 獲取患者資料
-                $query = "SELECT * FROM patient WHERE patient_id = ?";
                 $stmt = mysqli_prepare($link, $query);
                 mysqli_stmt_bind_param($stmt, "i", $id);
                 mysqli_stmt_execute($stmt);
@@ -202,7 +212,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 echo "未提供 ID。";
                 exit;
             }
-
             ?>
 
             <div class="form-container">
@@ -258,7 +267,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
                     <button type="submit" class="aa">更新</button>
                 </form>
-
             </div>
 
             <script>

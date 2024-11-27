@@ -26,19 +26,43 @@ $當前狀況 = mysqli_real_escape_string($link, $當前狀況);
 $過敏藥物 = mysqli_real_escape_string($link, $過敏藥物);
 $歷史重大疾病 = mysqli_real_escape_string($link, $歷史重大疾病);
 
-// 準備 SQL 更新語句，並更新創建時間為當前時間
-$SQL指令 = "UPDATE `patients` SET 
+// 根據關聯表格更新資料
+// 首先獲取對應的性別 ID、科別 ID、看診時段 ID、看診醫生 ID
+$性別查詢 = "SELECT gender_id FROM gender WHERE gender = '$性別'";
+$性別結果 = mysqli_query($link, $性別查詢);
+$性別行 = mysqli_fetch_assoc($性別結果);
+$性別_id = $性別行['gender_id'];
+
+$科別查詢 = "SELECT department_id FROM department WHERE department = '$看診科別'";
+$科別結果 = mysqli_query($link, $科別查詢);
+$科別行 = mysqli_fetch_assoc($科別結果);
+$科別_id = $科別行['department_id'];
+
+$時段查詢 = "SELECT consultationT_id FROM consultationt WHERE consultationT = '$看診時段'";
+$時段結果 = mysqli_query($link, $時段查詢);
+$時段行 = mysqli_fetch_assoc($時段結果);
+$時段_id = $時段行['consultationT_id'];
+
+$醫生查詢 = "SELECT user_id FROM `user` WHERE name = '$看診醫生'";
+$醫生結果 = mysqli_query($link, $醫生查詢);
+$醫生行 = mysqli_fetch_assoc($醫生結果);
+$醫生_id = $醫生行['user_id'];
+
+// 準備更新患者資料的 SQL 指令
+$SQL指令 = "UPDATE `patient` SET 
                 `medicalnumber` = '$病歷號', 
                 `patientname` = '$患者姓名', 
-                `gender` = '$性別', 
+                `gender_id` = '$性別_id', 
                 `birthday` = '$出生日期', 
-                `consultationT` = '$看診時段',
-                `department` = '$看診科別',
-                `doctorname` = '$看診醫生',
+                `doctorshift_id` = (
+                    SELECT doctorshift_id FROM doctorshift 
+                    WHERE consultationT_id = '$時段_id' AND user_id = '$醫生_id' 
+                    LIMIT 1
+                ),
+                `department_id` = '$科別_id',
                 `currentsymptoms` = '$當前狀況', 
                 `allergies` = '$過敏藥物', 
-                `medicalhistory` = '$歷史重大疾病',
-                `created_at` = NOW()
+                `medicalhistory` = '$歷史重大疾病'
             WHERE `patient_id` = $id";
 
 // 執行 SQL 指令
