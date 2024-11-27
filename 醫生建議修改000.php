@@ -177,58 +177,90 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             <br />
 
 
+            <?php
+            include "db.php";
+
+            if (isset($_GET['id']) && !empty($_GET['id'])) {
+                $id = $_GET['id'];
+
+                // 日誌來確認 ID 的值是否接收到
+                error_log("Received ID: " . $id);
+
+                // 根據 ID 獲取患者資料
+                $query = "SELECT * FROM patient WHERE patient_id = ?";
+                $stmt = mysqli_prepare($link, $query);
+                mysqli_stmt_bind_param($stmt, "i", $id);
+                mysqli_stmt_execute($stmt);
+                $result = mysqli_stmt_get_result($stmt);
+
+                if ($result && mysqli_num_rows($result) > 0) {
+                    $row = mysqli_fetch_assoc($result);
+                } else {
+                    echo "找不到此 ID 對應的患者資料。";
+                    exit;
+                }
+            } else {
+                echo "未提供 ID。";
+                exit;
+            }
+            ?>
+
+
             <div class="form-container">
-                <form id="updateForm" action="醫生建議修改1.php" method="post">
-                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($row['id']); ?>">
+                <form id="updateForm" action="患者資料修改2.php" method="post" onsubmit="return confirmUpdate()">
+                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($row['patient_id']); ?>">
 
-                    <label for="appointment_date">看診日期</label>
-                    <input id="appointment_date" type="date" name="appointment_date"
-                        value="<?php echo htmlspecialchars($row['dateday']); ?>" required />
+                    <label>病例號:</label>
+                    <input type="text" id="medical_record_number" name="medical_record_number"
+                        value="<?php echo htmlspecialchars($row['medicalnumber']); ?>" required><br>
 
-                    <label for="consultationt">看診時段</label>
-                    <select id="consultationt" name="consultationt" required>
+                    <label>患者姓名:</label>
+                    <input type="text" id="patient_name" name="patient_name"
+                        value="<?php echo htmlspecialchars($row['patientname']); ?>" required><br>
+
+                    <label>性別:</label>
+                    <select id="gender" name="gender" required>
+                        <option value="">選擇性別</option>
+                        <option value="男" <?php echo $row['gender'] == '男' ? 'selected' : ''; ?>>男</option>
+                        <option value="女" <?php echo $row['gender'] == '女' ? 'selected' : ''; ?>>女</option>
+                    </select><br>
+
+                    <label>出生日期:</label>
+                    <input type="date" id="birth_date" name="birth_date"
+                        value="<?php echo htmlspecialchars($row['birthday']); ?>" required><br>
+
+                    <label for="consultation">看診時段:</label>
+                    <select id="consultation" name="consultation" required>
                         <option value="">選擇時段</option>
                         <option value="早" <?php echo $row['consultationT'] == '早' ? 'selected' : ''; ?>>早</option>
                         <option value="午" <?php echo $row['consultationT'] == '午' ? 'selected' : ''; ?>>午</option>
                         <option value="晚" <?php echo $row['consultationT'] == '晚' ? 'selected' : ''; ?>>晚</option>
                     </select><br>
 
-
-                    <label for="clinic_number">病歷號</label>
-                    <input id="clinic_number" type="text" name="clinic_number"
-                        value="<?php echo htmlspecialchars($row['medicalnumber']); ?>" required />
-
-                    <label for="patient_name">患者姓名</label>
-                    <input id="patient_name" type="text" name="patient_name"
-                        value="<?php echo htmlspecialchars($row['patientname']); ?>" required />
-
-                    <label>出生年月日:</label>
-                    <input type="date" name="birth_date" value="<?php echo htmlspecialchars($row['birthdaydate']); ?>"
-                        required>
-
-                    <label for="gender">性別</label>
-                    <select id="gender" name="gender" required>
-                        <option value="">選擇性別</option>
-                        <option value="男" <?php echo $row['gender'] == '男' ? 'selected' : ''; ?>>男</option>
-                        <option value="女" <?php echo $row['gender'] == '女' ? 'selected' : ''; ?>>女</option>
-                    </select>
-
-                    <label for="department">看診科別</label>
+                    <label for="department">看診科別:</label>
                     <input id="department" type="text" name="department"
-                        value="<?php echo htmlspecialchars($row['department']); ?>" required />
+                        value="<?php echo htmlspecialchars($row['department']); ?>" required><br>
 
-                    <label for="doctor_name">看診醫生</label>
+                    <label for="doctor_name">看診醫生:</label>
                     <input id="doctor_name" type="text" name="doctor_name"
-                        value="<?php echo htmlspecialchars($row['doctorname']); ?>" required />
+                        value="<?php echo htmlspecialchars($row['doctorname']); ?>" required><br>
 
-                    <label for="doctor_advice">醫生建議</label>
-                    <input id="doctor_advice" type="text" name="doctor_advice"
-                        value="<?php echo htmlspecialchars($row['doctoradvice']); ?>" required />
+                    <label>當前症狀:</label>
+                    <textarea id="current_symptoms" name="current_symptoms"
+                        required><?php echo htmlspecialchars($row['currentsymptoms']); ?></textarea><br>
 
-                    <br>
-                    <button type="button" class="aa" onclick="confirmUpdate()">更新</button>
+                    <label>過敏藥物:</label>
+                    <textarea id="allergies"
+                        name="allergies"><?php echo htmlspecialchars($row['allergies']); ?></textarea><br>
+
+                    <label>歷史重大疾病:</label>
+                    <textarea id="medical_history"
+                        name="medical_history"><?php echo htmlspecialchars($row['medicalhistory']); ?></textarea><br>
+
+                    <button type="submit" class="aa">更新</button>
                 </form>
             </div>
+
 
             <script>
                 function confirmUpdate() {

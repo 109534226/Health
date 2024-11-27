@@ -219,25 +219,27 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
             // 擷取患者資料與相關聯的表格資料
             $查詢語句 = "
-    SELECT 
-        p.patient_id AS id, 
-        p.patientname, 
-        p.birthday, 
-        g.gender, 
-        p.medicalnumber, 
-        d.department, 
-        ds.consultationD, 
-        ct.consultationT,  /* 取得看診時段名稱 */
-        u.name AS doctorname,
-        p.doctoradvice, 
-        p.created_at
-    FROM patient p
-    LEFT JOIN gender g ON p.gender_id = g.gender_id
-    LEFT JOIN department d ON p.department_id = d.department_id
-    LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
-    LEFT JOIN consultationt ct ON ds.consultationT_id = ct.consultationT_id  /* 連接 consultationt 表格來獲取時段名稱 */
-    LEFT JOIN `user` u ON ds.user_id = u.user_id
-    LIMIT ?, ?";
+            SELECT 
+                p.patient_id AS id, 
+                p.patientname, 
+                p.birthday, 
+                g.gender, 
+                p.medicalnumber, 
+                d.department, 
+                ds.consultationD, 
+                ct.consultationT,  /* 取得看診時段名稱 */
+                u.name AS doctorname,
+                p.doctoradvice, 
+                p.created_at
+            FROM patient p
+            LEFT JOIN gender g ON p.gender_id = g.gender_id
+            LEFT JOIN department d ON p.department_id = d.department_id
+            LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
+            LEFT JOIN consultationt ct ON ds.consultationT_id = ct.consultationT_id  /* 連接 consultationt 表格來獲取時段名稱 */
+            LEFT JOIN `user` u ON ds.user_id = u.user_id
+            ORDER BY p.patient_id ASC /* 加上這行來根據ID排序 */
+            LIMIT ?, ?";
+
 
             // 使用準備語句
             $查詢準備 = mysqli_prepare($link, $查詢語句);
