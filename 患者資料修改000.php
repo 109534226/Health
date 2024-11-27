@@ -176,7 +176,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             </h1>
             <br />
 
-           
+
             <div class="form-container">
                 <!-- 表單顯示及更新 -->
                 <form id="updateForm" action="患者資料修改1.php" method="post" onsubmit="return confirmUpdate()">
