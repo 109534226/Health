@@ -145,7 +145,7 @@ if (!$result) {
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a href="c_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="c_change.php" class="dropdown-item">忘記密碼</a></li>
+                                <li><a href="c_change.php" class="dropdown-item">變更密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
 

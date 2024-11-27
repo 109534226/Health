@@ -125,7 +125,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a href="d_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="d_change.php" class="dropdown-item">忘記密碼</a></li>
+                                <li><a href="d_change.php" class="dropdown-item">變更密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -184,8 +184,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     <input id="appointment_date" type="date" name="appointment_date"
                         value="<?php echo htmlspecialchars($row['dateday']); ?>" required />
 
-                    <label for="appointment_date">看診時段</label>
-                    <select id="gender" name="gender" required>
+                    <label for="consultationt">看診時段</label>
+                    <select id="consultationt" name="consultationt" required>
                         <option value="">選擇時段</option>
                         <option value="早" <?php echo $row['consultationT'] == '早' ? 'selected' : ''; ?>>早</option>
                         <option value="午" <?php echo $row['consultationT'] == '午' ? 'selected' : ''; ?>>午</option>
@@ -234,19 +234,19 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     const form = document.getElementById('updateForm');
                     const data = {
                         日期: form.appointment_date.value,
+                        時段: form.consultationt.options[form.consultationt.selectedIndex].text,
                         病歷號: form.clinic_number.value,
                         患者姓名: form.patient_name.value,
                         出生日期: form.birth_date.value,
-                        性別: form.gender.value,
-                        看診醫生: form.doctor_name.value,
-                        醫生建議: form.doctor_advice.value,
-                        是否回診: form.follow_up.value
+                        性別: form.gender.options[form.gender.selectedIndex].text,
+                        科別: form.department.options[form.department.selectedIndex].text,
+                        醫生: form.doctor_name.options[form.doctor_name.selectedIndex].text,
+                        建議: form.doctor_advice.value
                     };
 
                     const confirmation = confirm(`確認修改以下資料嗎？\n\n` +
-                        `日期: ${data.日期}\n病歷號: ${data.病歷號}\n患者姓名: ${data.患者姓名}\n` +
-                        `出生日期: ${data.出生日期}\n性別: ${data.性別}\n看診醫生: ${data.看診醫生}\n` +
-                        `醫生建議: ${data.醫生建議}\n是否回診: ${data.是否回診}`);
+                        `日期: ${data.日期}\n時段: ${data.時段}\n病歷號: ${data.病歷號}\n患者姓名: ${data.患者姓名}\n` +
+                        `出生日期: ${data.出生日期}\n性別: ${data.性別}\n科別: ${data.科別}\n醫生: ${data.醫生}\n建議: ${data.建議}`);
 
                     if (confirmation) {
                         form.submit();
