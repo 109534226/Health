@@ -108,16 +108,16 @@ header("Pragma: no-cache"); // HTTP/1.0 的緩存控制，強制不緩存
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="" class="nav-item nav-link">首頁</a>
-                        <a href="" class="nav-item nav-link">相關醫療資訊</a>
-                        <a href="" class="nav-item nav-link">預約及現場掛號人數</a>
-                        <a href="" class="nav-item nav-link">患者故事與經驗分享</a>
+                        <a href="" class="nav-item nav-link">編輯用戶權限</a>
+                        <a href="" class="nav-item nav-link">新增預約</a>
+                        <a href="" class="nav-item nav-link">各科別報告</a>
+                        <a href="" class="nav-item nav-link">滿意度分析</a>
                         <div class="nav-item">
                             <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="u_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="u_change.php" class="dropdown-item">忘記密碼</a></li>
+                                <li><a href="h_profile.php" class="dropdown-item">關於我</a></li>
+                                <li><a href="h_change.php" class="dropdown-item">變更密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
