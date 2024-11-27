@@ -18,7 +18,7 @@ $患者姓名 = mysqli_real_escape_string($link, $患者姓名);
 $性別 = mysqli_real_escape_string($link, $性別);
 $科別 = mysqli_real_escape_string($link, $科別);
 $看診醫生 = mysqli_real_escape_string($link, $看診醫生);
-$ = mysqli_real_escape_string($link, $);
+$看診時間 = mysqli_real_escape_string($link, $看診時間);
 
 $errors = [];
 if (empty($日期)) $errors[] = '日期未輸入';
