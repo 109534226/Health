@@ -128,7 +128,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a href="d_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="d_change.php" class="dropdown-item">忘記密碼</a></li>
+                                <li><a href="d_change.php" class="dropdown-item">變更密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -202,24 +202,25 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             if (!empty($搜尋詞) && strlen($搜尋詞) >= $最小搜尋長度) {
                 // 進行精確比對查詢
                 $查詢語句 = "
-        SELECT 
-            p.patient_id AS id, 
-            p.patientname, 
-            p.birthday, 
-            g.gender, 
-            p.medicalnumber, 
-            d.department, 
-            ds.consultationD, 
-            ds.consultationT_id, 
-            u.name AS doctorname,
-            p.doctoradvice, 
-            p.created_at
-        FROM patient p
-        LEFT JOIN gender g ON p.gender_id = g.gender_id
-        LEFT JOIN department d ON p.department_id = d.department_id
-        LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
-        LEFT JOIN `user` u ON ds.user_id = u.user_id
-        WHERE p.patientname = ?";
+    SELECT 
+        p.patient_id AS id, 
+        p.patientname, 
+        p.birthday, 
+        g.gender, 
+        p.medicalnumber, 
+        d.department, 
+        ds.consultationD, 
+        ct.consultationT,  /* 取得看診時段名稱 */
+        u.name AS doctorname,
+        p.doctoradvice, 
+        p.created_at
+    FROM patient p
+    LEFT JOIN gender g ON p.gender_id = g.gender_id
+    LEFT JOIN department d ON p.department_id = d.department_id
+    LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
+    LEFT JOIN consultationt ct ON ds.consultationT_id = ct.consultationT_id  /* 連接 consultationt 表格來獲取時段名稱 */
+    LEFT JOIN `user` u ON ds.user_id = u.user_id
+    WHERE p.patientname = ?";
                 $查詢準備 = mysqli_prepare($link, $查詢語句);
                 mysqli_stmt_bind_param($查詢準備, "s", $搜尋詞);
                 mysqli_stmt_execute($查詢準備);
@@ -242,25 +243,26 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
                     // 查詢當前頁碼的資料
                     $查詢語句 = "
-            SELECT 
-                p.patient_id AS id, 
-                p.patientname, 
-                p.birthday, 
-                g.gender, 
-                p.medicalnumber, 
-                d.department, 
-                ds.consultationD, 
-                ds.consultationT_id, 
-                u.name AS doctorname,
-                p.doctoradvice, 
-                p.created_at
-            FROM patient p
-            LEFT JOIN gender g ON p.gender_id = g.gender_id
-            LEFT JOIN department d ON p.department_id = d.department_id
-            LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
-            LEFT JOIN `user` u ON ds.user_id = u.user_id
-            WHERE p.patientname = ?
-            LIMIT ?, ?";
+        SELECT 
+            p.patient_id AS id, 
+            p.patientname, 
+            p.birthday, 
+            g.gender, 
+            p.medicalnumber, 
+            d.department, 
+            ds.consultationD, 
+            ct.consultationT,  /* 取得看診時段名稱 */
+            u.name AS doctorname,
+            p.doctoradvice, 
+            p.created_at
+        FROM patient p
+        LEFT JOIN gender g ON p.gender_id = g.gender_id
+        LEFT JOIN department d ON p.department_id = d.department_id
+        LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
+        LEFT JOIN consultationt ct ON ds.consultationT_id = ct.consultationT_id  /* 連接 consultationt 表格來獲取時段名稱 */
+        LEFT JOIN `user` u ON ds.user_id = u.user_id
+        WHERE p.patientname = ?
+        LIMIT ?, ?";
                     $查詢準備 = mysqli_prepare($link, $查詢語句);
                     mysqli_stmt_bind_param($查詢準備, "sii", $搜尋詞, $起始位置, $每頁筆數);
                     mysqli_stmt_execute($查詢準備);
@@ -291,7 +293,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <tr>
                                 <th>ID</th>
                                 <th>看診日期</th>
-                                <th>看診時間</th>
+                                <th>看診時段</th>
                                 <th>病例號</th>
                                 <th>患者姓名</th>
                                 <th>出生日期</th>
@@ -308,7 +310,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 <tr>
                                     <td><?php echo htmlspecialchars($資料列['id']); ?></td>
                                     <td><?php echo htmlspecialchars($資料列['consultationD']); ?></td>
-                                    <td><?php echo htmlspecialchars($資料列['consultationT_id']); ?></td> <!-- 顯示看診時間 -->
+                                    <td><?php echo htmlspecialchars($資料列['consultationT']); ?></td>
                                     <td><?php echo htmlspecialchars($資料列['medicalnumber']); ?></td>
                                     <td><?php echo htmlspecialchars($資料列['patientname']); ?></td>
                                     <td><?php echo htmlspecialchars($資料列['birthday']); ?></td>
@@ -337,6 +339,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     <p>無剩餘資料。</p>
                 <?php endif; ?>
             </div>
+
 
         </div>
 

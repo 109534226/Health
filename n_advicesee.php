@@ -128,7 +128,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a href="n_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="n_change.php" class="dropdown-item">忘記密碼</a></li>
+                                <li><a href="n_change.php" class="dropdown-item">變更密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -206,39 +206,50 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     SELECT 
         p.patient_id AS id, 
         ds.consultationD AS 看診日期,
-        ds.clinicnumber_id AS 診間號,
+        cn.clinicnumber AS 診間號,
         p.patientname AS 患者姓名,
         p.birthday AS 出生日期,
         g.gender AS 性別,
+        d.department AS 看診科別,
         u.name AS 醫生姓名,
         p.doctoradvice AS 醫生建議,
-        p.followup AS 是否回診,
-        p.created_at AS 紀錄創建時間,
-        ds.consultationT_id AS 看診時段
+        ds.consultationT_id AS 看診時段,
+        p.created_at AS 紀錄創建時間
     FROM patient p
     LEFT JOIN gender g ON p.gender_id = g.gender_id
     LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
+    LEFT JOIN department d ON p.department_id = d.department_id
+    LEFT JOIN clinicnumber cn ON ds.clinicnumber_id = cn.clinicnumber_id
     LEFT JOIN `user` u ON ds.user_id = u.user_id
     ORDER BY p.patient_id ASC
     LIMIT ?, ?";
 
-            // 準備並執行查詢
+            // 使用預備語句
             $查詢準備 = $link->prepare($查詢語句);
-            $查詢準備->bind_param("ii", $起始位置, $每頁記錄數);
-            $查詢準備->execute();
-            $查詢結果 = $查詢準備->get_result();
+            if (!$查詢準備) {
+                die("查詢準備失敗: " . $link->error);
+            }
 
+            // 綁定參數
+            $查詢準備->bind_param("ii", $起始位置, $每頁記錄數);
+
+            // 執行查詢
+            if (!$查詢準備->execute()) {
+                die("執行失敗: " . $查詢準備->error);
+            }
+
+            $查詢結果 = $查詢準備->get_result();
             if (!$查詢結果) {
-                die("查詢失敗: " . mysqli_error($link));
+                die("查詢失敗: " . $link->error);
             }
 
             // 計算總記錄數
-            $總筆數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM patient");
-            if (!$總筆數查詢) {
-                die("查詢失敗: " . mysqli_error($link));
+            $總筆數查詢 = "SELECT COUNT(*) as 總數 FROM patient";
+            $總筆數結果 = mysqli_query($link, $總筆數查詢);
+            if (!$總筆數結果) {
+                die("查詢失敗: " . $link->error);
             }
-            $總筆數結果 = mysqli_fetch_assoc($總筆數查詢);
-            $總記錄數 = $總筆數結果['總數'];
+            $總記錄數 = mysqli_fetch_assoc($總筆數結果)['總數'];
             $總頁數 = ceil($總記錄數 / $每頁記錄數);
             ?>
 
@@ -256,49 +267,54 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <th>看診科別</th>
                             <th>看診醫生</th>
                             <th>醫生建議</th>
-                            <th>是否回診</th>
                             <th>看診時段</th>
                             <th>紀錄創建時間</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php while ($資料列 = mysqli_fetch_assoc($查詢結果)): ?>
+                        <?php if ($查詢結果->num_rows > 0): ?>
+                            <?php while ($資料列 = $查詢結果->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($資料列['id']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['看診日期']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['診間號']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['患者姓名']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['出生日期']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['性別']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['看診科別']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['醫生姓名']); ?></td>
+                                    <td><?php echo htmlspecialchars($資料列['醫生建議']); ?></td>
+                                    <td>
+                                        <?php
+                                        // 將看診時段的數字 ID 轉換為文字描述
+                                        switch ($資料列['看診時段']) {
+                                            case 1:
+                                                echo '早';
+                                                break;
+                                            case 2:
+                                                echo '午';
+                                                break;
+                                            case 3:
+                                                echo '晚';
+                                                break;
+                                            default:
+                                                echo '未知時段';
+                                        }
+                                        ?>
+                                    </td>
+                                    <td><?php echo htmlspecialchars($資料列['紀錄創建時間']); ?></td>
+                                </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
                             <tr>
-                                <td><?php echo htmlspecialchars($資料列['id']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['看診日期']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['診間號']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['患者姓名']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['出生日期']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['性別']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['醫生姓名']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['醫生建議']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['是否回診']); ?></td>
-                                <td>
-                                    <?php
-                                    // 將看診時段的數字 ID 轉換為文字描述
-                                    switch ($資料列['看診時段']) {
-                                        case 1:
-                                            echo '早';
-                                            break;
-                                        case 2:
-                                            echo '午';
-                                            break;
-                                        case 3:
-                                            echo '晚';
-                                            break;
-                                        default:
-                                            echo '未知時段';
-                                    }
-                                    ?>
-                                </td>
-                                <td><?php echo htmlspecialchars($資料列['紀錄創建時間']); ?></td>
+                                <td colspan="11">查無資料。</td>
                             </tr>
-                        <?php endwhile; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
 
-
+            <!-- 分頁 -->
             <div class="pagination">
                 <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p> <!-- 顯示總資料筆數 -->
 

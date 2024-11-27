@@ -1,43 +1,33 @@
 <?php
-session_start();
+session_start(); // 啟動 Session，讓伺服器能夠追蹤使用者的登入狀態
+include "db.php"; // 引入資料庫連線檔案
 
-// 禁止瀏覽器緩存頁面
-header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Cache-Control: post-check=0, pre-check=0", false);
-header("Pragma: no-cache");
-
-// 確保用戶已經登入，否則重定向到登入頁面
+// 確認使用者是否已登入
 if (!isset($_SESSION["登入狀態"]) || $_SESSION["登入狀態"] !== true) {
-    echo "<script>
-            alert('你還沒有登入，請先登入帳號。');
-            window.location.href = 'login.php';
-          </script>";
-    exit();
+    // 如果 Session 中沒有設定登入狀態，或狀態不為 true，則跳轉到登入頁面
+    header("Location: login.php"); // 跳轉到登入頁面
+    exit(); // 停止後續程式執行
 }
 
-// 檢查 "帳號" 和 "姓名" 是否存在於 $_SESSION 中
-if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
-    // 獲取用戶帳號和姓名
-    $帳號 = $_SESSION['帳號'];
-    $姓名 = $_SESSION['姓名'];
-} else {
-    echo "<script>
-            alert('會話過期或資料遺失，請重新登入。');
-            window.location.href = 'login.php';
-          </script>";
-    exit();
-}
+// 從 Session 中獲取使用者的帳號
+$帳號 = $_SESSION["帳號"]; // 取得使用者的帳號，通常在登入時已設置到 Session 中
+
+// 設置 HTTP 標頭，防止頁面被瀏覽器緩存
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0"); // 不允許瀏覽器緩存頁面內容
+header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // 設定頁面已過期的時間為一個很早的時間點
+header("Pragma: no-cache"); // HTTP/1.0 的緩存控制，強制不緩存
+
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 
 <head>
     <meta charset="utf-8">
     <title>健康醫療網站</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="Free HTML Templates" name="keywords">
-    <meta content="Free HTML Templates" name="description">
+    <meta content="Health Website" name="keywords">
+    <meta content="Health Website" name="description">
 
     <!-- Favicon -->
     <link href="img/favicon.ico" rel="icon">
@@ -49,7 +39,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         rel="stylesheet">
 
     <!-- Icon Font Stylesheet -->
-
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -63,6 +52,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
 
+    <!-- 自訂樣式 -->
     <style>
         /* 彈出對話框的樣式 */
         .logout-box {
@@ -98,39 +88,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             margin: 0;
             padding: 0;
         }
-
-        table {
-            width: 100%;
-            /* 設定表格寬度為 100% */
-            border-collapse: collapse;
-            /* 將內框和外框線合併，避免雙線 */
-            border: 2px solid black;
-            /* 外框，設定表格外邊框線 */
-        }
-
-        th,
-        td {
-            border: 1px solid black;
-            /* 內框，設定每個表格單元格之間的邊框 */
-            padding: 10px;
-            /* 單元格內部的間距 */
-            text-align: center;
-            /* 將文字置中 */
-        }
-
-        thead {
-            background-color: #f2f2f2;
-            /* 表頭背景顏色 */
-            font-weight: bold;
-            /* 設置表頭文字為粗體 */
-            font-size: 1.5em;
-            /* 設置表頭文字大小 */
-        }
-
-        tbody td {
-            font-size: 1.2em;
-            /* 設置表格內容文字大小 */
-        }
     </style>
     <script>
         // 用戶成功登入後，設置登錄狀態
@@ -140,10 +97,10 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
 <body>
     <!-- 頁首 Start -->
-    <div class="container-fluid sticky-top bg-white shadow-sm">
+    <div class="container-fluid sticky-top bg-white shadow-sm mb-5">
         <div class="container">
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
-                <a href="n_profile.php" class="navbar-brand">
+                <a href="index.html" class="navbar-brand">
                     <h1 class="m-0 text-uppercase text-primary"><i class="fa fa-clinic-medical me-2"></i>健康醫療網站</h1>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
@@ -151,26 +108,25 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="c_user.php" class="nav-item nav-link active">用戶管理</a>
-                        <a href="c_content.php" class="nav-item nav-link ">內容管理</a>
-                        <a href="c_security.php" class="nav-item nav-link">安全管理</a>
-
+                        <a href="" class="nav-item nav-link">編輯用戶權限</a>
+                        <a href="" class="nav-item nav-link">新增預約</a>
+                        <a href="" class="nav-item nav-link">各科別報告</a>
+                        <a href="" class="nav-item nav-link">滿意度分析</a>
                         <div class="nav-item">
-                            <a href="c_profile.php" class="nav-link dropdown-toggle " data-bs-toggle="dropdown"
+                            <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="c_profile.php" class="dropdown-item ">關於我</a></li>
-                                <li><a href="c_change.php" class="dropdown-item">變更密碼</a></li>
+                                <li><a href="h_profile.php" class="dropdown-item">關於我</a></li>
+                                <li><a href="h_change.php" class="dropdown-item">變更密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
-                                <form id="deleteAccountForm" action="刪除.php" method="POST" style="display:none;">
+                                <from id="deleteAccountForm" action="刪除.php" method="POST" style="display:none;">
                                     <input type="hidden" name="帳號" value="<?php echo $帳號; ?>">
                                     <input type="hidden" name="姓名" value="<?php echo $姓名; ?>">
-                                </form>
+                                </from>
                             </ul>
                         </div>
-
                     </div>
                 </div>
             </nav>
@@ -200,95 +156,9 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     </div>
     <!-- 刪除帳號對話框 End -->
 
-    <?php
-// 啟動 Session，確保能夠使用 Session 來存儲和共享資料
-session_start();
-
-// 引入資料庫連線檔案
-include 'db.php';
-
-// 查詢 `user` 表與 `grade` 表的資料，通過 `grade_id` 進行關聯，並按 `user.id` 升序排序
-$sql = "
-    SELECT user.user_id AS id, user.name AS username, user.account, user.password, grade.grade
-    FROM user
-    LEFT JOIN grade ON user.grade_id = grade.grade_id
-    ORDER BY user.user_id ASC
-";
-
-// 執行查詢並將結果存入 $result
-$result = mysqli_query($link, $sql);
-
-// 檢查查詢是否成功，如果失敗則終止並顯示錯誤訊息
-if (!$result) {
-    die("查詢失敗: " . mysqli_error($link));
-}
-
-// 將查詢到的所有結果放入一個關聯陣列中，方便後續使用
-$rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
-?>
-
-<!-- 顯示頁面標題 -->
-<h1>用戶管理</h1>
-
-<!-- 顯示新增用戶的連結，點擊後可以跳轉到新增用戶的表單 -->
-<a href="新增用戶.php">新增用戶</a>
-
-<!-- 建立一個表格來顯示用戶資料 -->
-<table width="100%" border="1">
-    <tr>
-        <th>ID</th>
-        <th>用戶名</th>
-        <th>帳號</th>
-        <th>角色</th>
-        <th>操作</th>
-    </tr>
-
-    <!-- 使用 PHP 循環顯示每一筆查詢結果 -->
-    <?php foreach ($rows as $row): ?>
-        <tr>
-            <!-- 顯示用戶的 ID -->
-            <td><?php echo $row['id']; ?></td>
-
-            <!-- 顯示用戶的姓名 -->
-            <td><?php echo htmlspecialchars($row['username']); ?></td>
-
-            <!-- 顯示用戶的帳號 -->
-            <td><?php echo htmlspecialchars($row['account']); ?></td>
-
-            <!-- 顯示用戶的角色名稱 -->
-            <td><?php echo htmlspecialchars($row['grade']); ?></td>
-
-            <!-- 操作選項：編輯和刪除 -->
-            <td>
-                <?php
-                // 儲存 `username` 到 Session，供後續使用
-                $_SESSION['編輯用戶'] = $row['username'];
-                ?>
-
-                <!-- 帶入帳號到編輯表單，點擊後可以跳轉到編輯用戶的頁面 -->
-                <a href="編輯用戶.php?name=<?php echo urlencode($row['username']); ?>"
-                   onclick="return confirm('你要編輯帳號為 <?php echo $row['account']; ?>，姓名為 <?php echo $row['username']; ?> 這位用戶嗎？');">
-                   編輯
-                </a>
-
-                <!-- 刪除用戶的連結，點擊後可以跳轉到刪除用戶的頁面 -->
-                <a href="刪除用戶.php?id=<?php echo $row['id']; ?>"
-                   onclick="return confirm('確定要刪除這位用戶嗎？');">
-                   刪除
-                </a>
-            </td>
-        </tr>
-    <?php endforeach; ?>
-</table>
-
-<?php
-// 關閉資料庫連線
-mysqli_close($link);
-?>
-
-
     <!-- JavaScript -->
     <script>
+
         function showLogoutBox() {
             document.getElementById('logoutBox').style.display = 'flex';
         }
@@ -298,9 +168,10 @@ mysqli_close($link);
         }
 
         function logout() {
-            alert('你已經登出！');
-            hideLogoutBox();
-            window.location.href = 'login.php'; // 替換為登出後的頁面
+            // 移除登入狀態
+            sessionStorage.removeItem('isLoggedIn');
+            // 跳轉到登出頁面
+            window.location.href = '登出.php';
         }
 
         function showDeleteAccountBox() {
@@ -315,6 +186,20 @@ mysqli_close($link);
             document.getElementById('deleteAccountForm').submit();
         }
     </script>
+    <?php
+    // 檢查是否有錯誤訊息
+    if (isset($_GET['error'])) {
+        echo "<script>alert('" . $_GET['error'] . "');</script>";
+        echo "<script>enableFields();</script>"; // 保持欄位開啟
+    }
+
+    // 檢查是否有成功訊息
+    if (isset($_GET['success'])) {
+        echo "<script>alert('" . $_GET['success'] . "');</script>";
+        echo "<script>disableFields();</script>"; // 保持欄位鎖定
+    }
+    ?>
+
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>

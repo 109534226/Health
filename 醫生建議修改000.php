@@ -125,7 +125,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a href="d_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="d_change.php" class="dropdown-item">忘記密碼</a></li>
+                                <li><a href="d_change.php" class="dropdown-item">變更密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -176,40 +176,23 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             </h1>
             <br />
 
-            <?php
-            include "db.php";
 
-            if (isset($_POST['id'])) {
-                $id = intval($_POST['id']);
-
-                // 從資料庫取得資料
-                $sql = "SELECT * FROM patients WHERE id = $id";
-                $result = mysqli_query($link, $sql);
-
-                if ($result && mysqli_num_rows($result) > 0) {
-                    $row = mysqli_fetch_assoc($result);
-                } else {
-                    echo "<script>
-            alert('無法找到指定ID的資料。');
-            window.location.href = 'd_advicesee.php';
-        </script>";
-                    exit;
-                }
-            } else {
-                echo "<script>
-        alert('未提供有效的ID。');
-        window.location.href = 'd_advicesee.php';
-        </script>";
-                exit;
-            }
-            ?>
             <div class="form-container">
                 <form id="updateForm" action="醫生建議修改1.php" method="post">
                     <input type="hidden" name="id" value="<?php echo htmlspecialchars($row['id']); ?>">
 
-                    <label for="appointment_date">日期(星期)</label>
+                    <label for="appointment_date">看診日期</label>
                     <input id="appointment_date" type="date" name="appointment_date"
                         value="<?php echo htmlspecialchars($row['dateday']); ?>" required />
+
+                    <label for="consultationt">看診時段</label>
+                    <select id="consultationt" name="consultationt" required>
+                        <option value="">選擇時段</option>
+                        <option value="早" <?php echo $row['consultationT'] == '早' ? 'selected' : ''; ?>>早</option>
+                        <option value="午" <?php echo $row['consultationT'] == '午' ? 'selected' : ''; ?>>午</option>
+                        <option value="晚" <?php echo $row['consultationT'] == '晚' ? 'selected' : ''; ?>>晚</option>
+                    </select><br>
+
 
                     <label for="clinic_number">病歷號</label>
                     <input id="clinic_number" type="text" name="clinic_number"
@@ -230,6 +213,10 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <option value="女" <?php echo $row['gender'] == '女' ? 'selected' : ''; ?>>女</option>
                     </select>
 
+                    <label for="department">看診科別</label>
+                    <input id="department" type="text" name="department"
+                        value="<?php echo htmlspecialchars($row['department']); ?>" required />
+
                     <label for="doctor_name">看診醫生</label>
                     <input id="doctor_name" type="text" name="doctor_name"
                         value="<?php echo htmlspecialchars($row['doctorname']); ?>" required />
@@ -237,13 +224,6 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     <label for="doctor_advice">醫生建議</label>
                     <input id="doctor_advice" type="text" name="doctor_advice"
                         value="<?php echo htmlspecialchars($row['doctoradvice']); ?>" required />
-
-                    <label for="follow_up">是否回診</label>
-                    <select id="follow_up" name="follow_up" required>
-                        <option value="">選擇</option>
-                        <option value="是" <?php echo $row['followup'] == '是' ? 'selected' : ''; ?>>是</option>
-                        <option value="否" <?php echo $row['followup'] == '否' ? 'selected' : ''; ?>>否</option>
-                    </select>
 
                     <br>
                     <button type="button" class="aa" onclick="confirmUpdate()">更新</button>
@@ -253,22 +233,24 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             <script>
                 function confirmUpdate() {
                     const form = document.getElementById('updateForm');
-                    const date = form.appointment_date.value;
-                    const recordNumber = form.clinic_number.value;
-                    const patientName = form.patient_name.value;
-                    const birthDate = form.birth_date.value;
-                    const gender = form.gender.value;
-                    const doctorName = form.doctor_name.value;
-                    const doctorAdvice = form.doctor_advice.value;
-                    const followUp = form.follow_up.value;
+                    const data = {
+                        日期: form.appointment_date.value,
+                        時段: form.consultationt.options[form.consultationt.selectedIndex].text,
+                        病歷號: form.clinic_number.value,
+                        患者姓名: form.patient_name.value,
+                        出生日期: form.birth_date.value,
+                        性別: form.gender.options[form.gender.selectedIndex].text,
+                        科別: form.department.options[form.department.selectedIndex].text,
+                        醫生: form.doctor_name.options[form.doctor_name.selectedIndex].text,
+                        建議: form.doctor_advice.value
+                    };
 
-                    const confirmation = confirm(
-                        `確認修改以下資料嗎？\n\n日期: ${date}\n病歷號: ${recordNumber}\n患者姓名: ${patientName}\n` +
-                        `出生日期: ${birthDate}\n性別: ${gender}\n看診醫生: ${doctorName}\n醫生建議: ${doctorAdvice}\n是否回診: ${followUp}`
-                    );
+                    const confirmation = confirm(`確認修改以下資料嗎？\n\n` +
+                        `日期: ${data.日期}\n時段: ${data.時段}\n病歷號: ${data.病歷號}\n患者姓名: ${data.患者姓名}\n` +
+                        `出生日期: ${data.出生日期}\n性別: ${data.性別}\n科別: ${data.科別}\n醫生: ${data.醫生}\n建議: ${data.建議}`);
 
                     if (confirmation) {
-                        form.submit(); // 提交表單
+                        form.submit();
                     } else {
                         alert('您取消了更新操作。');
                     }

@@ -72,9 +72,9 @@ if ($row = mysqli_fetch_assoc($ret)) {
         case "護士":
             echo "<script>window.location.href = 'n_profile.php?帳號=$帳號';</script>";
             break;
-        // case "醫院":
-        //     echo "<script>window.location.href = 'h_profile.php?帳號=$帳號';</script>";
-        //     break;
+        case "醫院":
+            echo "<script>window.location.href = 'h_profile.php?帳號=$帳號';</script>";
+            break;
         case "管理者":
             echo "<script>window.location.href = 'c_profile.php?帳號=$帳號';</script>";
             break;

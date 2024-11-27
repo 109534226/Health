@@ -127,7 +127,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a href="n_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="n_change.php" class="dropdown-item">忘記密碼</a></li>
+                                <li><a href="n_change.php" class="dropdown-item">變更密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -264,7 +264,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>日期</th>
+                            <th>看診日期</th>
                             <th>診間號</th>
                             <th>醫生姓名</th>
                             <th>看診時間</th>
@@ -284,7 +284,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                     // 將看診時段的數字 ID 轉換為文字描述
                                     switch ($資料列['看診時段']) {
                                         case 1:
-                                            echo '上';
+                                            echo '早';
                                             break;
                                         case 2:
                                             echo '午';

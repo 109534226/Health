@@ -127,7 +127,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a href="n_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="n_change.php" class="dropdown-item">忘記密碼</a></li>
+                                <li><a href="n_change.php" class="dropdown-item">變更密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -175,30 +175,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 }
             </style>
 
-            <?php
-            include "db.php"; // 連接資料庫
-            // 查詢登入使用者的身份（醫生或護士）
-            $查詢角色 = "SELECT grade FROM user WHERE name = '$帳號'";
-            $角色結果 = mysqli_query($link, $查詢角色);
-
-            if ($角色結果 && $row = mysqli_fetch_assoc($角色結果)) {
-                if ($row['grade'] == 1) {
-                    $_SESSION['user_role'] = '醫生';
-                } elseif ($row['grade'] == 2) {
-                    $_SESSION['user_role'] = '護士';
-                }
-                echo "<script>console.log('角色設定為: " . $_SESSION['user_role'] . "');</script>"; // 調試訊息
-            } else {
-                // 加入更多錯誤資訊以協助調試
-                echo "<script>alert('無法確定您的角色，請重新登入。'); console.error('角色查詢失敗或無此使用者');</script>";
-                echo "<script>window.location.href = 'login.php';</script>";
-                exit();
-            }
-
-            // 顯示當前角色
-            echo "<p>當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>";
-            ?>
-
+        
 
             <div class="d-flex align-items-center mb-5" style="text-align: right;">
                 <h1 class="me-3 flex-shrink-0">醫生建議&gt;&gt;&gt;&gt;&gt;</h1>
@@ -207,6 +184,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 </div>
             </div>
             <br />
+
             <?php
             include "db.php"; // 連接資料庫
             
@@ -222,34 +200,45 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 exit;
             }
 
-            // 準備查詢
-            $查詢語句 = "SELECT * FROM patients WHERE patientname = ?";
-            $查詢準備 = $link->prepare($查詢語句);
-            $查詢準備->bind_param("s", $搜尋詞); // 綁定參數
-            $查詢準備->execute();
-            $查詢結果 = $查詢準備->get_result();
-
-            if (!$查詢結果) {
-                die("查詢失敗: " . mysqli_error($link));
-            }
-
-            // 獲取總記錄數
-            $總記錄數 = $查詢結果->num_rows;
-
             // 設定每頁顯示的記錄數
             $每頁記錄數 = 15;
-            $總頁數 = ceil($總記錄數 / $每頁記錄數);
 
             // 獲取當前頁碼
             $當前頁碼 = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-            $當前頁碼 = max(1, min($總頁數, $當前頁碼)); // 確保當前頁碼在範圍內
+            $當前頁碼 = max(1, $當前頁碼); // 確保當前頁碼至少為 1
             
             // 計算起始記錄
             $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
 
-            // 查詢當前頁碼的資料
-            $查詢語句 = "SELECT * FROM patients WHERE patientname = ? LIMIT ?, ?";
+            // 聯表查詢患者、診間號、科別、醫生和看診時間等資料
+            $查詢語句 = "
+    SELECT 
+        p.patient_id AS id, 
+        ds.consultationD AS 看診日期,
+        cn.clinicnumber AS 診間號,
+        p.patientname AS 患者姓名,
+        p.birthday AS 出生日期,
+        g.gender AS 性別,
+        d.department AS 看診科別,
+        u.name AS 醫生姓名,
+        p.doctoradvice AS 醫生建議,
+        ds.consultationT_id AS 看診時段,
+        p.created_at AS 紀錄創建時間
+    FROM patient p
+    LEFT JOIN gender g ON p.gender_id = g.gender_id
+    LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
+    LEFT JOIN department d ON p.department_id = d.department_id
+    LEFT JOIN clinicnumber cn ON ds.clinicnumber_id = cn.clinicnumber_id
+    LEFT JOIN `user` u ON ds.user_id = u.user_id
+    WHERE p.patientname = ?
+    ORDER BY p.patient_id ASC
+    LIMIT ?, ?";
+
+            // 準備查詢
             $查詢準備 = $link->prepare($查詢語句);
+            if (!$查詢準備) {
+                die("查詢準備失敗: " . $link->error);
+            }
             $查詢準備->bind_param("sii", $搜尋詞, $起始位置, $每頁記錄數);
             $查詢準備->execute();
             $查詢結果 = $查詢準備->get_result();
@@ -259,7 +248,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             }
 
             // 如果沒有找到任何記錄，顯示「查無此人資料」
-            if ($總記錄數 == 0) {
+            if ($查詢結果->num_rows == 0) {
                 echo "<script>
         alert('查無此人');
         window.location.href = 'n_advicesee.php';
@@ -278,30 +267,50 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <th>患者姓名</th>
                             <th>出生日期</th>
                             <th>性別</th>
+                            <th>看診科別</th>
                             <th>看診醫生</th>
                             <th>醫生建議</th>
-                            <th>是否回診</th>
+                            <th>看診時段</th>
                             <th>紀錄創建時間</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php while ($資料列 = mysqli_fetch_assoc($查詢結果)): ?>
+                        <?php while ($資料列 = $查詢結果->fetch_assoc()): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($資料列['id']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['dateday']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['medicalnumber']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['patientname']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['birthdaydate']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['gender']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['doctorname']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['doctoradvice']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['followup']); ?></td>
-                                <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['看診日期']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['診間號']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['患者姓名']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['出生日期']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['性別']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['看診科別']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['醫生姓名']); ?></td>
+                                <td><?php echo htmlspecialchars($資料列['醫生建議']); ?></td>
+                                <td>
+                                    <?php
+                                    // 將看診時段的數字轉換為文字描述
+                                    switch ($資料列['看診時段']) {
+                                        case 1:
+                                            echo '早';
+                                            break;
+                                        case 2:
+                                            echo '午';
+                                            break;
+                                        case 3:
+                                            echo '晚';
+                                            break;
+                                        default:
+                                            echo '未知時段';
+                                    }
+                                    ?>
+                                </td>
+                                <td><?php echo htmlspecialchars($資料列['紀錄創建時間']); ?></td>
                             </tr>
                         <?php endwhile; ?>
                     </tbody>
                 </table>
             </div>
+
 
             <div class="pagination">
                 <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p> <!-- 顯示總資料筆數 -->

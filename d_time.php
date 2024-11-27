@@ -196,7 +196,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a href="d_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="d_change.php" class="dropdown-item">忘記密碼</a></li>
+                                <li><a href="d_change.php" class="dropdown-item">變更密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -256,7 +256,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             <div class="form-container">
                 <form action="醫生班表2.php" method="post" onsubmit="return validateForm()">
                     <div class="form-row">
-                        <label for="appointment_date">日期(星期)</label>
+                        <label for="appointment_date">看診日期</label>
                         <input id="appointment_date" type="date" name="appointment_date"
                             min="<?php echo date('Y-m-d'); ?>" required />
                         <small>請選擇今天或未來的日期。</small>

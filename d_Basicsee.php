@@ -128,7 +128,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a href="d_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="d_change.php" class="dropdown-item">忘記密碼</a></li>
+                                <li><a href="d_change.php" class="dropdown-item">變更密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -203,27 +203,28 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
         // 擷取患者資料與相關聯的表格資料
         $查詢語句 = "
-    SELECT 
-        p.patient_id AS id, 
-        p.patientname, 
-        g.gender, 
-        p.birthday, 
-        p.currentsymptoms,
-        p.allergies,
-        p.medicalhistory,
-        p.medicalnumber, 
-        d.department, 
-        ds.consultationD, 
-        ds.consultationT_id,
-        u.name AS doctorname,
-        p.created_at
-    FROM patient p
-    LEFT JOIN gender g ON p.gender_id = g.gender_id
-    LEFT JOIN department d ON p.department_id = d.department_id
-    LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
-    LEFT JOIN `user` u ON ds.user_id = u.user_id
-    ORDER BY p.patient_id ASC
-    LIMIT ?, ?";
+SELECT 
+    p.patient_id AS id, 
+    p.patientname, 
+    g.gender, 
+    p.birthday, 
+    p.currentsymptoms,
+    p.allergies,
+    p.medicalhistory,
+    p.medicalnumber, 
+    d.department, 
+    ds.consultationD, 
+    ct.consultationT AS consultation_time,  -- 聯結看診時段表，取出具體的看診時段名稱
+    u.name AS doctorname,
+    p.created_at
+FROM patient p
+LEFT JOIN gender g ON p.gender_id = g.gender_id
+LEFT JOIN department d ON p.department_id = d.department_id
+LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
+LEFT JOIN consultationt ct ON ds.consultationT_id = ct.consultationT_id  -- 加入聯結看診時段表
+LEFT JOIN `user` u ON ds.user_id = u.user_id
+ORDER BY p.patient_id ASC
+LIMIT ?, ?";
 
         // 準備並執行查詢
         $查詢準備 = mysqli_prepare($link, $查詢語句);
@@ -273,8 +274,8 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                             <td><?php echo htmlspecialchars($資料列['patientname']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['gender']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['birthday']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['consultationD']); ?></td> <!-- 顯示看診日期 -->
-                            <td><?php echo htmlspecialchars($資料列['consultationT_id']); ?></td> <!-- 顯示看診時間 -->
+                            <td><?php echo htmlspecialchars($資料列['consultationD']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['consultation_time']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['department']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['doctorname']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['currentsymptoms']); ?></td>
@@ -298,7 +299,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             </table>
         </div>
 
-    
+
 
         <!-- 分頁 -->
         <!-- <div class="pagination">
@@ -337,69 +338,40 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         </div>
         </div>
     </section>
+
     <style>
-        /* 表格樣式 */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
+                /* 表格樣式 */
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                }
 
-        th {
-            font-weight: bold;
-            /* 設置表頭文字為粗體 */
-            font-size: 1.3em;
-            /* 設置表格內容文字大小 */
-            padding: 12px;
-            text-align: center;
-            border: 1px solid #dee2e6;
-            background-color: #007bff;
-            color: #ffffff;
-            font-weight: bold;
-        }
+                th {
+                    font-weight: bold;
+                    /* 設置表頭文字為粗體 */
+                    font-size: 1.3em;
+                    /* 設置表格內容文字大小 */
+                    padding: 12px;
+                    text-align: center;
+                    border: 1px solid #dee2e6;
+                    background-color: #007bff;
+                    color: #ffffff;
+                    font-weight: bold;
+                }
 
-        td {
-            font-size: 1em;
-            /* 設置表格內容文字大小 */
-            padding: 12px;
-            text-align: center;
-            border: 1px solid #dee2e6;
-        }
+                td {
+                    font-size: 1em;
+                    /* 設置表格內容文字大小 */
+                    padding: 12px;
+                    text-align: center;
+                    border: 1px solid #dee2e6;
+                }
 
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-    </style>
-    <style>
-        /* 頁碼 上一頁 下一頁 */
-        .pagination {
-            display: flex;
-            flex-direction: column;
-            /* 讓顯示的資料筆數與按鈕垂直排列 */
-            justify-content: center;
-            align-items: center;
-            margin: 20px 0;
-        }
-
-        .pagination a {
-            margin: 0 10px;
-            text-decoration: none;
-            color: #007BFF;
-        }
-
-        .pagination a:hover {
-            text-decoration: underline;
-        }
-
-        .pagination span {
-            margin: 0 10px;
-        }
-
-        .pagination p {
-            margin-bottom: 10px;
-            /* 與分頁按鈕之間留些距離 */
-        }
-    </style>
+                tr:nth-child(even) {
+                    background-color: #f2f2f2;
+                }
+            </style>
 
     <!-- <style>
         table {
