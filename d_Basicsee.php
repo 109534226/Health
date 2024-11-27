@@ -283,7 +283,7 @@ LIMIT ?, ?";
                             <td><?php echo htmlspecialchars($資料列['medicalhistory']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
                             <td>
-                                <form action="患者資料修改00.php" method="post" style="display:inline;">
+                                <form action="患者資料修改00.php" method="POST" style="display:inline;">
                                     <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
                                     <button type="submit">修改</button>
                                 </form>
@@ -340,38 +340,38 @@ LIMIT ?, ?";
     </section>
 
     <style>
-                /* 表格樣式 */
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin: 20px 0;
-                }
+        /* 表格樣式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
 
-                th {
-                    font-weight: bold;
-                    /* 設置表頭文字為粗體 */
-                    font-size: 1.3em;
-                    /* 設置表格內容文字大小 */
-                    padding: 12px;
-                    text-align: center;
-                    border: 1px solid #dee2e6;
-                    background-color: #007bff;
-                    color: #ffffff;
-                    font-weight: bold;
-                }
+        th {
+            font-weight: bold;
+            /* 設置表頭文字為粗體 */
+            font-size: 1.3em;
+            /* 設置表格內容文字大小 */
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            background-color: #007bff;
+            color: #ffffff;
+            font-weight: bold;
+        }
 
-                td {
-                    font-size: 1em;
-                    /* 設置表格內容文字大小 */
-                    padding: 12px;
-                    text-align: center;
-                    border: 1px solid #dee2e6;
-                }
+        td {
+            font-size: 1em;
+            /* 設置表格內容文字大小 */
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
 
-                tr:nth-child(even) {
-                    background-color: #f2f2f2;
-                }
-            </style>
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
 
     <!-- <style>
         table {

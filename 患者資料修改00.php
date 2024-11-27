@@ -176,11 +176,38 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             </h1>
             <br />
 
+            <?php
+            include "db.php";
+
+            if (isset($_GET['id']) && !empty($_GET['id'])) {
+                $id = $_GET['id'];
+
+                // 日誌來確認 ID 的值是否接收到
+                error_log("Received ID: " . $id);
+
+                // 根據 ID 獲取患者資料
+                $query = "SELECT * FROM patient WHERE patient_id = ?";
+                $stmt = mysqli_prepare($link, $query);
+                mysqli_stmt_bind_param($stmt, "i", $id);
+                mysqli_stmt_execute($stmt);
+                $result = mysqli_stmt_get_result($stmt);
+
+                if ($result && mysqli_num_rows($result) > 0) {
+                    $row = mysqli_fetch_assoc($result);
+                } else {
+                    echo "找不到此 ID 對應的患者資料。";
+                    exit;
+                }
+            } else {
+                echo "未提供 ID。";
+                exit;
+            }
+
+            ?>
 
             <div class="form-container">
-                <!-- 表單顯示及更新 -->
                 <form id="updateForm" action="患者資料修改2.php" method="post" onsubmit="return confirmUpdate()">
-                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($row['id']); ?>">
+                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($row['patient_id']); ?>">
 
                     <label>病例號:</label>
                     <input type="text" id="medical_record_number" name="medical_record_number"
@@ -199,23 +226,23 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
                     <label>出生日期:</label>
                     <input type="date" id="birth_date" name="birth_date"
-                        value="<?php echo htmlspecialchars($row['birthdaydate']); ?>" required><br>
+                        value="<?php echo htmlspecialchars($row['birthday']); ?>" required><br>
 
-                    <label for="appointment_date">看診時段</label>
-                    <select id="gender" name="gender" required>
+                    <label for="consultation">看診時段:</label>
+                    <select id="consultation" name="consultation" required>
                         <option value="">選擇時段</option>
                         <option value="早" <?php echo $row['consultationT'] == '早' ? 'selected' : ''; ?>>早</option>
                         <option value="午" <?php echo $row['consultationT'] == '午' ? 'selected' : ''; ?>>午</option>
                         <option value="晚" <?php echo $row['consultationT'] == '晚' ? 'selected' : ''; ?>>晚</option>
                     </select><br>
 
-                    <label for="department">看診科別</label>
+                    <label for="department">看診科別:</label>
                     <input id="department" type="text" name="department"
-                        value="<?php echo htmlspecialchars($row['department']); ?>" required />
+                        value="<?php echo htmlspecialchars($row['department']); ?>" required><br>
 
-                    <label for="doctor_name">看診醫生</label>
+                    <label for="doctor_name">看診醫生:</label>
                     <input id="doctor_name" type="text" name="doctor_name"
-                        value="<?php echo htmlspecialchars($row['doctorname']); ?>" required />
+                        value="<?php echo htmlspecialchars($row['doctorname']); ?>" required><br>
 
                     <label>當前症狀:</label>
                     <textarea id="current_symptoms" name="current_symptoms"
@@ -232,88 +259,94 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     <button type="submit" class="aa">更新</button>
                 </form>
 
-                <script>
-                    function confirmUpdate() {
-                        const medicalRecord = document.getElementById("medical_record_number").value;
-                        const patientName = document.getElementById("patient_name").value;
-                        const gender = document.getElementById("gender").value;
-                        const birthDate = document.getElementById("birth_date").value;
-                        const currentSymptoms = document.getElementById("current_symptoms").value;
-                        const allergies = document.getElementById("allergies").value;
-                        const medicalHistory = document.getElementById("medical_history").value;
-
-                        return confirm(`以下為更新的資料，是否確認提交？\n病例號: ${medicalRecord}\n患者姓名: ${patientName}\n性別: ${gender}\n出生日期: ${birthDate}\n當前症狀: ${currentSymptoms}\n過敏藥物: ${allergies}\n歷史重大疾病: ${medicalHistory}`);
-                    }
-                </script>
-
-                <style>
-                    body {
-                        font-family: 'Arial', sans-serif;
-                        background-color: #f8f9fa;
-                        padding: 20px;
-                    }
-
-                    .form-container {
-                        background: #ffffff;
-                        border-radius: 10px;
-                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-                        padding: 30px;
-                        max-width: 400px;
-                        /* 設定最大寬度 */
-                        margin: auto;
-                        /* 讓表單居中 */
-                    }
-
-                    h1 {
-                        text-align: center;
-                        color: #343a40;
-                    }
-
-                    .form-row {
-                        margin-bottom: 15px;
-                    }
-
-                    label {
-                        font-weight: bold;
-                        margin-bottom: 5px;
-                        display: block;
-                        /* 確保標籤在輸入框上方 */
-                    }
-
-                    input[type="text"],
-                    input[type="date"],
-                    select {
-                        width: 100%;
-                        /* 保持輸入框100%寬度 */
-                        padding: 10px;
-                        /* 調整內邊距 */
-                        border: 1px solid #ced4da;
-                        border-radius: 5px;
-                    }
-
-                    small {
-                        margin-top: 5px;
-                        font-size: 0.8em;
-                        /* 小字大小 */
-                        color: #6c757d;
-                        /* 小字顏色 */
-                    }
-
-                    .aa {
-                        width: 100%;
-                        background-color: #007bff;
-                        color: white;
-                        padding: 10px;
-                        border: none;
-                        border-radius: 5px;
-                        cursor: pointer;
-                    }
-
-                    button:hover {
-                        background-color: #0056b3;
-                    }
-                </style>
             </div>
+
+            <script>
+                function confirmUpdate() {
+                    const medicalRecord = document.getElementById("medical_record_number").value;
+                    const patientName = document.getElementById("patient_name").value;
+                    const gender = document.getElementById("gender").value;
+                    const birthDate = document.getElementById("birth_date").value;
+                    const consultation = document.getElementById("consultation").value;
+                    const department = document.getElementById("department").value;
+                    const doctorName = document.getElementById("doctor_name").value;
+                    const currentSymptoms = document.getElementById("current_symptoms").value;
+                    const allergies = document.getElementById("allergies").value;
+                    const medicalHistory = document.getElementById("medical_history").value;
+
+                    return confirm(`以下為更新的資料，是否確認提交？\n病例號: ${medicalRecord}\n患者姓名: ${patientName}\n性別: ${gender}\n出生年月日: ${birthDate}\n看診時段: ${consultation}\n看診科別: ${department}\n看診醫生: ${doctorName}\n當前症狀: ${currentSymptoms}\n過敏藥物: ${allergies}\n歷史重大疾病: ${medicalHistory}`);
+                }
+            </script>
+
+
+            <style>
+                body {
+                    font-family: 'Arial', sans-serif;
+                    background-color: #f8f9fa;
+                    padding: 20px;
+                }
+
+                .form-container {
+                    background: #ffffff;
+                    border-radius: 10px;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                    padding: 30px;
+                    max-width: 400px;
+                    /* 設定最大寬度 */
+                    margin: auto;
+                    /* 讓表單居中 */
+                }
+
+                h1 {
+                    text-align: center;
+                    color: #343a40;
+                }
+
+                .form-row {
+                    margin-bottom: 15px;
+                }
+
+                label {
+                    font-weight: bold;
+                    margin-bottom: 5px;
+                    display: block;
+                    /* 確保標籤在輸入框上方 */
+                }
+
+                input[type="text"],
+                input[type="date"],
+                select {
+                    width: 100%;
+                    /* 保持輸入框100%寬度 */
+                    padding: 10px;
+                    /* 調整內邊距 */
+                    border: 1px solid #ced4da;
+                    border-radius: 5px;
+                }
+
+                small {
+                    margin-top: 5px;
+                    font-size: 0.8em;
+                    /* 小字大小 */
+                    color: #6c757d;
+                    /* 小字顏色 */
+                }
+
+                .aa {
+                    width: 100%;
+                    background-color: #007bff;
+                    color: white;
+                    padding: 10px;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                }
+
+                button:hover {
+                    background-color: #0056b3;
+                }
+            </style>
+        </div>
         </div>
     </section>
     <?php mysqli_close($link); ?>
