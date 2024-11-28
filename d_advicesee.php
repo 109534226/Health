@@ -146,12 +146,12 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     </div>
     <!-- 頁首 End -->
 
-    <?php
+    <!-- <?php
     // 顯示當前角色
     echo "~歡迎回來~ " . htmlspecialchars($name) . "<br/>";
     echo "當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>"; // 顯示當前角色
     echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"]) . "</p>";
-    ?>
+    ?> -->
 
 
     <!--醫生建議-->

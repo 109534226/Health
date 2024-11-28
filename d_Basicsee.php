@@ -184,7 +184,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <button class="btn btn-primary px-3" type="submit"><i class="fa fa-search"></i></button>
                     </form>
                 </div>
-                <a href="d_Basic.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a>
+                <!-- <a href="d_Basic.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a> -->
             </div>
         </div>
 
@@ -288,10 +288,10 @@ LIMIT ?, ?";
                                     <button type="submit">修改</button>
                                 </form>
 
-                                <form method="POST" action="患者資料刪除ns.php" style="display:inline;">
+                                <!-- <form method="POST" action="患者資料刪除ns.php" style="display:inline;">
                                     <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
                                     <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
-                                </form>
+                                </form> -->
                             </td>
                         </tr>
                     <?php endwhile; ?>

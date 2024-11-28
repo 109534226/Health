@@ -184,7 +184,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <button class="btn btn-primary px-3" type="submit"><i class="fa fa-search"></i></button>
                     </form>
                 </div>
-                <a href="d_time.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a>
+                <!-- <a href="d_time.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a> -->
             </div>
 
             <?php

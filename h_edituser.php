@@ -235,144 +235,152 @@ header("Pragma: no-cache"); // HTTP/1.0 的緩存控制，強制不緩存
     <h1>編輯使用者等級</h1>
 
     <?php
-    // 啟用 Session，用來存儲和管理使用者的登入資訊
-    session_start();
+// 啟用 Session，用來存儲和管理使用者的登入資訊
+session_start();
 
-    // 從 Session 中獲取目前登入使用者的帳號
-    $帳號 = $_SESSION["帳號"];
+// 從 Session 中獲取目前登入使用者的帳號與姓名
+$帳號 = $_SESSION["帳號"];
+$姓名 = $_SESSION['姓名']; // 醫院名稱直接等於姓名
 
-    // 從 Session 中獲取目前登入使用者的姓名，作為醫院名稱的參數
-    $姓名 = $_SESSION['姓名']; // 醫院名稱直接等於姓名
-    
-    // 引入資料庫連線檔案，通常內含 $link 變數作為資料庫連線
-    include 'db.php';
+// 引入資料庫連線檔案，通常內含 $link 變數作為資料庫連線
+include 'db.php';
 
-    // SQL 查詢字串，用於查詢與特定醫院相關的醫生、護士與一般使用者
-    $sql = "
-   SELECT 
-       user.user_id,
-       user.name AS username,
-       user.account,
-       grade.grade,
-       grade.grade_id,
-       COALESCE(department.department, '無') AS department,
-       department.department_id
-   FROM 
-       user
-   LEFT JOIN 
-       grade ON user.grade_id = grade.grade_id
-   LEFT JOIN 
-       medical ON medical.user_id = user.user_id
-   LEFT JOIN 
-       department ON department.department_id = medical.department_id
-   LEFT JOIN 
-       hospital ON hospital.hospital_id = department.hospital_id
-   WHERE 
-       (hospital.hospital = '$姓名' AND (grade.grade = '醫生' OR grade.grade = '護士'))
-       OR grade.grade = '使用者'
-   ORDER BY 
-       user.user_id ASC
+// 查詢使用者、等級、科別與醫院相關資訊
+$sql = "
+    SELECT 
+        user.user_id,
+        user.name AS username,
+        user.account,
+        grade.grade,
+        grade.grade_id,
+        COALESCE(department.department, '無') AS department,
+        department.department_id
+    FROM 
+        user
+    LEFT JOIN 
+        grade ON user.grade_id = grade.grade_id
+    LEFT JOIN 
+        medical ON medical.user_id = user.user_id
+    LEFT JOIN 
+        department ON department.department_id = medical.department_id
+    LEFT JOIN 
+        hospital ON hospital.hospital_id = department.hospital_id
+    WHERE 
+        (hospital.hospital = '$姓名' AND (grade.grade = '醫生' OR grade.grade = '護士'))
+        OR grade.grade = '使用者'
+    ORDER BY 
+        user.user_id ASC
 ";
+$result = mysqli_query($link, $sql);
+if (!$result) {
+    die("查詢失敗: " . mysqli_error($link));
+}
+$rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+mysqli_free_result($result);
 
-    // 使用 mysqli_query 執行 SQL 查詢，並將結果存入 $result
-    $result = mysqli_query($link, $sql);
+// 查詢所有等級
+$grade_sql = "SELECT * FROM grade";
+$grade_result = mysqli_query($link, $grade_sql);
+$grades = mysqli_fetch_all($grade_result, MYSQLI_ASSOC);
+mysqli_free_result($grade_result);
 
-    // 檢查 SQL 查詢是否執行成功
-    if (!$result) {
-        die("查詢失敗: " . mysqli_error($link));
-    }
-
-    // 使用 mysqli_fetch_all 將查詢結果轉換為關聯陣列，存入 $rows
-    $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
-    mysqli_free_result($result);
-
-    // 查詢所有等級
-    $grade_sql = "SELECT * FROM grade";
-    $grade_result = mysqli_query($link, $grade_sql);
-    $grades = mysqli_fetch_all($grade_result, MYSQLI_ASSOC);
-    mysqli_free_result($grade_result);
-
-    // 查詢特定醫院的科別
-    $department_sql = "
+// 查詢特定醫院的科別
+$department_sql = "
     SELECT department.department, department.department_id
     FROM department
     LEFT JOIN hospital ON department.hospital_id = hospital.hospital_id
     WHERE hospital.hospital = '$姓名'
 ";
-    $department_result = mysqli_query($link, $department_sql);
-    $departments = mysqli_fetch_all($department_result, MYSQLI_ASSOC);
-    mysqli_free_result($department_result);
+$department_result = mysqli_query($link, $department_sql);
+$departments = mysqli_fetch_all($department_result, MYSQLI_ASSOC);
+mysqli_free_result($department_result);
 
-    // 關閉資料庫連線
-    mysqli_close($link);
-    ?>
+// 關閉資料庫連線
+mysqli_close($link);
+?>
 
-    <!-- HTML 顯示部分 -->
-    <table>
-        <thead>
-            <tr style="background-color: orange;">
-                <th>姓名</th> <!-- 表格標題，顯示使用者的姓名 -->
-                <th>帳號</th> <!-- 表格標題，顯示使用者的帳號 -->
-                <th>等級</th> <!-- 表格標題，顯示使用者的等級 -->
-                <th>科別</th> <!-- 表格標題，顯示使用者的科別 -->
+<!-- HTML 顯示部分 -->
+<table>
+    <thead>
+        <tr style="background-color: orange;">
+            <th>姓名</th>
+            <th>帳號</th>
+            <th>等級</th>
+            <th>科別</th>
+        </tr>
+    </thead>
+    <tbody id="user-table-body">
+        <?php foreach ($rows as $row): ?>
+            <tr data-user-id="<?php echo $row['user_id']; ?>">
+                <td><?php echo htmlspecialchars($row['username']); ?></td>
+                <td><?php echo htmlspecialchars($row['account']); ?></td>
+                <td>
+                    <select class="grade-select" onchange="handleGradeChange(this, '<?php echo $row['user_id']; ?>')">
+                        <option value="2" <?php echo ($row['grade'] == '醫生') ? 'selected' : ''; ?>>醫生</option>
+                        <option value="3" <?php echo ($row['grade'] == '護士') ? 'selected' : ''; ?>>護士</option>
+                        <option value="1" <?php echo ($row['grade'] == '使用者') ? 'selected' : ''; ?>>使用者</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="department-select" 
+                            onchange="updateUser(this, '<?php echo $row['user_id']; ?>')" 
+                            <?php echo ($row['grade'] == '使用者') ? 'disabled' : ''; ?>>
+                        <option value="">無</option>
+                        <?php foreach ($departments as $department): ?>
+                            <option value="<?php echo htmlspecialchars($department['department_id']); ?>" 
+                                    <?php echo ($department['department_id'] == $row['department_id']) ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($department['department']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
             </tr>
-        </thead>
-        <tbody id="user-table-body">
-            <?php foreach ($rows as $row): ?> <!-- 循環遍歷每個使用者的資料，生成表格行 -->
-                <tr data-user-id="<?php echo $row['user_id']; ?>"> <!-- 每個行包含一個使用者的資料，並設置使用者 ID 作為行的數據屬性 -->
-                    <td><?php echo htmlspecialchars($row['username']); ?></td>
-                    <!-- 顯示使用者的姓名，並使用 htmlspecialchars 防止 XSS 攻擊 -->
-                    <td><?php echo htmlspecialchars($row['account']); ?></td>
-                    <!-- 顯示使用者的帳號，並使用 htmlspecialchars 防止 XSS 攻擊 -->
-                    <td>
-                        <select class="grade-select" onchange="updateUser(this, '<?php echo $row['user_id']; ?>')">
-                            <!-- 等級下拉選單，當選項變更時呼叫 updateUser 函數 -->
-                            <option value="2" <?php echo ($row['grade'] == '醫生') ? 'selected' : ''; ?>>醫生</option>
-                            <!-- 如果等級為醫生，則選中此選項 -->
-                            <option value="3" <?php echo ($row['grade'] == '護士') ? 'selected' : ''; ?>>護士</option>
-                            <!-- 如果等級為護士，則選中此選項 -->
-                            <option value="1" <?php echo ($row['grade'] == '使用者') ? 'selected' : ''; ?>>使用者</option>
-                            <!-- 如果等級為使用者，則選中此選項 -->
-                        </select>
-                    </td>
-                    <td>
-                        <select class="department-select" onchange="updateUser(this, '<?php echo $row['user_id']; ?>')">
-                            <!-- 科別下拉選單，當選項變更時呼叫 updateUser 函數 -->
-                            <option value="">無</option> <!-- 當科別為空時顯示 "無" -->
-                            <?php foreach ($departments as $department): ?> <!-- 循環遍歷所有科別選項 -->
-                                <option value="<?php echo htmlspecialchars($department['department_id']); ?>" 
-                                <?php echo ($department['department_id'] == $row['department_id']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($department['department']); ?> <!-- 顯示科別名稱，並使用 htmlspecialchars 防止 XSS 攻擊 -->
-                                </option>
-                                <?php endforeach; ?>
-                        </select>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-    <script>
-// 更新使用者資料的 JavaScript 函數
-function updateUser(selectElement, userId) {
-    const selectedValue = selectElement.value; // 獲取選擇的值
-    const fieldName = selectElement.classList.contains('grade-select') ? 'grade_id' : 'department_id'; // 根據選擇元素的類別來確定要更新的字段
+        <?php endforeach; ?>
+    </tbody>
+</table>
 
-    const xhr = new XMLHttpRequest(); // 建立一個新的 XMLHttpRequest 對象
-    xhr.open("POST", "醫院編輯.php", true); // 設定請求為 POST 方法，並指定目標為 update_user.php
-    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); // 設定請求的內容類型為表單資料
-    xhr.onreadystatechange = function () { // 註冊一個回調函數來處理請求的狀態改變
+<script>
+// 當等級選擇變更時處理的函數
+function handleGradeChange(selectElement, userId) {
+    const selectedValue = selectElement.value;
+    const row = selectElement.closest('tr');
+    const departmentSelect = row.querySelector('.department-select');
+
+    // 如果等級為 "使用者"，禁用科別選單並清空選擇
+    if (selectedValue == "1") {
+        departmentSelect.disabled = true;
+        departmentSelect.value = "";
+        updateUser(departmentSelect, userId); // 將科別更新為空
+    } else {
+        departmentSelect.disabled = false;
+    }
+
+    // 更新等級
+    updateUser(selectElement, userId);
+}
+
+// 更新使用者資料的函數
+function updateUser(selectElement, userId) {
+    const selectedValue = selectElement.value;
+    const fieldName = selectElement.classList.contains('grade-select') ? 'grade_id' : 'department_id';
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "醫院編輯.php", true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.onreadystatechange = function () {
         if (xhr.readyState === 4) {
             if (xhr.status === 200) {
-                alert(xhr.responseText); // 顯示來自伺服器的訊息
+                alert(xhr.responseText);
             } else {
-                console.error("更新失敗: ", xhr.responseText); // 顯示錯誤信息
+                console.error("更新失敗: ", xhr.responseText);
                 alert("更新失敗，請檢查控制台以獲取更多信息");
             }
         }
     };
-    xhr.send("user_id=" + userId + "&field=" + fieldName + "&value=" + selectedValue); // 發送請求，包含使用者 ID、欄位名稱和更新的值
+    xhr.send("user_id=" + userId + "&field=" + fieldName + "&value=" + selectedValue);
 }
 </script>
+
 
 
 

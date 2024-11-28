@@ -176,7 +176,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             <h1 class="me-3 flex-shrink-0">患者資料&gt;&gt;&gt;&gt;&gt;</h1>
             <div class="d-flex justify-content-end mb-5 w-100">
                 <a href="d_Basicsee.php" class="btn btn-primary" style="margin-left: 10px;">返回所有資料</a>
-                <a href="d_Basic.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a>
+                <!-- <a href="d_Basic.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a> -->
             </div>
         </div>
 
@@ -187,7 +187,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         // 擷取搜尋的資料，並去除多餘空白
         $搜尋詞 = isset($_POST['search']) ? trim($_POST['search']) : '';
         $_SESSION["搜尋詞"] = $搜尋詞;
-        echo "目前的搜尋詞: " . htmlspecialchars($_SESSION["搜尋詞"]);
+        // echo "目前的搜尋詞: " . htmlspecialchars($_SESSION["搜尋詞"]);
         // $搜尋詞 =  $_SESSION["搜尋詞"];
         // echo $搜尋詞;
         // 如果表單有輸入，更新搜尋詞到 Session
@@ -295,10 +295,10 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                     <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
                                     <button type="submit">修改</button>
                                 </form>
-                                <form method="POST" action="患者資料刪除nd.php" style="display:inline;">
+                                <!-- <form method="POST" action="患者資料刪除nd.php" style="display:inline;">
                                     <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
                                     <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
-                                </form>
+                                </form> -->
                             </td>
                         </tr>
                     <?php endwhile; ?>
