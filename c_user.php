@@ -232,7 +232,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
     <!-- 顯示新增用戶的連結，點擊後可以跳轉到新增用戶的表單 -->
     <p><a href="新增用戶.php">新增用戶</a></p><br>
-    <p><a href="黑名單.php">黑名單</a></p><br>
+    <p><a href="黑名單.php">黑名單</a></p>
     <!-- 建立一個表格來顯示用戶資料 -->
     <table width="100%" border="1">
         <tr>
