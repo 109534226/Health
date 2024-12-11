@@ -212,8 +212,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     SELECT user.user_id AS id, user.name AS username, user.account, user.password, grade.grade
     FROM user
     LEFT JOIN grade ON user.grade_id = grade.grade_id
-    ORDER BY user.user_id ASC
-";
+    ORDER BY user.user_id ASC ";
 
     // 執行查詢並將結果存入 $result
     $result = mysqli_query($link, $sql);
@@ -234,7 +233,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     <p><a href="新增用戶.php">新增用戶</a></p><br>
     <p><a href="黑名單.php">黑名單</a></p>
     <!-- 建立一個表格來顯示用戶資料 -->
-    <table width="100%" border="1">
+    <table width="100%" style="border:1px" >
         <tr>
             <th>ID</th>
             <th>用戶名</th>
