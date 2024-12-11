@@ -176,125 +176,129 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             <h1 class="me-3 flex-shrink-0">患者資料&gt;&gt;&gt;&gt;&gt;</h1>
             <div class="d-flex justify-content-end mb-5 w-100">
                 <a href="d_Basicsee.php" class="btn btn-primary" style="margin-left: 10px;">返回所有資料</a>
-                <a href="d_Basic.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a>
+                <!-- <a href="d_Basic.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a> -->
             </div>
         </div>
 
         <?php
         include "db.php"; // 連接資料庫
         
-        // 設定每頁顯示的記錄數
-        $每頁記錄數 = 15;
 
-        // 獲取當前頁碼
+        // 擷取搜尋的資料，並去除多餘空白
+        $搜尋詞 = isset($_POST['search']) ? trim($_POST['search']) : '';
+        $_SESSION["搜尋詞"] = $搜尋詞;
+        // echo "目前的搜尋詞: " . htmlspecialchars($_SESSION["搜尋詞"]);
+        // $搜尋詞 =  $_SESSION["搜尋詞"];
+        // echo $搜尋詞;
+        // 如果表單有輸入，更新搜尋詞到 Session
+        if (!empty(htmlspecialchars($_SESSION["搜尋詞"]))) {
+
+        } elseif (empty($_SESSION["搜尋詞"])) {
+            // 如果沒有輸入，且 Session 中也沒有搜尋詞，顯示警告並跳轉回 d_Basicsee.php
+            echo "<script>
+        alert('請輸入搜尋資料');
+        window.location.href = 'd_Basicsee.php';
+    </script>";
+            exit;
+        }
+
+        // 計算分頁的起始記錄
         $當前頁碼 = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-        $當前頁碼 = max(1, $當前頁碼); // 確保當前頁碼至少為 1
-        
-        // 計算起始記錄
+        $每頁記錄數 = 15;
+        $當前頁碼 = max(1, $當前頁碼);
         $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
 
-        // 擷取患者資料與相關聯的表格資料
+        // 準備聯表查詢
         $查詢語句 = "
     SELECT 
-        p.patient_id AS id, 
-        p.medicalnumber,
-        p.patientname, 
-        g.gender, 
-        p.birthday, 
-        p.currentsymptoms,
-        p.allergies,
-        p.medicalhistory,
-        d.department, 
+        p.patient_id AS id,
+        p.medicalnumber AS 病歷號,
+        p.patientname AS 患者姓名,
+        g.gender AS 性別,
+        p.birthday AS 出生日期,
+        p.currentsymptoms AS 當前狀況,
+        p.allergies AS 過敏藥物,
+        p.medicalhistory AS 歷史重大疾病,
+        p.created_at AS 紀錄創建時間,
         ds.consultationD AS 看診日期,
-        ds.consultationT_id, 
-        u.name AS doctorname,
-        p.created_at
+        ct.consultationT AS 看診時段
     FROM patient p
     LEFT JOIN gender g ON p.gender_id = g.gender_id
-    LEFT JOIN department d ON p.department_id = d.department_id
     LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
-    LEFT JOIN `user` u ON ds.user_id = u.user_id
+    LEFT JOIN consultationt ct ON ds.consultationT_id = ct.consultationT_id
+    WHERE p.patientname = ?
     ORDER BY p.patient_id ASC
     LIMIT ?, ?";
 
-        // 準備並執行查詢
-        $查詢準備 = mysqli_prepare($link, $查詢語句);
-        mysqli_stmt_bind_param($查詢準備, "ii", $起始位置, $每頁記錄數);
-        mysqli_stmt_execute($查詢準備);
-        $查詢結果 = mysqli_stmt_get_result($查詢準備);
+        // 準備查詢並執行
+        $查詢準備 = $link->prepare($查詢語句);
+        $查詢準備->bind_param("sii", $搜尋詞, $起始位置, $每頁記錄數);
+        $查詢準備->execute();
+        $查詢結果 = $查詢準備->get_result();
 
         if (!$查詢結果) {
-            die("查詢失敗: " . mysqli_error($link));
+            die("查詢失敗: " . $link->error);
         }
 
-        // 計算總記錄數
-        $總筆數查詢 = mysqli_query($link, "SELECT COUNT(*) as 總數 FROM patient");
-        if (!$總筆數查詢) {
-            die("查詢失敗: " . mysqli_error($link));
-        }
-        $總筆數結果 = mysqli_fetch_assoc($總筆數查詢);
+        // 獲取總記錄數
+        $總筆數查詢 = $link->prepare("SELECT COUNT(*) as 總數 FROM patient WHERE patientname = ?");
+        $總筆數查詢->bind_param("s", $搜尋詞);
+        $總筆數查詢->execute();
+        $總筆數結果 = $總筆數查詢->get_result()->fetch_assoc();
         $總記錄數 = $總筆數結果['總數'];
         $總頁數 = ceil($總記錄數 / $每頁記錄數);
+
+        // 如果沒有找到任何記錄，顯示「查無此人資料」
+        if ($總記錄數 == 0) {
+            echo "<script>
+        alert('查無此人');
+        window.location.href = 'd_Basicsee.php';
+    </script>";
+            exit;
+        }
         ?>
 
         <div class="form-container">
-            <p>總共 <?php echo $總記錄數; ?> 筆資料</p>
-            <table border="1" style="width:100%; background-color: #f9f9f9;">
+            <table border="1">
                 <thead>
-                    <tr style="background-color: #007bff; color: white;">
+                    <tr>
                         <th>ID</th>
                         <th>病歷號</th>
                         <th>患者姓名</th>
                         <th>性別</th>
                         <th>出生日期</th>
-                        <th>看診日期</th>
-                        <th>看診時間</th>
-                        <th>看診科別</th>
-                        <th>看診醫生</th>
                         <th>當前狀況</th>
                         <th>過敏藥物</th>
                         <th>歷史重大疾病</th>
+                        <th>看診日期</th>
+                        <th>看診時段</th>
                         <th>紀錄創建時間</th>
-                        <th>功能選項</th>
+                        <th>功能選單</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while ($資料列 = mysqli_fetch_assoc($查詢結果)): ?>
+                    <?php while ($資料列 = $查詢結果->fetch_assoc()): ?>
                         <tr>
                             <td><?php echo htmlspecialchars($資料列['id']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['medicalnumber']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['patientname']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['gender']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['birthday']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['病歷號']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['患者姓名']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['性別']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['出生日期']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['當前狀況']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['過敏藥物']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['歷史重大疾病']); ?></td>
                             <td><?php echo htmlspecialchars($資料列['看診日期']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['看診時段']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['紀錄創建時間']); ?></td>
                             <td>
-                                <?php
-                                if ($資料列['consultationT_id'] == 1) {
-                                    echo "早";
-                                } elseif ($資料列['consultationT_id'] == 2) {
-                                    echo "午";
-                                } elseif ($資料列['consultationT_id'] == 3) {
-                                    echo "晚";
-                                } else {
-                                    echo "未知";
-                                }
-                                ?>
-                            </td>
-                            <td><?php echo htmlspecialchars($資料列['department']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['doctorname']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['currentsymptoms']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['allergies']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['medicalhistory']); ?></td>
-                            <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
-                            <td>
-                                <form action="患者資料修改000.php" method="post" style="display:inline;">
+                                <form action="患者資料修改000.php" method="POST" style="display:inline;">
                                     <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
                                     <button type="submit">修改</button>
                                 </form>
-                                <form method="POST" action="患者資料刪除ns.php" style="display:inline;">
+                                <!-- <form method="POST" action="患者資料刪除nd.php" style="display:inline;">
                                     <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
                                     <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
-                                </form>
+                                </form> -->
                             </td>
                         </tr>
                     <?php endwhile; ?>

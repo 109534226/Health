@@ -186,25 +186,24 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     </form>
                 </div>
             </div>
-
         </div>
         <br />
 
         <?php
-include "db.php"; // 連接資料庫
+        include "db.php"; // 連接資料庫
+        
+        // 設定每頁顯示的記錄數
+        $每頁記錄數 = 15;
 
-// 設定每頁顯示的記錄數
-$每頁記錄數 = 15;
+        // 獲取當前頁碼
+        $當前頁碼 = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+        $當前頁碼 = max(1, $當前頁碼); // 確保當前頁碼至少為 1
+        
+        // 計算起始記錄
+        $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
 
-// 獲取當前頁碼
-$當前頁碼 = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-$當前頁碼 = max(1, $當前頁碼); // 確保當前頁碼至少為 1
-
-// 計算起始記錄
-$起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
-
-// 聯表查詢患者、看診日期、看診時段等資料
-$查詢語句 = "
+        // 聯表查詢患者、看診日期、看診時段等資料
+        $查詢語句 = "
     SELECT 
         p.patient_id AS id,
         p.medicalnumber AS 病歷號,
@@ -223,93 +222,93 @@ $查詢語句 = "
     ORDER BY p.patient_id ASC
     LIMIT ?, ?";
 
-// 準備並執行查詢
-$查詢準備 = $link->prepare($查詢語句);
-$查詢準備->bind_param("ii", $起始位置, $每頁記錄數);
-$查詢準備->execute();
-$查詢結果 = $查詢準備->get_result();
+        // 準備並執行查詢
+        $查詢準備 = $link->prepare($查詢語句);
+        $查詢準備->bind_param("ii", $起始位置, $每頁記錄數);
+        $查詢準備->execute();
+        $查詢結果 = $查詢準備->get_result();
 
-if (!$查詢結果) {
-    die("查詢失敗: " . $link->error);
-}
+        if (!$查詢結果) {
+            die("查詢失敗: " . $link->error);
+        }
 
-// 計算總記錄數
-$總筆數查詢 = $link->query("SELECT COUNT(*) as 總數 FROM patient");
-if (!$總筆數查詢) {
-    die("查詢失敗: " . $link->error);
-}
-$總筆數結果 = $總筆數查詢->fetch_assoc();
-$總記錄數 = $總筆數結果['總數'];
-$總頁數 = ceil($總記錄數 / $每頁記錄數);
-?>
+        // 計算總記錄數
+        $總筆數查詢 = $link->query("SELECT COUNT(*) as 總數 FROM patient");
+        if (!$總筆數查詢) {
+            die("查詢失敗: " . $link->error);
+        }
+        $總筆數結果 = $總筆數查詢->fetch_assoc();
+        $總記錄數 = $總筆數結果['總數'];
+        $總頁數 = ceil($總記錄數 / $每頁記錄數);
+        ?>
 
-<div class="form-container">
-    <table border="1">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>病歷號</th>
-                <th>患者姓名</th>
-                <th>性別</th>
-                <th>出生日期</th>
-                <th>當前狀況</th>
-                <th>過敏藥物</th>
-                <th>歷史重大疾病</th>
-                <th>看診日期</th>
-                <th>看診時段</th>
-                <th>紀錄創建時間</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php while ($資料列 = $查詢結果->fetch_assoc()): ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($資料列['id']); ?></td>
-                    <td><?php echo htmlspecialchars($資料列['病歷號']); ?></td>
-                    <td><?php echo htmlspecialchars($資料列['患者姓名']); ?></td>
-                    <td><?php echo htmlspecialchars($資料列['性別']); ?></td>
-                    <td><?php echo htmlspecialchars($資料列['出生日期']); ?></td>
-                    <td><?php echo htmlspecialchars($資料列['當前狀況']); ?></td>
-                    <td><?php echo htmlspecialchars($資料列['過敏藥物']); ?></td>
-                    <td><?php echo htmlspecialchars($資料列['歷史重大疾病']); ?></td>
-                    <td><?php echo htmlspecialchars($資料列['看診日期']); ?></td>
-                    <td>
-                        <?php
-                        // 將看診時段的數字 ID 轉換為文字描述
-                        switch ($資料列['看診時段']) {
-                            case 1:
-                                echo '早';
-                                break;
-                            case 2:
-                                echo '午';
-                                break;
-                            case 3:
-                                echo '晚';
-                                break;
-                            default:
-                                echo '未知時段';
-                        }
-                        ?>
-                    </td>
-                    <td><?php echo htmlspecialchars($資料列['紀錄創建時間']); ?></td>
-                </tr>
-            <?php endwhile; ?>
-        </tbody>
-    </table>
-</div>
+        <div class="form-container">
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>病歷號</th>
+                        <th>患者姓名</th>
+                        <th>性別</th>
+                        <th>出生日期</th>
+                        <th>當前狀況</th>
+                        <th>過敏藥物</th>
+                        <th>歷史重大疾病</th>
+                        <th>看診日期</th>
+                        <th>看診時段</th>
+                        <th>紀錄創建時間</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php while ($資料列 = $查詢結果->fetch_assoc()): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($資料列['id']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['病歷號']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['患者姓名']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['性別']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['出生日期']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['當前狀況']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['過敏藥物']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['歷史重大疾病']); ?></td>
+                            <td><?php echo htmlspecialchars($資料列['看診日期']); ?></td>
+                            <td>
+                                <?php
+                                // 將看診時段的數字 ID 轉換為文字描述
+                                switch ($資料列['看診時段']) {
+                                    case 1:
+                                        echo '早';
+                                        break;
+                                    case 2:
+                                        echo '午';
+                                        break;
+                                    case 3:
+                                        echo '晚';
+                                        break;
+                                    default:
+                                        echo '未知時段';
+                                }
+                                ?>
+                            </td>
+                            <td><?php echo htmlspecialchars($資料列['紀錄創建時間']); ?></td>
+                        </tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
+        </div>
 
-            <div class="pagination">
-                <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p> <!-- 顯示總資料筆數 -->
+        <div class="pagination">
+            <p>(總共 <?php echo $總記錄數; ?> 筆資料)</p> <!-- 顯示總資料筆數 -->
 
-                <?php if ($當前頁碼 > 1): ?>
-                    <a href="?page=<?php echo $當前頁碼 - 1; ?>">上一頁</a>
-                <?php endif; ?>
+            <?php if ($當前頁碼 > 1): ?>
+                <a href="?page=<?php echo $當前頁碼 - 1; ?>">上一頁</a>
+            <?php endif; ?>
 
-                <span>第 <?php echo $當前頁碼; ?> 頁 / 共 <?php echo $總頁數; ?> 頁</span>
+            <span>第 <?php echo $當前頁碼; ?> 頁 / 共 <?php echo $總頁數; ?> 頁</span>
 
-                <?php if ($當前頁碼 < $總頁數): ?>
-                    <a href="?page=<?php echo $當前頁碼 + 1; ?>">下一頁</a>
-                <?php endif; ?>
-            </div>
+            <?php if ($當前頁碼 < $總頁數): ?>
+                <a href="?page=<?php echo $當前頁碼 + 1; ?>">下一頁</a>
+            <?php endif; ?>
+        </div>
         </div>
 
         <style>

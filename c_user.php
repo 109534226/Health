@@ -201,91 +201,95 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     <!-- 刪除帳號對話框 End -->
 
     <?php
-// 啟動 Session，確保能夠使用 Session 來存儲和共享資料
-session_start();
+    // 啟動 Session，確保能夠使用 Session 來存儲和共享資料
+    session_start();
 
-// 引入資料庫連線檔案
-include 'db.php';
+    // 引入資料庫連線檔案
+    include 'db.php';
 
-// 查詢 `user` 表與 `grade` 表的資料，通過 `grade_id` 進行關聯，並按 `user.id` 升序排序
-$sql = "
+    // 查詢 `user` 表與 `grade` 表的資料，通過 `grade_id` 進行關聯，並按 `user.id` 升序排序
+    $sql = "
     SELECT user.user_id AS id, user.name AS username, user.account, user.password, grade.grade
     FROM user
     LEFT JOIN grade ON user.grade_id = grade.grade_id
     ORDER BY user.user_id ASC
 ";
 
-// 執行查詢並將結果存入 $result
-$result = mysqli_query($link, $sql);
+    // 執行查詢並將結果存入 $result
+    $result = mysqli_query($link, $sql);
 
-// 檢查查詢是否成功，如果失敗則終止並顯示錯誤訊息
-if (!$result) {
-    die("查詢失敗: " . mysqli_error($link));
-}
+    // 檢查查詢是否成功，如果失敗則終止並顯示錯誤訊息
+    if (!$result) {
+        die("查詢失敗: " . mysqli_error($link));
+    }
 
-// 將查詢到的所有結果放入一個關聯陣列中，方便後續使用
-$rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
-?>
+    // 將查詢到的所有結果放入一個關聯陣列中，方便後續使用
+    $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    ?>
 
-<!-- 顯示頁面標題 -->
-<h1>用戶管理</h1>
+    <!-- 顯示頁面標題 -->
+    <h1>用戶管理</h1>
 
+<<<<<<< HEAD
 <!-- 顯示新增用戶的連結，點擊後可以跳轉到新增用戶的表單 -->
 <a href="新增用戶.php">新增用戶</a>
 <a href="黑名單.php">黑名單</a>
+=======
+    <!-- 顯示新增用戶的連結，點擊後可以跳轉到新增用戶的表單 -->
+    <a href="新增用戶.php">新增用戶</a>
+>>>>>>> 346fac7dd4f7513db55ae3db64b154e81b3f133c
 
-<!-- 建立一個表格來顯示用戶資料 -->
-<table width="100%" border="1">
-    <tr>
-        <th>ID</th>
-        <th>用戶名</th>
-        <th>帳號</th>
-        <th>角色</th>
-        <th>操作</th>
-    </tr>
-
-    <!-- 使用 PHP 循環顯示每一筆查詢結果 -->
-    <?php foreach ($rows as $row): ?>
+    <!-- 建立一個表格來顯示用戶資料 -->
+    <table width="100%" border="1">
         <tr>
-            <!-- 顯示用戶的 ID -->
-            <td><?php echo $row['id']; ?></td>
-
-            <!-- 顯示用戶的姓名 -->
-            <td><?php echo htmlspecialchars($row['username']); ?></td>
-
-            <!-- 顯示用戶的帳號 -->
-            <td><?php echo htmlspecialchars($row['account']); ?></td>
-
-            <!-- 顯示用戶的角色名稱 -->
-            <td><?php echo htmlspecialchars($row['grade']); ?></td>
-
-            <!-- 操作選項：編輯和刪除 -->
-            <td>
-                <?php
-                // 儲存 `username` 到 Session，供後續使用
-                $_SESSION['編輯用戶'] = $row['username'];
-                ?>
-
-                <!-- 帶入帳號到編輯表單，點擊後可以跳轉到編輯用戶的頁面 -->
-                <a href="編輯用戶.php?name=<?php echo urlencode($row['username']); ?>"
-                   onclick="return confirm('你要編輯帳號為 <?php echo $row['account']; ?>，姓名為 <?php echo $row['username']; ?> 這位用戶嗎？');">
-                   編輯
-                </a>
-
-                <!-- 刪除用戶的連結，點擊後可以跳轉到刪除用戶的頁面 -->
-                <a href="刪除用戶.php?id=<?php echo $row['id']; ?>"
-                   onclick="return confirm('確定要刪除這位用戶嗎？');">
-                   刪除
-                </a>
-            </td>
+            <th>ID</th>
+            <th>用戶名</th>
+            <th>帳號</th>
+            <th>角色</th>
+            <th>操作</th>
         </tr>
-    <?php endforeach; ?>
-</table>
 
-<?php
-// 關閉資料庫連線
-mysqli_close($link);
-?>
+        <!-- 使用 PHP 循環顯示每一筆查詢結果 -->
+        <?php foreach ($rows as $row): ?>
+            <tr>
+                <!-- 顯示用戶的 ID -->
+                <td><?php echo $row['id']; ?></td>
+
+                <!-- 顯示用戶的姓名 -->
+                <td><?php echo htmlspecialchars($row['username']); ?></td>
+
+                <!-- 顯示用戶的帳號 -->
+                <td><?php echo htmlspecialchars($row['account']); ?></td>
+
+                <!-- 顯示用戶的角色名稱 -->
+                <td><?php echo htmlspecialchars($row['grade']); ?></td>
+
+                <!-- 操作選項：編輯和刪除 -->
+                <td>
+                    <?php
+                    // 儲存 `username` 到 Session，供後續使用
+                    $_SESSION['編輯用戶'] = $row['username'];
+                    ?>
+
+                    <!-- 帶入帳號到編輯表單，點擊後可以跳轉到編輯用戶的頁面 -->
+                    <a href="編輯用戶.php?name=<?php echo urlencode($row['username']); ?>"
+                        onclick="return confirm('你要編輯帳號為 <?php echo $row['account']; ?>，姓名為 <?php echo $row['username']; ?> 這位用戶嗎？');">
+                        編輯
+                    </a>
+
+                    <!-- 刪除用戶的連結，點擊後可以跳轉到刪除用戶的頁面 -->
+                    <a href="刪除用戶.php?id=<?php echo $row['id']; ?>" onclick="return confirm('確定要刪除這位用戶嗎？');">
+                        刪除
+                    </a>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </table>
+
+    <?php
+    // 關閉資料庫連線
+    mysqli_close($link);
+    ?>
 
 
     <!-- JavaScript -->

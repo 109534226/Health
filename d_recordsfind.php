@@ -181,7 +181,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 <h1 class="me-3 flex-shrink-0">看診紀錄&gt;&gt;&gt;&gt;&gt;</h1>
                 <div class="d-flex justify-content-end mb-5 w-100">
                     <a href="d_recordssee.php" class="btn btn-primary" style="margin-left: 10px;">返回所有資料</a>
-                    <a href="d_records.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a>
+                    <!-- <a href="d_records.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a> -->
                 </div>
             </div>
 
@@ -336,10 +336,10 @@ if ($總記錄數 == 0) {
                             <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
                             <button type="submit">修改</button>
                         </form>
-                        <form method="POST" action="看診紀錄刪除nd.php?search=<?php echo urlencode($搜尋詞); ?>" style="display:inline;">
+                        <!-- <form method="POST" action="看診紀錄刪除nd.php?search=<?php echo urlencode($搜尋詞); ?>" style="display:inline;">
                             <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
                             <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
-                        </form>
+                        </form> -->
                     </td>
                 </tr>
             <?php endwhile; ?>

@@ -216,7 +216,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         <!-- 頁首 End -->
 
         <div class="container-fluid"></div>
-        <br />
+        <br/>
         <section class="resume-section p-0" id="about"> <!-- 將內邊距設為 0 -->
             <div class="my-auto">
                 <style>

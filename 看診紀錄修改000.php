@@ -175,98 +175,81 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 ----<看診紀錄修改>----
             </h1>
             <br />
-
             <?php
-            include "db.php"; // 連接資料庫
-            
-            // 獲取 patient_id
-            if (isset($_GET['id'])) {
-                $patient_id = $_GET['id'];
-
-                // 調試：顯示 patient_id
-                echo "<script>console.log('patient_id: $patient_id');</script>";
-
-                // 查詢該 patient_id 的資料
-                $查詢語句 = "
-    SELECT 
-        patient_id, medicalnumber, patientname, birthday, gender_id, department_id
-    FROM patient
-    WHERE patient_id = ?";
-
-                // 準備查詢
-                $查詢準備 = mysqli_prepare($link, $查詢語句);
-                if (!$查詢準備) {
-                    die("查詢準備失敗: " . mysqli_error($link));
-                }
-
-                mysqli_stmt_bind_param($查詢準備, "i", $patient_id);
-                mysqli_stmt_execute($查詢準備);
-                $查詢結果 = mysqli_stmt_get_result($查詢準備);
-
-                if ($查詢結果 && mysqli_num_rows($查詢結果) > 0) {
-                    $row = mysqli_fetch_assoc($查詢結果);
-                } else {
-                    echo "<script>alert('未找到該患者資料。'); window.location.href = 'd_recordssee.php';</script>";
-                    exit;
-                }
+            // 確認表單資料是否提交
+            if ($_POST) {
+                // 使用 htmlspecialchars 處理以防止 XSS
+                $appointment_date = htmlspecialchars($_POST['appointment_date']);
+                $case_number = htmlspecialchars($_POST['case_number']);
+                $patient_name = htmlspecialchars($_POST['patient_name']);
+                $birth_date = htmlspecialchars($_POST['birth_date']);
+                $gender = htmlspecialchars($_POST['gender']);
+                $clinic_number = htmlspecialchars($_POST['clinic_number']);
+                $department = htmlspecialchars($_POST['department']);
+                $doctor_name = htmlspecialchars($_POST['doctor_name']);
+                $consultation_period = htmlspecialchars($_POST['consultation_period']);
+                $id = htmlspecialchars($_POST['id']);
             } else {
-                echo "<script>alert('未找到患者 ID。'); window.location.href = 'd_recordssee.php';</script>";
+                echo "<script>
+        alert('未提供有效的表單資料。');
+        window.location.href = 'n_Basicsee.php';
+    </script>";
                 exit;
             }
             ?>
 
-
             <div class="form-container">
-                <form action="看診紀錄修改000.php" method="get">
-                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($資料列['patient_id']); ?>">
+                <!-- 表單顯示 -->
+                <form action="update_consultation_record.php" method="post" onsubmit="return confirm('您確定要更新資料嗎？')">
+                    <label for="id">ID</label>
+                    <input id="id" type="text" name="id" value="<?php echo $id; ?>" disabled />
+
+                    <input type="hidden" name="id" value="<?php echo $id; ?>"> <!-- 隱藏的ID欄位，提交時需要 -->
 
                     <label for="appointment_date">看診日期</label>
                     <input id="appointment_date" type="date" name="appointment_date"
-                        value="<?php echo htmlspecialchars($row['看診日期']); ?>" required />
+                        value="<?php echo $appointment_date; ?>" required />
 
-                    <label for="medical_record_number">病例號</label>
-                    <input id="medical_record_number" type="text" name="medical_record_number"
-                        value="<?php echo htmlspecialchars($row['medicalnumber']); ?>" required>
+                    <label for="case_number">病例號</label>
+                    <input id="case_number" type="text" name="case_number" value="<?php echo $case_number; ?>"
+                        required />
 
                     <label for="patient_name">患者姓名</label>
-                    <input id="patient_name" type="text" name="patient_name"
-                        value="<?php echo htmlspecialchars($row['patientname']); ?>" required />
+                    <input id="patient_name" type="text" name="patient_name" value="<?php echo $patient_name; ?>"
+                        required />
 
-                    <label for="birth_date">出生年月日</label>
-                    <input id="birth_date" type="date" name="birth_date"
-                        value="<?php echo htmlspecialchars($row['birthday']); ?>" required />
+                    <label for="birth_date">出生日期</label>
+                    <input id="birth_date" type="date" name="birth_date" value="<?php echo $birth_date; ?>" required />
 
                     <label for="gender">性別</label>
                     <select id="gender" name="gender" required>
-                        <option value="">選擇性別</option>
-                        <option value="1" <?php echo $row['gender_id'] == 1 ? 'selected' : ''; ?>>男</option>
-                        <option value="2" <?php echo $row['gender_id'] == 2 ? 'selected' : ''; ?>>女</option>
+                        <option value="男" <?php echo $gender == '男' ? 'selected' : ''; ?>>男</option>
+                        <option value="女" <?php echo $gender == '女' ? 'selected' : ''; ?>>女</option>
                     </select>
 
-                    <label for="clinicnumber">診間號</label>
-                    <input id="clinicnumber" type="text" name="clinicnumber"
-                        value="<?php echo htmlspecialchars($row['clinicnumber']); ?>" required />
+                    <label for="clinic_number">診間號</label>
+                    <input id="clinic_number" type="text" name="clinic_number" value="<?php echo $clinic_number; ?>"
+                        disabled />
 
-                    <label for="department">看診科別</label>
-                    <input id="department" type="text" name="department"
-                        value="<?php echo htmlspecialchars($row['department']); ?>" required />
+                    <label for="department">科別</label>
+                    <input id="department" type="text" name="department" value="<?php echo $department; ?>" required />
 
                     <label for="doctor_name">看診醫生</label>
-                    <input id="doctor_name" type="text" name="doctor_name"
-                        value="<?php echo htmlspecialchars($row['doctorname']); ?>" required />
+                    <input id="doctor_name" type="text" name="doctor_name" value="<?php echo $doctor_name; ?>"
+                        required />
 
                     <label for="consultation_period">看診時段</label>
                     <select id="consultation_period" name="consultation_period" required>
-                        <option value="">選擇一個時段</option>
-                        <option value="1" <?php echo $row['consultationT_id'] == 1 ? 'selected' : ''; ?>>早</option>
-                        <option value="2" <?php echo $row['consultationT_id'] == 2 ? 'selected' : ''; ?>>午</option>
-                        <option value="3" <?php echo $row['consultationT_id'] == 3 ? 'selected' : ''; ?>>晚</option>
+                        <option value="早" <?php echo $consultation_period == '早' ? 'selected' : ''; ?>>早</option>
+                        <option value="午" <?php echo $consultation_period == '午' ? 'selected' : ''; ?>>午</option>
+                        <option value="晚" <?php echo $consultation_period == '晚' ? 'selected' : ''; ?>>晚</option>
                     </select>
 
-                    <br />
-                    <button type="button" class="aa" onclick="confirmUpdate()">更新</button>
+                    <br>
+                    <button type="submit">更新</button>
                 </form>
             </div>
+
 
             <script>
                 function confirmUpdate() {

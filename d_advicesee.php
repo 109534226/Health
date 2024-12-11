@@ -146,12 +146,12 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     </div>
     <!-- 頁首 End -->
 
-    <?php
+    <!-- <?php
     // 顯示當前角色
     echo "~歡迎回來~ " . htmlspecialchars($name) . "<br/>";
     echo "當前角色: " . htmlspecialchars($_SESSION['user_role']) . "</p>"; // 顯示當前角色
     echo "登入帳號: " . htmlspecialchars($_SESSION["帳號"]) . "</p>";
-    ?>
+    ?> -->
 
 
     <!--醫生建議-->
@@ -192,7 +192,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         <button class="btn btn-primary px-3" type="submit"><i class="fa fa-search"></i></button>
                     </form>
                 </div>
-                <a href="d_advice.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a>
+                <!-- <a href="d_advice.php" class="btn btn-primary" style="margin-left: 10px;">填寫資料</a> -->
             </div>
 
             <?php
@@ -219,25 +219,27 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
 
             // 擷取患者資料與相關聯的表格資料
             $查詢語句 = "
-    SELECT 
-        p.patient_id AS id, 
-        p.patientname, 
-        p.birthday, 
-        g.gender, 
-        p.medicalnumber, 
-        d.department, 
-        ds.consultationD, 
-        ct.consultationT,  /* 取得看診時段名稱 */
-        u.name AS doctorname,
-        p.doctoradvice, 
-        p.created_at
-    FROM patient p
-    LEFT JOIN gender g ON p.gender_id = g.gender_id
-    LEFT JOIN department d ON p.department_id = d.department_id
-    LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
-    LEFT JOIN consultationt ct ON ds.consultationT_id = ct.consultationT_id  /* 連接 consultationt 表格來獲取時段名稱 */
-    LEFT JOIN `user` u ON ds.user_id = u.user_id
-    LIMIT ?, ?";
+            SELECT 
+                p.patient_id AS id, 
+                p.patientname, 
+                p.birthday, 
+                g.gender, 
+                p.medicalnumber, 
+                d.department, 
+                ds.consultationD, 
+                ct.consultationT,  /* 取得看診時段名稱 */
+                u.name AS doctorname,
+                p.doctoradvice, 
+                p.created_at
+            FROM patient p
+            LEFT JOIN gender g ON p.gender_id = g.gender_id
+            LEFT JOIN department d ON p.department_id = d.department_id
+            LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
+            LEFT JOIN consultationt ct ON ds.consultationT_id = ct.consultationT_id  /* 連接 consultationt 表格來獲取時段名稱 */
+            LEFT JOIN `user` u ON ds.user_id = u.user_id
+            ORDER BY p.patient_id ASC /* 加上這行來根據ID排序 */
+            LIMIT ?, ?";
+
 
             // 使用準備語句
             $查詢準備 = mysqli_prepare($link, $查詢語句);
@@ -283,14 +285,22 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 <td><?php echo htmlspecialchars($資料列['doctoradvice']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['created_at']); ?></td>
                                 <td>
-                                    <form action="醫生建議修改000.php" method="post" style="display:inline;">
+                                    <form action="醫生建議修改000.php" method="POST" style="display:inline;">
                                         <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
+                                        <input type="hidden" name="consultationD"
+                                            value="<?php echo $資料列['consultationD']; ?>">
+                                        <input type="hidden" name="consultationT"
+                                            value="<?php echo $資料列['consultationT']; ?>">
+                                        <input type="hidden" name="medicalnumber"
+                                            value="<?php echo $資料列['medicalnumber']; ?>">
+                                        <input type="hidden" name="patientname" value="<?php echo $資料列['patientname']; ?>">
+                                        <input type="hidden" name="birthday" value="<?php echo $資料列['birthday']; ?>">
+                                        <input type="hidden" name="gender" value="<?php echo $資料列['gender']; ?>">
+                                        <input type="hidden" name="department" value="<?php echo $資料列['department']; ?>">
+                                        <input type="hidden" name="doctorname" value="<?php echo $資料列['doctorname']; ?>">
+                                        <input type="hidden" name="doctoradvice"
+                                            value="<?php echo $資料列['doctoradvice']; ?>">
                                         <button type="submit">修改</button>
-                                    </form>
-                                    <form method="POST" action="醫生建議刪除ns.php" style="display:inline;">
-                                        <input type="hidden" name="id" value="<?php echo $資料列['id']; ?>">
-                                        <input type="hidden" name="source" value="d_advicesee">
-                                        <button type="submit" onclick="return confirm('確認要刪除這筆資料嗎？')">刪除</button>
                                     </form>
                                 </td>
                             </tr>

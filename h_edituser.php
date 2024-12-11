@@ -108,12 +108,12 @@ header("Pragma: no-cache"); // HTTP/1.0 的緩存控制，強制不緩存
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="h_edituser.php" class="nav-item nav-link">編輯用戶權限</a>
+                        <a href="h_edituser.php" class="nav-item nav-link active">編輯用戶權限</a>
                         <a href="" class="nav-item nav-link">新增預約</a>
                         <a href="" class="nav-item nav-link">各科別報告</a>
                         <a href="" class="nav-item nav-link">滿意度分析</a>
                         <div class="nav-item">
-                            <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown"
+                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a href="h_profile.php" class="dropdown-item">關於我</a></li>
@@ -186,6 +186,203 @@ header("Pragma: no-cache"); // HTTP/1.0 的緩存控制，強制不緩存
             document.getElementById('deleteAccountForm').submit();
         }
     </script>
+
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        th,
+        td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #FF9800;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        select {
+            padding: 5px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #e0e0e0;
+        }
+
+        h1 {
+            color: #007ACC;
+            margin-bottom: 20px;
+            /* text-align: center; */
+        }
+    </style>
+    <!-- 顯示頁面標題 -->
+    <h1>編輯使用者等級</h1>
+
+    <?php
+// 啟用 Session，用來存儲和管理使用者的登入資訊
+session_start();
+
+// 從 Session 中獲取目前登入使用者的帳號與姓名
+$帳號 = $_SESSION["帳號"];
+$姓名 = $_SESSION['姓名']; // 醫院名稱直接等於姓名
+
+// 引入資料庫連線檔案，通常內含 $link 變數作為資料庫連線
+include 'db.php';
+
+// 查詢使用者、等級、科別與醫院相關資訊
+$sql = "
+    SELECT 
+        user.user_id,
+        user.name AS username,
+        user.account,
+        grade.grade,
+        grade.grade_id,
+        COALESCE(department.department, '無') AS department,
+        department.department_id
+    FROM 
+        user
+    LEFT JOIN 
+        grade ON user.grade_id = grade.grade_id
+    LEFT JOIN 
+        medical ON medical.user_id = user.user_id
+    LEFT JOIN 
+        department ON department.department_id = medical.department_id
+    LEFT JOIN 
+        hospital ON hospital.hospital_id = department.hospital_id
+    WHERE 
+        (hospital.hospital = '$姓名' AND (grade.grade = '醫生' OR grade.grade = '護士'))
+        OR grade.grade = '使用者'
+    ORDER BY 
+        user.user_id ASC
+";
+$result = mysqli_query($link, $sql);
+if (!$result) {
+    die("查詢失敗: " . mysqli_error($link));
+}
+$rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+mysqli_free_result($result);
+
+// 查詢所有等級
+$grade_sql = "SELECT * FROM grade";
+$grade_result = mysqli_query($link, $grade_sql);
+$grades = mysqli_fetch_all($grade_result, MYSQLI_ASSOC);
+mysqli_free_result($grade_result);
+
+// 查詢特定醫院的科別
+$department_sql = "
+    SELECT department.department, department.department_id
+    FROM department
+    LEFT JOIN hospital ON department.hospital_id = hospital.hospital_id
+    WHERE hospital.hospital = '$姓名'
+";
+$department_result = mysqli_query($link, $department_sql);
+$departments = mysqli_fetch_all($department_result, MYSQLI_ASSOC);
+mysqli_free_result($department_result);
+
+// 關閉資料庫連線
+mysqli_close($link);
+?>
+
+<!-- HTML 顯示部分 -->
+<table>
+    <thead>
+        <tr style="background-color: orange;">
+            <th>姓名</th>
+            <th>帳號</th>
+            <th>等級</th>
+            <th>科別</th>
+        </tr>
+    </thead>
+    <tbody id="user-table-body">
+        <?php foreach ($rows as $row): ?>
+            <tr data-user-id="<?php echo $row['user_id']; ?>">
+                <td><?php echo htmlspecialchars($row['username']); ?></td>
+                <td><?php echo htmlspecialchars($row['account']); ?></td>
+                <td>
+                    <select class="grade-select" onchange="handleGradeChange(this, '<?php echo $row['user_id']; ?>')">
+                        <option value="2" <?php echo ($row['grade'] == '醫生') ? 'selected' : ''; ?>>醫生</option>
+                        <option value="3" <?php echo ($row['grade'] == '護士') ? 'selected' : ''; ?>>護士</option>
+                        <option value="1" <?php echo ($row['grade'] == '使用者') ? 'selected' : ''; ?>>使用者</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="department-select" 
+                            onchange="updateUser(this, '<?php echo $row['user_id']; ?>')" 
+                            <?php echo ($row['grade'] == '使用者') ? 'disabled' : ''; ?>>
+                        <option value="">無</option>
+                        <?php foreach ($departments as $department): ?>
+                            <option value="<?php echo htmlspecialchars($department['department_id']); ?>" 
+                                    <?php echo ($department['department_id'] == $row['department_id']) ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($department['department']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+
+<script>
+// 當等級選擇變更時處理的函數
+function handleGradeChange(selectElement, userId) {
+    const selectedValue = selectElement.value;
+    const row = selectElement.closest('tr');
+    const departmentSelect = row.querySelector('.department-select');
+
+    // 如果等級為 "使用者"，禁用科別選單並清空選擇
+    if (selectedValue == "1") {
+        departmentSelect.disabled = true;
+        departmentSelect.value = "";
+        updateUser(departmentSelect, userId); // 將科別更新為空
+    } else {
+        departmentSelect.disabled = false;
+    }
+
+    // 更新等級
+    updateUser(selectElement, userId);
+}
+
+// 更新使用者資料的函數
+function updateUser(selectElement, userId) {
+    const selectedValue = selectElement.value;
+    const fieldName = selectElement.classList.contains('grade-select') ? 'grade_id' : 'department_id';
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "醫院編輯.php", true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                alert(xhr.responseText);
+            } else {
+                console.error("更新失敗: ", xhr.responseText);
+                alert("更新失敗，請檢查控制台以獲取更多信息");
+            }
+        }
+    };
+    xhr.send("user_id=" + userId + "&field=" + fieldName + "&value=" + selectedValue);
+}
+</script>
+
+
+
 
 
     <!-- JavaScript Libraries -->

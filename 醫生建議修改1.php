@@ -1,72 +1,113 @@
 <?php
+// 開始 session（如果需要用到 session）
 session_start();
-include "db.php";
 
-// 獲取並清理 POST 請求的資料
-$id = trim($_POST['id']);
-$日期 = trim($_POST['appointment_date']);
-$病例號 = trim($_POST['clinic_number']);
-$患者姓名 = trim($_POST['patient_name']);
-$出生日期 = trim($_POST['birth_date']);
-$性別 = trim($_POST['gender']);
-$看診醫生 = trim($_POST['doctor_name']);
-$醫生建議 = trim($_POST['doctor_advice']);
-$是否回診 = isset($_POST['follow_up']) ? trim($_POST['follow_up']) : '';
+// 引入資料庫連線檔案
+include 'db.php'; // 假設資料庫連線的檔案名稱為 db.php
 
-// 防止 SQL 注入
-$日期 = mysqli_real_escape_string($link, $日期);
-$病例號 = mysqli_real_escape_string($link, $病例號);
-$患者姓名 = mysqli_real_escape_string($link, $患者姓名);
-$出生日期 = mysqli_real_escape_string($link, $出生日期);
-$性別 = mysqli_real_escape_string($link, $性別);
-$看診醫生 = mysqli_real_escape_string($link, $看診醫生);
-$醫生建議 = mysqli_real_escape_string($link, $醫生建議);
-$是否回診 = mysqli_real_escape_string($link, $是否回診);
+// 檢查表單是否提交
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  // 取得表單資料
+  $id = intval($_POST['id']); // 隱藏欄位傳遞的 ID
+  $appointment_date = $_POST['appointment_date'];
+  $consultationt = $_POST['consultationt']; // '早', '午', or '晚'
+  $clinic_number = $_POST['clinic_number'];
+  $patient_name = $_POST['patient_name'];
+  $birth_date = $_POST['birth_date'];
+  $gender = $_POST['gender']; // '男' or '女'
+  $department = $_POST['department'];
+  $doctor_name = $_POST['doctor_name'];
+  $doctor_advice = $_POST['doctor_advice'];
 
-// 檢查是否有空值
-$errors = [];
-if (empty($日期)) $errors[] = '日期未輸入';
-if (empty($病例號)) $errors[] = '病例號未輸入';
-if (empty($患者姓名)) $errors[] = '患者姓名未輸入';
-if (empty($出生日期)) $errors[] = '出生日期未輸入';
-if (empty($性別)) $errors[] = '性別未輸入';
-if (empty($看診醫生)) $errors[] = '看診醫生未輸入';
-if (empty($醫生建議)) $errors[] = '醫生建議未輸入';
+  // 將性別轉換為對應的 gender_id
+  $gender_id = ($gender === '男') ? 1 : (($gender === '女') ? 2 : null);
 
-if (!empty($errors)) {
-    echo "<script>
-            alert('" . implode("\\n", $errors) . "');
+  try {
+    // 查詢 consultationT_id
+    $consultationT_id_query = "SELECT consultationT_id FROM consultationt WHERE consultationT = ?";
+    $stmt1 = $link->prepare($consultationT_id_query);
+    $stmt1->bind_param('s', $consultationt);
+    $stmt1->execute();
+    $stmt1->bind_result($consultationT_id);
+    $stmt1->fetch();
+    $stmt1->close();
+
+    if (!$consultationT_id) {
+      throw new Exception("無效的看診時段！");
+    }
+
+    // 更新 `patient` 資料表
+    $update_patient_sql = "
+            UPDATE patient
+            SET
+                patientname = ?,
+                gender_id = ?,
+                birthday = ?,
+                medicalnumber = ?,
+                doctoradvice = ?
+            WHERE patient_id = ?
+        ";
+    $stmt = $link->prepare($update_patient_sql);
+    $stmt->bind_param(
+      'sisssi',
+      $patient_name,
+      $gender_id,
+      $birth_date,
+      $clinic_number,
+      $doctor_advice,
+      $id
+    );
+    $stmt->execute();
+
+    // 確保更新成功
+    if ($stmt->affected_rows > 0) {
+      // 更新成功，顯示 alert 並跳轉
+      echo "<script>
+            alert('修改成功！');
             window.location.href = 'd_advicesee.php';
           </script>";
-    exit;
-}
-
-// 更新紀錄，包括當前時間的 `created_at`
-$SQL指令 = "UPDATE patients SET 
-                dateday = '$日期', 
-                medicalnumber = '$病例號', 
-                patientname = '$患者姓名', 
-                birthdaydate = '$出生日期', 
-                gender = '$性別', 
-                doctorname = '$看診醫生', 
-                doctoradvice = '$醫生建議',
-                followup = '$是否回診',
-                created_at = NOW() -- 更新為當下的時間
-            WHERE id = $id";
-
-if (mysqli_query($link, $SQL指令)) {
-    echo "<script>
-            alert('資料已成功更新！');
+      exit();
+    } else {
+      // 若沒有受影響的列，可能是資料未修改或錯誤
+      echo "<script>
+            alert('沒有任何變更，請確認資料是否正確。');
             window.location.href = 'd_advicesee.php';
           </script>";
-} else {
-    $error_message = mysqli_error($link);
-    echo "<script>
-            alert('更新失敗，錯誤訊息: $error_message');
-            window.location.href = '醫生建議修改000.php?id=$id';
-          </script>";
-}
+      exit();
+    }
+    // 確保更新成功
+    // if ($stmt->affected_rows > 0) {
+    //     // 更新 `doctorshift` 資料表
+    //     $update_doctorshift_sql = "
+    //         UPDATE doctorshift
+    //         SET
+    //             consultationD = ?,
+    //             consultationT_id = ?,
+    //             clinicnumber_id = (SELECT clinicnumber_id FROM clinicnumber WHERE clinic_number = ? LIMIT 1)
+    //         WHERE doctorshift_id = (SELECT doctorshift_id FROM patient WHERE patient_id = ?)
+    //     ";
+    //     $stmt2 = $link->prepare($update_doctorshift_sql);
+    //     $stmt2->bind_param(
+    //         'sisi',
+    //         $appointment_date,
+    //         $consultationT_id,
+    //         $clinic_number,
+    //         $id
+    //     );
+    //     $stmt2->execute();
 
-// 關閉資料庫連線
-mysqli_close($link);
+    //     if ($stmt2->affected_rows > 0) {
+    //         echo "更新成功！";
+    //     } else {
+    //         echo "更新班表資料失敗，請確認資料正確性。";
+    //     }
+    // } else {
+    //     echo "更新患者資料失敗，請確認資料正確性。";
+    // }
+  } catch (Exception $e) {
+    // 捕獲異常並顯示錯誤訊息
+    echo "錯誤: " . $e->getMessage();
+  }
+  $link->close();
+}
 ?>

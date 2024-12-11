@@ -254,7 +254,7 @@ mysqli_close($link);
     <div class="container-fluid sticky-top bg-white shadow-sm mb-5">
         <div class="container">
             <nav class="navbar navbar-expand-lg bg-white navbar-light py-3 py-lg-0">
-                <a href="u_index.php" class="navbar-brand">
+                <a href="index.php" class="navbar-brand">
                     <h1 class="m-0 text-uppercase text-primary"><i class="fa fa-clinic-medical me-2"></i>健康醫療網站</h1>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
@@ -262,24 +262,11 @@ mysqli_close($link);
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="u_index.php" class="nav-item nav-link">首頁</a>
-                        <a href="u_medical.php" class="nav-item nav-link">相關醫療資訊</a>
-                        <a href="u_map.php" class="nav-item nav-link  active">預約及現場掛號人數</a>
-                        <a href="u_story.php" class="nav-item nav-link">患者故事與經驗分享</a>
-                        <div class="nav-item">
-                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
-                                aria-expanded="false">個人檔案</a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="u_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="u_change.php" class="dropdown-item">忘記密碼</a></li>
-                                <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
-                                <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
-                                <!-- 隱藏表單，用於提交刪除帳號請求 -->
-                                <form id="deleteAccountForm" action="刪除.php" method="POST" style="display:none;">
-                                    <input type="hidden" name="user_id" value="12345"> <!-- 用戶ID，從後端獲取 -->
-                                </form>
-                            </ul>
-                        </div>
+                        <a href="index.php" class="nav-item nav-link">首頁</a>
+                        <a href="medical.php" class="nav-item nav-link">相關醫療資訊</a>
+                        <a href="map.php" class="nav-item nav-link active">預約及現場掛號人數</a>
+                        <a href="story.php" class="nav-item nav-link">患者故事與經驗分享</a>
+                        <a href="login.php" class="nav-item nav-link">登入</a>
                     </div>
                 </div>
             </nav>

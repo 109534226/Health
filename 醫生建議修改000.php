@@ -175,60 +175,84 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                 ----<醫生建議修改>----
             </h1>
             <br />
+            <?php
+            // 檢查是否有提供 POST 請求中的 "id"，且 "id" 不為空
+            if (isset($_POST['id']) && !empty($_POST['id'])) {
+                $id = $_POST['id']; // 獲取並存儲提交的 "id"
+            
+                // // 測試輸出所有提交過來的資料，確認是否正確
+                // foreach ($_POST as $key => $value) {
+                //     echo htmlspecialchars($key) . ": " . htmlspecialchars($value) . "<br>";
+                // }
+            
+                // 使用傳遞過來的資料來初始化表單
+                $appointment_date = $_POST['consultationD'];
+                $consultationT = $_POST['consultationT'];
+                $medicalnumber = $_POST['medicalnumber'];
+                $patientname = $_POST['patientname'];
+                $birthday = $_POST['birthday'];
+                $gender = $_POST['gender'];
+                $department = $_POST['department'];
+                $doctorname = $_POST['doctorname'];
+                $doctoradvice = $_POST['doctoradvice'];
 
+            } else {
+                echo "未提供 ID。"; // 如果未提供 "id"，則顯示錯誤消息
+                exit; // 終止腳本執行
+            }
+            ?>
 
             <div class="form-container">
-                <form id="updateForm" action="醫生建議修改1.php" method="post">
-                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($row['id']); ?>">
+                <form id="updateForm" action="醫生建議修改1.php" method="post" onsubmit="return confirmUpdate()">
+                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($id); ?>">
 
                     <label for="appointment_date">看診日期</label>
                     <input id="appointment_date" type="date" name="appointment_date"
-                        value="<?php echo htmlspecialchars($row['dateday']); ?>" required />
+                        value="<?php echo htmlspecialchars($appointment_date); ?>" readonly />
 
                     <label for="consultationt">看診時段</label>
-                    <select id="consultationt" name="consultationt" required>
+                    <select id="consultationt" name="consultationt" disabled>
                         <option value="">選擇時段</option>
-                        <option value="早" <?php echo $row['consultationT'] == '早' ? 'selected' : ''; ?>>早</option>
-                        <option value="午" <?php echo $row['consultationT'] == '午' ? 'selected' : ''; ?>>午</option>
-                        <option value="晚" <?php echo $row['consultationT'] == '晚' ? 'selected' : ''; ?>>晚</option>
+                        <option value="早" <?php echo $consultationT == '早' ? 'selected' : ''; ?>>早</option>
+                        <option value="午" <?php echo $consultationT == '午' ? 'selected' : ''; ?>>午</option>
+                        <option value="晚" <?php echo $consultationT == '晚' ? 'selected' : ''; ?>>晚</option>
                     </select><br>
-
 
                     <label for="clinic_number">病歷號</label>
                     <input id="clinic_number" type="text" name="clinic_number"
-                        value="<?php echo htmlspecialchars($row['medicalnumber']); ?>" required />
+                        value="<?php echo htmlspecialchars($medicalnumber); ?>" readonly />
 
                     <label for="patient_name">患者姓名</label>
                     <input id="patient_name" type="text" name="patient_name"
-                        value="<?php echo htmlspecialchars($row['patientname']); ?>" required />
+                        value="<?php echo htmlspecialchars($patientname); ?>" readonly />
 
                     <label>出生年月日:</label>
-                    <input type="date" name="birth_date" value="<?php echo htmlspecialchars($row['birthdaydate']); ?>"
-                        required>
+                    <input type="date" name="birth_date" value="<?php echo htmlspecialchars($birthday); ?>" readonly>
 
                     <label for="gender">性別</label>
-                    <select id="gender" name="gender" required>
+                    <select id="gender" name="gender" disabled>
                         <option value="">選擇性別</option>
-                        <option value="男" <?php echo $row['gender'] == '男' ? 'selected' : ''; ?>>男</option>
-                        <option value="女" <?php echo $row['gender'] == '女' ? 'selected' : ''; ?>>女</option>
+                        <option value="男" <?php echo $gender == '男' ? 'selected' : ''; ?>>男</option>
+                        <option value="女" <?php echo $gender == '女' ? 'selected' : ''; ?>>女</option>
                     </select>
 
                     <label for="department">看診科別</label>
                     <input id="department" type="text" name="department"
-                        value="<?php echo htmlspecialchars($row['department']); ?>" required />
+                        value="<?php echo htmlspecialchars($department); ?>" readonly />
 
                     <label for="doctor_name">看診醫生</label>
                     <input id="doctor_name" type="text" name="doctor_name"
-                        value="<?php echo htmlspecialchars($row['doctorname']); ?>" required />
+                        value="<?php echo htmlspecialchars($doctorname); ?>" readonly />
 
                     <label for="doctor_advice">醫生建議</label>
                     <input id="doctor_advice" type="text" name="doctor_advice"
-                        value="<?php echo htmlspecialchars($row['doctoradvice']); ?>" required />
-
-                    <br>
-                    <button type="button" class="aa" onclick="confirmUpdate()">更新</button>
+                        value="<?php echo htmlspecialchars($doctoradvice); ?>" required />
+                    <br /><br />
+                    <button type="submit" class="aa">更新</button>
                 </form>
+
             </div>
+
 
             <script>
                 function confirmUpdate() {
@@ -240,12 +264,12 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                         患者姓名: form.patient_name.value,
                         出生日期: form.birth_date.value,
                         性別: form.gender.options[form.gender.selectedIndex].text,
-                        科別: form.department.options[form.department.selectedIndex].text,
-                        醫生: form.doctor_name.options[form.doctor_name.selectedIndex].text,
+                        科別: form.department.value,
+                        醫生: form.doctor_name.value,
                         建議: form.doctor_advice.value
                     };
 
-                    const confirmation = confirm(`確認修改以下資料嗎？\n\n` +
+                    const confirmation = confirm(`確認修改以下資料嗎？\n` +
                         `日期: ${data.日期}\n時段: ${data.時段}\n病歷號: ${data.病歷號}\n患者姓名: ${data.患者姓名}\n` +
                         `出生日期: ${data.出生日期}\n性別: ${data.性別}\n科別: ${data.科別}\n醫生: ${data.醫生}\n建議: ${data.建議}`);
 
@@ -256,6 +280,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                     }
                 }
             </script>
+
 
             <style>
                 body {

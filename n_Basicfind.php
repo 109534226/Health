@@ -189,7 +189,7 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
             include "db.php"; // 連接資料庫
             
             // 擷取搜尋的資料
-            $搜尋詞 = isset($_POST['search']) ? $_POST['search'] : '';
+            $搜尋詞 = isset($_POST['search']) ? trim($_POST['search']) : '';
 
             // 如果沒有輸入，顯示請輸入搜尋資料
             if (empty($搜尋詞)) {
@@ -199,6 +199,12 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
     </script>";
                 exit;
             }
+
+            // 計算分頁的起始記錄
+            $當前頁碼 = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+            $每頁記錄數 = 15;
+            $當前頁碼 = max(1, $當前頁碼);
+            $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
 
             // 準備聯表查詢
             $查詢語句 = "
@@ -213,19 +219,14 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
         p.medicalhistory AS 歷史重大疾病,
         p.created_at AS 紀錄創建時間,
         ds.consultationD AS 看診日期,
-        ds.consultationT_id AS 看診時段
+        ct.consultationT AS 看診時段
     FROM patient p
     LEFT JOIN gender g ON p.gender_id = g.gender_id
     LEFT JOIN doctorshift ds ON p.doctorshift_id = ds.doctorshift_id
+    LEFT JOIN consultationt ct ON ds.consultationT_id = ct.consultationT_id
     WHERE p.patientname = ?
     ORDER BY p.patient_id ASC
     LIMIT ?, ?";
-
-            // 計算分頁的起始記錄
-            $當前頁碼 = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-            $每頁記錄數 = 15;
-            $當前頁碼 = max(1, $當前頁碼);
-            $起始位置 = ($當前頁碼 - 1) * $每頁記錄數;
 
             // 準備查詢並執行
             $查詢準備 = $link->prepare($查詢語句);
@@ -284,30 +285,25 @@ if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
                                 <td><?php echo htmlspecialchars($資料列['過敏藥物']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['歷史重大疾病']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['看診日期']); ?></td>
-                                <td>
-                                    <?php
-                                    // 將看診時段的數字 ID 轉換為文字描述
-                                    switch ($資料列['看診時段']) {
-                                        case 1:
-                                            echo '早';
-                                            break;
-                                        case 2:
-                                            echo '午';
-                                            break;
-                                        case 3:
-                                            echo '晚';
-                                            break;
-                                        default:
-                                            echo '未知時段';
-                                    }
-                                    ?>
-                                </td>
+                                <td><?php echo htmlspecialchars($資料列['看診時段']); ?></td>
                                 <td><?php echo htmlspecialchars($資料列['紀錄創建時間']); ?></td>
                             </tr>
                         <?php endwhile; ?>
                     </tbody>
                 </table>
             </div>
+
+            <?php if ($總頁數 > 1): ?>
+                <div class="pagination">
+                    <?php for ($i = 1; $i <= $總頁數; $i++): ?>
+                        <a href="?page=<?php echo $i; ?>&search=<?php echo urlencode($搜尋詞); ?>" <?php if ($i == $當前頁碼)
+                                  echo 'class="active"'; ?>>
+                            <?php echo $i; ?>
+                        </a>
+                    <?php endfor; ?>
+                </div>
+            <?php endif; ?>
+
 
 
             <div class="pagination">

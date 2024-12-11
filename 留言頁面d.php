@@ -1,38 +1,34 @@
 <?php
-include "db.php"; // 連接資料庫
+session_start();
 
-// 查詢留言記錄資料
-$查詢語句 = "
-    SELECT 
-        msg.*, 
-        u.name AS 發送者姓名, 
-        p.name AS 接收者姓名 
-    FROM messenger msg
-    LEFT JOIN medical med ON msg.medicalS_id = med.user_id
-    LEFT JOIN `user` u ON msg.medicalS_id = u.user_id
-    LEFT JOIN `user` p ON msg.medicalP_id = p.user_id
-    WHERE msg.messenger_id = ?
-";
+// 禁止瀏覽器緩存頁面
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
 
-// 準備並執行查詢
-$查詢準備 = mysqli_prepare($link, $查詢語句);
-mysqli_stmt_bind_param($查詢準備, "i", $留言ID);
-mysqli_stmt_execute($查詢準備);
-$查詢結果 = mysqli_stmt_get_result($查詢準備);
-
-if (!$查詢結果) {
-    die("查詢留言記錄失敗: " . mysqli_error($link));
+// 確保用戶已經登入，否則重定向到登入頁面
+if (!isset($_SESSION["登入狀態"]) || $_SESSION["登入狀態"] !== true) {
+    echo "<script>
+            alert('你還沒有登入，請先登入帳號。');
+            window.location.href = 'login.php';
+          </script>";
+    exit();
 }
 
-//  顯示查詢結果
-// if ($資料列 = mysqli_fetch_assoc($查詢結果)) {
-//     echo "留言內容：" . htmlspecialchars($資料列['messenger']);
-//     // 顯示其他相關訊息...
-// } else {
-//     echo "查無留言記錄。";
-// }
-?>
+// 檢查 "帳號" 和 "姓名" 是否存在於 $_SESSION 中
+if (isset($_SESSION["帳號"]) && isset($_SESSION["姓名"])) {
+    // 獲取用戶帳號和姓名
+    $帳號 = $_SESSION['帳號'];
+    $姓名 = $_SESSION['姓名'];
+} else {
+    echo "<script>
+            alert('會話過期或資料遺失，請重新登入。');
+            window.location.href = 'login.php';
+          </script>";
+    exit();
+}
 
+?>
 
 <input type="hidden" name="sender" value="<?php echo htmlspecialchars($_SESSION['user_role']); ?>">
 
@@ -106,7 +102,7 @@ if (!$查詢結果) {
         }
     </style>
     <!-- 設置每 5 秒自動刷新頁面 -->
-    <meta http-equiv="refresh" content="5">
+    <meta http-equiv="refresh" content="10">
 </head>
 
 <body>
@@ -122,18 +118,18 @@ if (!$查詢結果) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto py-0">
-                        <a href="留言頁面n.php?id=<?php echo htmlspecialchars($patient_id); ?>"
+                        <a href="留言頁面d.php?id=<?php echo htmlspecialchars($patient_id); ?>"
                             class="nav-item nav-link active">留言</a>
-                        <a href="n_Basicsee.php" class="nav-item nav-link">患者基本資訊</a>
-                        <a href="n_recordssee.php" class="nav-item nav-link">病例歷史紀錄</a>
-                        <a href="n_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
-                        <a href="n_advicesee.php" class="nav-item nav-link">醫生建議</a>
+                        <a href="d_Basicsee.php" class="nav-item nav-link">患者資料</a>
+                        <a href="d_recordssee.php" class="nav-item nav-link">看診紀錄</a>
+                        <a href="d_timesee.php" class="nav-item nav-link">醫生的班表時段</a>
+                        <a href="d_advicesee.php" class="nav-item nav-link">醫生建議</a>
                         <div class="nav-item">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false">個人檔案</a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a href="n_profile.php" class="dropdown-item">關於我</a></li>
-                                <li><a href="n_change.php" class="dropdown-item">變更密碼</a></li>
+                                <li><a href="d_profile.php" class="dropdown-item">關於我</a></li>
+                                <li><a href="d_change.php" class="dropdown-item">變更密碼</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showLogoutBox()">登出</a></li>
                                 <li><a href="#" class="dropdown-item" onclick="showDeleteAccountBox()">刪除帳號</a></li>
                                 <!-- 隱藏表單，用於提交刪除帳號請求 -->
@@ -157,21 +153,68 @@ if (!$查詢結果) {
 
     <br /> -->
 
+
+    <?php
+    include "db.php";
+
+    // 查詢留言記錄，包含關聯表的詳細資訊
+    $query = "
+    SELECT 
+        m.messenger_id,
+        s_medical.medical_id AS sender_medical_id,
+        s_hospital.hospital AS sender_hospital_name,
+        s_department.department AS sender_department_name,
+        s_user.name AS sender_name,
+        s_user.grade_id AS sender_role_id,
+        r_medical.medical_id AS receiver_medical_id,
+        r_hospital.hospital AS receiver_hospital_name,
+        r_department.department AS receiver_department_name,
+        r_user.name AS receiver_name,
+        r_user.grade_id AS receiver_role_id,
+        m.messenger AS message,
+        m.timestamp AS message_time,
+        sg.grade AS sender_role,
+        rg.grade AS receiver_role
+    FROM messenger m
+    JOIN medical s_medical ON m.medicalS_id = s_medical.medical_id
+    JOIN user s_user ON s_medical.user_id = s_user.user_id
+    JOIN department s_department ON s_medical.department_id = s_department.department_id
+    JOIN hospital s_hospital ON s_department.hospital_id = s_hospital.hospital_id
+    JOIN grade sg ON s_user.grade_id = sg.grade_id
+    JOIN medical r_medical ON m.medicalP_id = r_medical.medical_id
+    JOIN user r_user ON r_medical.user_id = r_user.user_id
+    JOIN department r_department ON r_medical.department_id = r_department.department_id
+    JOIN hospital r_hospital ON r_department.hospital_id = r_hospital.hospital_id
+    JOIN grade rg ON r_user.grade_id = rg.grade_id
+    ORDER BY m.timestamp DESC
+";
+
+    $留言結果 = $link->query($query);
+    ?>
     <h2>留言記錄</h2>
     <div id="messages">
         <?php if (mysqli_num_rows($留言結果) > 0): ?>
             <ul>
                 <?php while ($row = mysqli_fetch_assoc($留言結果)): ?>
                     <li>
-                        <strong><?php echo htmlspecialchars($row['sender_name']); ?>
-                            (<?php echo htmlspecialchars($row['sender_role']); ?>)</strong>
+                        (留言時間:
+                        <small><?php echo htmlspecialchars($row['message_time']); ?></small>)
+                        <br />
+                        <strong>
+                            <?php echo htmlspecialchars($row['sender_name']); ?>
+                            (<?php echo htmlspecialchars($row['sender_role']); ?>,
+                            <?php echo htmlspecialchars($row['sender_hospital_name']); ?>,
+                            <?php echo htmlspecialchars($row['sender_department_name']); ?>)
+                        </strong>
                         對
-                        <strong><?php echo htmlspecialchars($row['receiver_name']); ?>
-                            (<?php echo htmlspecialchars($row['receiver_role']); ?>)</strong>
+                        <strong>
+                            <?php echo htmlspecialchars($row['receiver_name']); ?>
+                            (<?php echo htmlspecialchars($row['receiver_role']); ?>,
+                            <?php echo htmlspecialchars($row['receiver_hospital_name']); ?>,
+                            <?php echo htmlspecialchars($row['receiver_department_name']); ?>)
+                        </strong>
                         說：
                         <?php echo htmlspecialchars($row['message']); ?>
-
-                        <small><?php echo htmlspecialchars($row['message_time']); ?></small>
                     </li>
                 <?php endwhile; ?>
             </ul>
@@ -182,15 +225,80 @@ if (!$查詢結果) {
 
     <br />
 
+    <?php
+    session_start(); // 確保 session 已啟用
+    include "db.php"; // 資料庫連接
+
+    $logged_in_account = $_SESSION['帳號'];
+
+    // 查詢所有醫生和護士，排除當前登入的使用者
+    $查詢接收者 = "SELECT `user_id`, `name`, `account` FROM user WHERE grade_id IN (2, 3) AND account != '$logged_in_account'";
+    $接收者結果 = mysqli_query($link, $查詢接收者);
+    ?>
+
     <h3>發送新留言</h3>
-    <form method="POST" action="醫生護士互相留言處理d.php">
-        <label for="receiver">接收者帳號：</label>
-        <input type="text" id="receiver" name="receiver_account" required><br>
-        <textarea name="message" rows="4" cols="50" placeholder="輸入您的留言" required></textarea><br>
+    <form id="messageForm" method="POST" action="醫生護士互相留言處理d.php">
+        <div style="margin-bottom: 10px;">
+            <label for="receiver">接收者姓名：</label>
+            <select id="receiver" name="receiver_name" required style="width: 300px;">
+                <option value="" disabled selected>選擇接收者姓名</option>
+                <?php
+                if ($接收者結果 && mysqli_num_rows($接收者結果) > 0) {
+                    while ($行 = mysqli_fetch_assoc($接收者結果)) {
+                        echo '<option value="' . htmlspecialchars($行['account']) . '">' . htmlspecialchars($行['name']) . '</option>';
+                    }
+                } else {
+                    echo '<option value="" disabled>沒有可選擇的接收者</option>';
+                }
+                ?>
+            </select>
+        </div>
+
+        <div style="margin-bottom: 10px;">
+            <label for="message">輸入您的留言：</label><br>
+            <textarea id="message" name="message" rows="4" cols="50" placeholder="輸入您的留言內容" required
+                style="width: 300px;"></textarea><br>
+        </div>
+
         <button type="submit">送出</button>
+        <button type="reset">取消</button>
     </form>
 
 
+
+    <!-- <?php
+    include "db.php"; // 資料庫連接
+    
+    // 查詢所有醫生和護士
+    $查詢接收者 = "SELECT `user_id`, `name` , `account` FROM user WHERE grade_id IN (2, 3)"; // 2 代表醫生，3 代表護士
+    $接收者結果 = mysqli_query($link, $查詢接收者);
+    ?>
+
+<h3>發送新留言</h3>
+    <form id="messageForm" method="POST" action="醫生護士互相留言處理d.php">
+        <div style="margin-bottom: 10px;">
+            <label for="receiver">接收者姓名：</label>
+            <select id="receiver" name="receiver_name" required style="width: 300px;">
+                <option value="" disabled selected>選擇接收者姓名</option>
+                <?php
+                if ($接收者結果 && mysqli_num_rows($接收者結果) > 0) {
+                    while ($行 = mysqli_fetch_assoc($接收者結果)) {
+                        echo '<option value="' . htmlspecialchars($行['account']) . '">' . htmlspecialchars($行['name']) . '</option>';
+                    }
+                }
+                ?>
+            </select>
+        </div>
+
+        <div style="margin-bottom: 10px;">
+            <label for="message">輸入您的留言：</label><br>
+            <textarea id="message" name="message" rows="4" cols="50" placeholder="輸入您的留言內容" required
+                style="width: 300px;"></textarea><br>
+        </div>
+
+        <button type="submit">送出</button>
+        <button type="reset">取消</button>
+    </form> -->
 
     <!-- 回到頁首(Top 箭頭 -->
     <a href="#" class="btn btn-lg btn-primary  back-to-top"><i class="bi bi-arrow-up"></i></a>
