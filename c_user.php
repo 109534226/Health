@@ -232,6 +232,7 @@ $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
 <!-- 顯示新增用戶的連結，點擊後可以跳轉到新增用戶的表單 -->
 <a href="新增用戶.php">新增用戶</a>
+<a href="黑名單.php">黑名單</a>
 
 <!-- 建立一個表格來顯示用戶資料 -->
 <table width="100%" border="1">
